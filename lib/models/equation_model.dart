@@ -1,12 +1,12 @@
-/// Represents an equation balance scale problem supporting addition, subtraction, division, and multi-X isolation.
+/// Represents an equation balance scale problem where the student isolates X to discover its value.
 class EquationModel {
   final String id;
-  final String equationText; // e.g. "2x + 2 = 8"
+  final String equationText; // e.g. "x + 3 = 9"
   final int initialLeftVariables;
   final int initialLeftUnits;
   final int initialRightVariables;
   final int initialRightUnits;
-  final int targetXValue; // Solution e.g. 3
+  final int targetXValue; // Solution e.g. 6
 
   int leftVariables;
   int leftUnits;
@@ -48,10 +48,12 @@ class EquationModel {
   /// Problem is SOLVED when X is isolated AND scale is balanced!
   bool get isSolved => isBalanced && isXIsolated;
 
-  /// Scale tilt angle in radians (-0.15 to +0.15)
+  /// Scale tilt angle in radians (-0.22 to +0.22 radians => ~12.5 degrees tilt for obvious visibility!)
   double get tiltAngle {
     if (weightDifference == 0) return 0.0;
-    return (weightDifference.clamp(-6, 6) * 0.025);
+    // Visibly tilt left or right depending on weight difference
+    final diff = weightDifference.clamp(-5, 5);
+    return (diff * 0.045);
   }
 
   EquationModel copyWith({
@@ -75,7 +77,6 @@ class EquationModel {
     );
   }
 
-  /// Sample equation: 2x + 2 = 8. Starts balanced with 2X + 2 on left, 8 on right.
   factory EquationModel.sampleTwoStep() {
     return EquationModel(
       id: 'eq_two_step',

@@ -5,10 +5,21 @@ enum DifficultyLevel {
   level1OneStep,    // Solve: x + 3 = 9
   level2OneStep,    // Solve: x + 4 = 10
   level3OneStep,    // Solve: x + 2 = 7
-  level4TwoStep,    // Solve: 2x + 2 = 8 (Requires Division)
+  level4TwoStep,    // Solve: 2x + 2 = 8
 }
 
-/// Generates progressive "Solve for X" balance scale equations.
+class ActionOptionData {
+  final int value;
+  final String label;
+  final bool isDivision;
+
+  const ActionOptionData({
+    required this.value,
+    required this.label,
+    this.isDivision = false,
+  });
+}
+
 class EquationGeneratorService {
   final Random _random = Random();
 
@@ -19,7 +30,7 @@ class EquationGeneratorService {
       case DifficultyLevel.level1OneStep:
         final a = 3;
         final targetX = 6;
-        final b = targetX + a; // 9
+        final b = targetX + a;
 
         return EquationModel(
           id: id,
@@ -36,8 +47,8 @@ class EquationGeneratorService {
         );
 
       case DifficultyLevel.level2OneStep:
-        final a = _random.nextInt(3) + 2; // 2, 3, 4
-        final targetX = _random.nextInt(4) + 4; // 4..7
+        final a = 4;
+        final targetX = 6;
         final b = targetX + a;
 
         return EquationModel(
@@ -55,8 +66,8 @@ class EquationGeneratorService {
         );
 
       case DifficultyLevel.level3OneStep:
-        final a = _random.nextInt(4) + 1; // 1..4
-        final targetX = _random.nextInt(5) + 3; // 3..7
+        final a = 2;
+        final targetX = 5;
         final b = targetX + a;
 
         return EquationModel(
@@ -77,7 +88,7 @@ class EquationGeneratorService {
         final coeffX = 2;
         final a = 2;
         final targetX = 3;
-        final b = (coeffX * targetX) + a; // 8
+        final b = (coeffX * targetX) + a;
 
         return EquationModel(
           id: id,
@@ -93,5 +104,30 @@ class EquationGeneratorService {
           rightUnits: b,
         );
     }
+  }
+
+  /// Generate 5 clean, distinct options to keep the UI minimal & un-cluttered.
+  List<ActionOptionData> generateActionPaletteOptions(EquationModel equation) {
+    final targetSub = equation.initialLeftUnits;
+
+    final options = <ActionOptionData>[
+      ActionOptionData(value: -targetSub, label: '- $targetSub'), // Correct
+      ActionOptionData(value: targetSub, label: '+ $targetSub'),  // Distractor
+      const ActionOptionData(value: -1, label: '- 1'),
+      const ActionOptionData(value: 1, label: '+ 1'),
+    ];
+
+    if (equation.leftVariables > 1) {
+      options.add(ActionOptionData(
+        value: equation.leftVariables,
+        label: '÷ ${equation.leftVariables}',
+        isDivision: true,
+      ));
+    } else {
+      options.add(const ActionOptionData(value: -2, label: '- 2'));
+    }
+
+    options.shuffle(_random);
+    return options;
   }
 }
