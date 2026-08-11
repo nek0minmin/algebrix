@@ -8,6 +8,13 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final IconData? icon;
+  final Widget? iconWidget;
+  final double height;
+  final double? width;
+  final double borderRadius;
+  final Gradient? gradient;
+  final Color? backgroundColor;
+  final Color? textColor;
 
   const PrimaryButton({
     super.key,
@@ -15,19 +22,32 @@ class PrimaryButton extends StatelessWidget {
     this.onPressed,
     this.isLoading = false,
     this.icon,
+    this.iconWidget,
+    this.height = 52,
+    this.width,
+    this.borderRadius = 30,
+    this.gradient,
+    this.backgroundColor,
+    this.textColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final bool isDisabled = onPressed == null || isLoading;
+    final effectiveGradient = isDisabled
+        ? null
+        : (gradient ?? (backgroundColor == null ? AppColors.primaryGradient : null));
+    final effectiveColor = isDisabled
+        ? AppColors.divider
+        : (backgroundColor ?? (gradient == null ? null : Colors.transparent));
 
     return Container(
-      height: 52,
-      width: double.infinity,
+      height: height,
+      width: width ?? double.infinity,
       decoration: BoxDecoration(
-        gradient: isDisabled ? null : AppColors.primaryGradient,
-        color: isDisabled ? AppColors.divider : null,
-        borderRadius: BorderRadius.circular(30),
+        gradient: effectiveGradient,
+        color: effectiveColor,
+        borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: isDisabled
             ? []
             : [
@@ -42,7 +62,7 @@ class PrimaryButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: isDisabled ? null : onPressed,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(borderRadius),
           child: Center(
             child: isLoading
                 ? const SizedBox(
@@ -56,13 +76,22 @@ class PrimaryButton extends StatelessWidget {
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (icon != null) ...[
-                        Icon(icon, color: Colors.white, size: 20),
+                      if (iconWidget != null) ...[
+                        iconWidget!,
+                        const SizedBox(width: 8),
+                      ] else if (icon != null) ...[
+                        Icon(
+                          icon,
+                          color: textColor ?? Colors.white,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                       ],
                       Text(
                         label,
-                        style: AppTextStyles.button,
+                        style: AppTextStyles.button.copyWith(
+                          color: textColor ?? Colors.white,
+                        ),
                       ),
                     ],
                   ),

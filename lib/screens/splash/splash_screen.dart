@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_strings.dart';
 import 'package:algebrix/navigation/main_shell.dart';
+import 'package:algebrix/screens/auth/login_screen.dart';
+import 'package:algebrix/core/providers/auth_provider.dart';
 
 /// Animated splash screen shown on app launch.
 class SplashScreen extends StatefulWidget {
@@ -50,12 +53,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    // Navigate to MainShell after 2.5 seconds
+    // Navigate to LoginScreen or MainShell after splash animation
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final targetScreen = authProvider.isAuthenticated
+            ? const MainShell()
+            : const LoginScreen();
+
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const MainShell(),
+            pageBuilder: (context, animation, secondaryAnimation) => targetScreen,
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(
                 opacity: animation,
