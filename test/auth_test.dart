@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +14,7 @@ import 'package:algebrix/screens/auth/forgot_password_screen.dart';
 import 'package:algebrix/screens/auth/otp_verification_screen.dart';
 import 'package:algebrix/screens/auth/new_password_screen.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
+import 'package:algebrix/models/user_model.dart';
 
 void main() {
   Widget createTestableWidget(Widget child) {
@@ -168,6 +171,55 @@ void main() {
   });
 
   group('AuthProvider & AuthService OTP and Rate Limit Unit Tests', () {
+    test('sign out remains pending until provider cleanup finishes', () async {
+      final googleSignOut = Completer<void>();
+      final service = AuthService(googleSignOut: () => googleSignOut.future);
+
+      var completed = false;
+      final signOut = service.signOut().then((_) => completed = true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(completed, isFalse);
+      googleSignOut.complete();
+      await signOut;
+      expect(completed, isTrue);
+    });
+
+    test('sign out reports provider cleanup failure', () async {
+      final service = AuthService(
+        googleSignOut: () async => throw Exception('Google cleanup failed.'),
+      );
+
+      await expectLater(service.signOut(), throwsException);
+      expect(service.errorMessage, 'Sign out failed. Please try again.');
+    });
+
+    test('AuthProvider clears its user only after sign out completes', () async {
+      final signOut = Completer<void>();
+      final service = _PendingSignOutAuthService(signOut.future);
+      final provider = AuthProvider(authService: service);
+
+      expect(provider.currentUser, isNotNull);
+      final pendingLogout = provider.logout();
+      await Future<void>.delayed(Duration.zero);
+      expect(provider.currentUser, isNotNull);
+
+      signOut.complete();
+      await pendingLogout;
+      expect(provider.currentUser, isNull);
+    });
+
+    test('AuthProvider clears its user when provider cleanup fails', () async {
+      final service = _FailingSignOutAuthService();
+      final provider = AuthProvider(authService: service);
+
+      expect(provider.currentUser, isNotNull);
+      await provider.logout();
+
+      expect(provider.currentUser, isNull);
+      expect(provider.errorMessage, contains('Google cleanup failed'));
+    });
+
     test('verifyEmailOTP sets error when Supabase is uninitialized', () async {
       final authProvider = AuthProvider(authService: AuthService());
       final success = await authProvider.verifyEmailOTP(
@@ -199,4 +251,33 @@ void main() {
       expect(authProvider.errorMessage, contains('Supabase client is not initialized'));
     });
   });
+}
+
+class _PendingSignOutAuthService extends AuthService {
+  _PendingSignOutAuthService(this.pendingSignOut)
+    : super(googleSignOut: _noopSignOut);
+
+  final Future<void> pendingSignOut;
+
+  static Future<void> _noopSignOut() async {}
+
+  @override
+  UserModel? getCurrentUser() => UserModel.placeholder();
+
+  @override
+  Future<void> signOut() => pendingSignOut;
+}
+
+class _FailingSignOutAuthService extends AuthService {
+  _FailingSignOutAuthService() : super(googleSignOut: _noopSignOut);
+
+  static Future<void> _noopSignOut() async {}
+
+  @override
+  UserModel? getCurrentUser() => UserModel.placeholder();
+
+  @override
+  Future<void> signOut() async {
+    throw Exception('Google cleanup failed.');
+  }
 }

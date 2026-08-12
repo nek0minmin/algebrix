@@ -274,13 +274,16 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> signOut() async {
     _setLoading(true);
+    _clearError();
 
     try {
       await _authService.signOut();
-      _currentUser = null;
     } catch (e) {
-      _errorMessage = _formatErrorMessage(e.toString());
+      _errorMessage = _formatErrorMessage(
+        _authService.errorMessage ?? e.toString(),
+      );
     } finally {
+      _currentUser = null;
       _setLoading(false);
     }
   }

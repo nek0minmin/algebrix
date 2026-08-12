@@ -4,8 +4,11 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/app_constants.dart';
 import 'core/providers/auth_provider.dart';
+import 'core/providers/lesson_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'models/lesson_progress_model.dart';
 import 'services/auth_service.dart';
+import 'services/progress_repository.dart';
 import 'screens/splash/splash_screen.dart';
 
 void main() async {
@@ -47,7 +50,25 @@ class AlgebrixApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AuthService>(create: (_) => AuthService()),
         ChangeNotifierProvider<AuthProvider>(
-          create: (context) => AuthProvider(authService: context.read<AuthService>()),
+          create: (context) =>
+              AuthProvider(authService: context.read<AuthService>()),
+        ),
+        Provider<ProgressRepository>(
+          create: (_) => _createProgressRepository(),
+        ),
+        ChangeNotifierProxyProvider2<
+          AuthProvider,
+          ProgressRepository,
+          LessonProvider
+        >(
+          create: (context) =>
+              LessonProvider(repository: context.read<ProgressRepository>()),
+          update: (context, authProvider, repository, lessonProvider) {
+            final provider =
+                lessonProvider ?? LessonProvider(repository: repository);
+            provider.bindAccount(authProvider.currentUser?.id);
+            return provider;
+          },
         ),
       ],
       child: MaterialApp(
@@ -58,4 +79,34 @@ class AlgebrixApp extends StatelessWidget {
       ),
     );
   }
+}
+
+ProgressRepository _createProgressRepository() {
+  try {
+    return SupabaseProgressRepository();
+  } catch (_) {
+    return const _UnavailableProgressRepository();
+  }
+}
+
+class _UnavailableProgressRepository implements ProgressRepository {
+  const _UnavailableProgressRepository();
+
+  @override
+  Future<LearningProfileSnapshot> fetchCurrentProfile() =>
+      Future.error(StateError('Supabase progress is unavailable.'));
+
+  @override
+  Future<List<LessonProgress>> fetchModuleProgress(String moduleId) =>
+      Future.error(StateError('Supabase progress is unavailable.'));
+
+  @override
+  Future<RecordLessonStepResult> recordLessonStep({
+    required String moduleId,
+    required String lessonId,
+    required String stepId,
+    required int stepIndex,
+    bool answerCorrect = false,
+    int contentVersion = 1,
+  }) => Future.error(StateError('Supabase progress is unavailable.'));
 }

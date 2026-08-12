@@ -3,12 +3,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:algebrix/models/user_model.dart';
 
+typedef GoogleSignOut = Future<void> Function();
+
 /// Authentication service managing auth state, Provider state updates,
 /// 6-digit OTP email verification, password recovery, and Supabase Auth.
 class AuthService extends ChangeNotifier {
   final SupabaseClient? _customClient;
+  final GoogleSignOut _googleSignOut;
 
-  AuthService({SupabaseClient? client}) : _customClient = client;
+  AuthService({SupabaseClient? client, GoogleSignOut? googleSignOut})
+    : _customClient = client,
+      _googleSignOut = googleSignOut ?? _defaultGoogleSignOut;
+
+  static Future<void> _defaultGoogleSignOut() => GoogleSignIn().signOut();
 
   SupabaseClient? get _client {
     if (_customClient != null) return _customClient;
@@ -506,20 +513,34 @@ class AuthService extends ChangeNotifier {
 
   /// Sign out the current user.
   Future<void> signOut() async {
-    logout();
-  }
-
-  void logout() async {
+    Object? failure;
+    StackTrace? failureStackTrace;
     final client = _client;
     if (client != null) {
       try {
         await client.auth.signOut();
-      } catch (_) {}
+      } catch (error, stackTrace) {
+        failure = error;
+        failureStackTrace = stackTrace;
+      }
     }
     try {
-      await GoogleSignIn().signOut();
-    } catch (_) {}
+      await _googleSignOut();
+    } catch (error, stackTrace) {
+      failure ??= error;
+      failureStackTrace ??= stackTrace;
+    }
+
     _currentUser = null;
+    if (failure != null) {
+      _errorMessage = _parseGeneralException(
+        failure,
+        fallback: 'Sign out failed. Please try again.',
+      );
+      notifyListeners();
+      Error.throwWithStackTrace(failure, failureStackTrace!);
+    }
+
     _errorMessage = null;
     notifyListeners();
   }

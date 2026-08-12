@@ -1,0 +1,550 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:algebrix/core/constants/app_colors.dart';
+import 'package:algebrix/core/constants/app_text_styles.dart';
+import 'package:algebrix/core/constants/app_assets.dart';
+import 'package:algebrix/core/providers/lesson_provider.dart';
+import 'package:algebrix/models/lesson_content_model.dart';
+import 'package:algebrix/widgets/primary_button.dart';
+import 'package:algebrix/widgets/lesson/xy_speech_bubble.dart';
+import 'package:algebrix/screens/lessons/lesson_screen.dart';
+
+/// Module Overview screen showing the module intro and lesson list with progressive unlocking.
+class ModuleOverviewScreen extends StatefulWidget {
+  const ModuleOverviewScreen({super.key});
+
+  @override
+  State<ModuleOverviewScreen> createState() => _ModuleOverviewScreenState();
+}
+
+class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _fadeAnimation;
+  bool _introSeen = false;
+  int? _expandedLessonIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOut,
+    );
+    _animController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lessonProvider = context.watch<LessonProvider>();
+    final module = lessonProvider.currentModule;
+
+    if (module == null) {
+      return const Scaffold(body: Center(child: Text('No module selected.')));
+    }
+
+    final appBar = AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.text),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+      title: Text(
+        'Module Overview',
+        style: AppTextStyles.subtitle1.copyWith(
+          color: AppColors.text,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      centerTitle: true,
+    );
+
+    if (lessonProvider.isHydrating) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: appBar,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(color: AppColors.pink),
+              const SizedBox(height: 16),
+              Text(
+                'Loading your learning path…',
+                style: AppTextStyles.body2.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (lessonProvider.hydrationError != null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: appBar,
+        body: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.cloud_off_rounded,
+                  color: AppColors.error,
+                  size: 40,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'We couldn’t load your progress.',
+                  style: AppTextStyles.heading3,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  lessonProvider.hydrationError!,
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                PrimaryButton(
+                  label: 'Try again',
+                  onPressed: lessonProvider.retryHydration,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: appBar,
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Module Intro Card
+              if (!_introSeen) ...[
+                _ModuleIntroCard(
+                  module: module,
+                  onStart: () {
+                    setState(() => _introSeen = true);
+                  },
+                ),
+              ] else ...[
+                // Module Title Banner
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.pink.withValues(alpha: 0.08),
+                        AppColors.extraLightPink,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        module.xyAsset ?? AppAssets.xyWave,
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Algebra Foundations',
+                              style: AppTextStyles.heading2.copyWith(
+                                color: AppColors.text,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${module.lessons.length} lessons',
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Lesson List
+                Text(
+                  'Lessons',
+                  style: AppTextStyles.heading3.copyWith(
+                    color: AppColors.text,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                ...List.generate(module.lessons.length, (index) {
+                  final lesson = module.lessons[index];
+                  final isCompleted = lessonProvider.isLessonCompleted(
+                    lesson.lessonId,
+                  );
+                  final isUnlocked = lessonProvider.isLessonUnlocked(
+                    lesson.lessonId,
+                    module.lessons,
+                  );
+                  final hasContent = lesson.steps.isNotEmpty;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _LessonListItem(
+                      lessonNumber: index + 1,
+                      lesson: lesson,
+                      isCompleted: isCompleted,
+                      isUnlocked: isUnlocked && hasContent,
+                      isExpanded: _expandedLessonIndex == index,
+                      onExpansionChanged: () {
+                        setState(() {
+                          _expandedLessonIndex = _expandedLessonIndex == index
+                              ? null
+                              : index;
+                        });
+                      },
+                      onTap:
+                          (isUnlocked && hasContent && !lessonProvider.isBusy)
+                          ? () async {
+                              final opened = await lessonProvider.startLesson(
+                                lesson,
+                              );
+                              if (!context.mounted) return;
+                              if (!opened) {
+                                final message = lessonProvider.errorMessage;
+                                if (message != null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('$message Try again.'),
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                  );
+                                }
+                                return;
+                              }
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const LessonScreen(),
+                                ),
+                              );
+                            }
+                          : null,
+                    ),
+                  );
+                }),
+
+                const SizedBox(height: 16),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Module Intro Card — "Meet Xy" welcome screen.
+class _ModuleIntroCard extends StatelessWidget {
+  final ModuleContent module;
+  final VoidCallback onStart;
+
+  const _ModuleIntroCard({required this.module, required this.onStart});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.pink.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Image.asset(
+            module.xyAsset ?? AppAssets.xyWave,
+            width: 104,
+            height: 104,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(height: 14),
+          // Title
+          Text(
+            module.title,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.heading1.copyWith(
+              color: AppColors.text,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Xy speech bubble
+          if (module.xyDialogue != null)
+            XySpeechBubble(
+              message: module.xyDialogue!,
+              xyAsset: module.xyAsset ?? AppAssets.xyWave,
+              xySize: 60,
+              showMascot: false,
+            ),
+          const SizedBox(height: 16),
+
+          // Body text
+          Text(
+            module.description,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.body1.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.6,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // CTA Button
+          PrimaryButton(
+            label: module.buttonLabel ?? 'Explore Module 1',
+            onPressed: onStart,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Individual lesson item in the module overview list.
+class _LessonListItem extends StatelessWidget {
+  final int lessonNumber;
+  final LessonContent lesson;
+  final bool isCompleted;
+  final bool isUnlocked;
+  final bool isExpanded;
+  final VoidCallback onExpansionChanged;
+  final VoidCallback? onTap;
+
+  const _LessonListItem({
+    required this.lessonNumber,
+    required this.lesson,
+    required this.isCompleted,
+    required this.isUnlocked,
+    required this.isExpanded,
+    required this.onExpansionChanged,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color accentColor = isCompleted
+        ? AppColors.mint
+        : (isUnlocked ? AppColors.pink : AppColors.subtitle);
+
+    return Semantics(
+      button: true,
+      expanded: isExpanded,
+      label: 'Lesson $lessonNumber: ${lesson.title}',
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        decoration: BoxDecoration(
+          color: isUnlocked
+              ? Colors.white
+              : AppColors.divider.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isCompleted
+                ? AppColors.mint.withValues(alpha: 0.4)
+                : (isUnlocked
+                      ? AppColors.pink.withValues(alpha: 0.2)
+                      : AppColors.border),
+            width: 1.2,
+          ),
+          boxShadow: isUnlocked
+              ? [
+                  BoxShadow(
+                    color: accentColor.withValues(alpha: 0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        child: Column(
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: onExpansionChanged,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isCompleted
+                            ? AppColors.lightMint
+                            : (isUnlocked
+                                  ? AppColors.extraLightPink
+                                  : AppColors.divider),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: accentColor.withValues(alpha: 0.3),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Center(
+                        child: isCompleted
+                            ? const Icon(
+                                Icons.check_rounded,
+                                color: AppColors.mint,
+                                size: 22,
+                              )
+                            : (isUnlocked
+                                  ? Text(
+                                      '$lessonNumber',
+                                      style: AppTextStyles.subtitle1.copyWith(
+                                        color: AppColors.pink,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.lock_rounded,
+                                      color: AppColors.subtitle,
+                                      size: 18,
+                                    )),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            lesson.title,
+                            style: AppTextStyles.subtitle1.copyWith(
+                              color: isUnlocked
+                                  ? AppColors.text
+                                  : AppColors.subtitle,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            isExpanded
+                                ? 'Lesson overview'
+                                : 'Tap to preview this lesson',
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.subtitle,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              child: isExpanded
+                  ? Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(18, 0, 10, 14),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              isUnlocked
+                                  ? lesson.objective
+                                  : '${lesson.objective}  Coming soon.',
+                              style: AppTextStyles.body2.copyWith(
+                                color: isUnlocked
+                                    ? AppColors.textSecondary
+                                    : AppColors.subtitle,
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                          if (isUnlocked)
+                            SizedBox.square(
+                              dimension: 44,
+                              child: IconButton(
+                                tooltip: isCompleted
+                                    ? 'Review lesson'
+                                    : 'Open lesson',
+                                onPressed: onTap,
+                                icon: const Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 18,
+                                ),
+                                color: isCompleted
+                                    ? AppColors.mint
+                                    : AppColors.pink,
+                                style: IconButton.styleFrom(
+                                  backgroundColor: isCompleted
+                                      ? AppColors.lightMint
+                                      : AppColors.extraLightPink,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
