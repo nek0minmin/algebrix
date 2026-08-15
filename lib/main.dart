@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/app_constants.dart';
 import 'core/providers/ai_notes_provider.dart';
 import 'core/providers/auth_provider.dart';
+import 'core/providers/balance_scale_provider.dart';
 import 'core/providers/lesson_provider.dart';
 import 'core/providers/notes_provider.dart';
 import 'core/theme/app_theme.dart';
@@ -103,6 +104,9 @@ class AlgebrixApp extends StatelessWidget {
             provider.bindAccount(authProvider.currentUser?.id);
             return provider;
           },
+        ),
+        ChangeNotifierProvider<BalanceScaleProvider>(
+          create: (_) => BalanceScaleProvider(),
         ),
       ],
       child: MaterialApp(
