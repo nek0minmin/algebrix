@@ -1,14 +1,14 @@
+import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/ai_notes_provider.dart';
+import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/core/providers/notes_provider.dart';
 import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/screens/notes/note_lesson_options.dart';
 import 'package:algebrix/widgets/ai_feedback_card.dart';
-import 'package:algebrix/widgets/ai_suggestion_dialog.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
-import 'package:algebrix/widgets/secondary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -67,39 +67,6 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     }
   }
 
-  Future<void> _improveUnderstanding() async {
-    final content = _contentController.text.trim();
-    if (content.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Write a draft note first before polishing with AI!')),
-      );
-      return;
-    }
-
-    final aiProvider = context.read<AiNotesProvider>();
-    FocusManager.instance.primaryFocus?.unfocus();
-
-    final suggestion = await aiProvider.improveUnderstanding(content);
-    if (suggestion != null && mounted) {
-      final accept = await showDialog<bool>(
-        context: context,
-        builder: (_) => AiSuggestionDialog(
-          originalText: content,
-          suggestedText: suggestion,
-        ),
-      );
-
-      if (accept == true && mounted) {
-        setState(() {
-          _contentController.text = suggestion;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✨ Updated note with AI suggestion!')),
-        );
-      }
-    }
-  }
-
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
@@ -108,6 +75,9 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
     FocusManager.instance.primaryFocus?.unfocus();
     final notesProvider = context.read<NotesProvider>();
+    final aiProvider = context.read<AiNotesProvider>();
+    final currentFeedback = aiProvider.currentFeedback;
+
     final success = widget.isEditing
         ? await notesProvider.updateNote(
             noteId: widget.note!.id,
@@ -125,6 +95,19 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
     if (!mounted) return;
     if (success) {
+      // If AI feedback was generated, update the selected note with persistent AI feedback
+      final savedNote = notesProvider.selectedNote;
+      if (savedNote != null && currentFeedback != null) {
+        notesProvider.selectNote(
+          savedNote.copyWith(
+            aiFeedbackTitle: currentFeedback.title,
+            aiFeedbackMessage: currentFeedback.message,
+            aiFeedbackSteps: currentFeedback.steps,
+            aiFeedbackWhyItWorks: currentFeedback.whyItWorks,
+            aiFeedbackProvider: currentFeedback.providerUsed,
+          ).id,
+        );
+      }
       Navigator.of(context).pop(true);
       return;
     }
@@ -249,77 +232,100 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                     const SizedBox(height: 10),
                     _PromptGrid(enabled: !isSaving, onSelected: _insertPrompt),
                     const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Expanded(
-                          child: _FieldLabel(
-                            label: 'Your explanation',
-                            helper:
-                                'Use words, examples, and equations that make sense to you.',
-                          ),
-                        ),
-                        if (aiProvider.isAnalyzing)
-                          const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: AppColors.pink,
-                            ),
-                          ),
-                      ],
+                    const _FieldLabel(
+                      label: 'Your explanation',
+                      helper:
+                          'Use words, examples, and equations that make sense to you.',
                     ),
                     const SizedBox(height: 10),
-                    TextFormField(
-                      key: const Key('note-content-field'),
-                      controller: _contentController,
-                      enabled: !isSaving,
-                      style: AppTextStyles.body1,
-                      textCapitalization: TextCapitalization.sentences,
-                      minLines: 8,
-                      maxLines: 16,
-                      maxLength: 2000,
-                      inputFormatters: [LengthLimitingTextInputFormatter(2000)],
-                      decoration: _fieldDecoration(
-                        hintText: 'Explain the idea in your own words…',
-                        radius: 20,
-                      ),
-                      validator: (value) {
-                        final length = value?.trim().length ?? 0;
-                        if (length < 3) return 'Enter at least 3 characters.';
-                        if (length > 2000) {
-                          return 'Use no more than 2000 characters.';
-                        }
-                        return null;
-                      },
-                    ),
 
-                    // AI Tutor Action Bar
-                    const SizedBox(height: 12),
-                    Row(
+                    // Explanation Box with Floating FAB inside bottom right!
+                    Stack(
                       children: [
-                        Expanded(
-                          child: SecondaryButton(
-                            label: '🐙 Ask Xy for Insights',
-                            icon: Icons.psychology_rounded,
-                            borderColor: AppColors.lightPink,
-                            textColor: AppColors.darkPink,
-                            onPressed: (isSaving || aiProvider.isAnalyzing)
-                                ? null
-                                : _analyzeWithAi,
+                        TextFormField(
+                          key: const Key('note-content-field'),
+                          controller: _contentController,
+                          enabled: !isSaving,
+                          style: AppTextStyles.body1,
+                          textCapitalization: TextCapitalization.sentences,
+                          minLines: 8,
+                          maxLines: 16,
+                          maxLength: 2000,
+                          inputFormatters: [LengthLimitingTextInputFormatter(2000)],
+                          decoration: _fieldDecoration(
+                            hintText: 'Explain the idea in your own words…',
+                            radius: 20,
+                          ).copyWith(
+                            contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 54),
                           ),
+                          validator: (value) {
+                            final length = value?.trim().length ?? 0;
+                            if (length < 3) return 'Enter at least 3 characters.';
+                            if (length > 2000) {
+                              return 'Use no more than 2000 characters.';
+                            }
+                            return null;
+                          },
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: SecondaryButton(
-                            label: '✨ Improve Note',
-                            icon: Icons.auto_awesome_rounded,
-                            borderColor: AppColors.lightPurple,
-                            textColor: AppColors.purple,
-                            onPressed: (isSaving || aiProvider.isAnalyzing)
-                                ? null
-                                : _improveUnderstanding,
+                        Positioned(
+                          bottom: 24,
+                          right: 12,
+                          child: Material(
+                            color: AppColors.extraLightPink,
+                            borderRadius: BorderRadius.circular(99),
+                            elevation: 2,
+                            shadowColor: AppColors.pink.withValues(alpha: 0.2),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(99),
+                              onTap: (isSaving || aiProvider.isAnalyzing)
+                                  ? null
+                                  : _analyzeWithAi,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(99),
+                                  border: Border.all(
+                                    color: AppColors.pink,
+                                    width: 1.2,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (aiProvider.isAnalyzing)
+                                      const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.pink,
+                                        ),
+                                      )
+                                    else
+                                      Image.asset(
+                                        AppAssets.xyDefault,
+                                        width: 24,
+                                        height: 24,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      aiProvider.isAnalyzing
+                                          ? "Thinking..."
+                                          : "Ask Xy's Insights!",
+                                      style: AppTextStyles.caption.copyWith(
+                                        color: AppColors.darkPink,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -540,16 +546,27 @@ class _LessonPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lessonProvider = context.watch<LessonProvider>();
+
+    // Filter to show lessons the user has finished reading or visited in progress
+    final completedOptions = noteLessonOptions
+        .where((opt) => lessonProvider.isLessonCompleted(opt.lessonId) || lessonProvider.progressForLesson(opt.lessonId) != null)
+        .toList();
+
+    // Fallback: If no lessons completed yet, display all options so new users can create notes
+    final displayOptions = completedOptions.isNotEmpty ? completedOptions : noteLessonOptions;
+    final isFiltered = completedOptions.isNotEmpty;
+
     return FractionallySizedBox(
-      heightFactor: 0.76,
+      heightFactor: 0.78,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
               child: Container(
-                width: 44,
+                width: 42,
                 height: 5,
                 decoration: BoxDecoration(
                   color: AppColors.border,
@@ -558,47 +575,79 @@ class _LessonPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
-            Text(
-              'Choose a lesson',
-              style: AppTextStyles.heading2.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Your note will stay connected to this topic.',
-              style: AppTextStyles.body2.copyWith(
-                color: AppColors.textSecondary,
-              ),
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.extraLightPink,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.menu_book_rounded,
+                    color: AppColors.pink,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Choose a lesson',
+                        style: AppTextStyles.heading3.copyWith(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 18,
+                        ),
+                      ),
+                      Text(
+                        isFiltered
+                            ? 'Showing lessons you have completed.'
+                            : 'Choose a lesson to connect your note.',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             Expanded(
               child: ListView.separated(
-                itemCount: noteLessonOptions.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                itemCount: displayOptions.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
-                  final option = noteLessonOptions[index];
+                  final option = displayOptions[index];
                   final selected = option.lessonId == selectedLessonId;
+                  final isFinished = lessonProvider.isLessonCompleted(option.lessonId);
+
                   return Material(
-                    color: selected ? AppColors.extraLightPink : AppColors.card,
+                    color: selected
+                        ? AppColors.extraLightPink
+                        : Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(18),
                       side: BorderSide(
                         color: selected
-                            ? AppColors.lightPink
+                            ? AppColors.pink
                             : AppColors.border,
+                        width: selected ? 1.5 : 1,
                       ),
                     ),
                     child: InkWell(
                       key: Key('lesson-option-${option.lessonId}'),
                       onTap: () => Navigator.of(context).pop(option.lessonId),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(18),
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 54),
+                        constraints: const BoxConstraints(minHeight: 56),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
+                            horizontal: 16,
+                            vertical: 12,
                           ),
                           child: Row(
                             children: [
@@ -608,15 +657,35 @@ class _LessonPickerSheet extends StatelessWidget {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: AppTextStyles.body1.copyWith(
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+                                    color: selected ? AppColors.darkPink : AppColors.text,
                                   ),
                                 ),
                               ),
+                              if (isFinished) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.lightMint,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    'Completed',
+                                    style: AppTextStyles.caption.copyWith(
+                                      color: const Color(0xFF00796B),
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                              ],
                               if (selected) ...[
                                 const SizedBox(width: 10),
                                 const Icon(
                                   Icons.check_circle_rounded,
                                   color: AppColors.pink,
+                                  size: 22,
                                 ),
                               ],
                             ],

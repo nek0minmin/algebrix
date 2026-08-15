@@ -4,6 +4,8 @@ import 'package:algebrix/core/providers/notes_provider.dart';
 import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/screens/notes/note_form_screen.dart';
 import 'package:algebrix/screens/notes/note_lesson_options.dart';
+import 'package:algebrix/services/ai_tutor_service.dart';
+import 'package:algebrix/widgets/ai_feedback_card.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -90,6 +92,18 @@ class NoteDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   _ExplanationCard(content: currentNote.content),
+                  if (currentNote.aiFeedbackMessage != null) ...[
+                    const SizedBox(height: 20),
+                    AiFeedbackCard(
+                      feedback: AiFeedbackResult(
+                        title: currentNote.aiFeedbackTitle ?? 'Xy Insights',
+                        message: currentNote.aiFeedbackMessage!,
+                        steps: currentNote.aiFeedbackSteps ?? const [],
+                        whyItWorks: currentNote.aiFeedbackWhyItWorks,
+                        providerUsed: currentNote.aiFeedbackProvider ?? 'Algebrix AI',
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   _NoteActions(
                     isDeleting: isDeleting,

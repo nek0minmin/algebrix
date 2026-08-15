@@ -12,6 +12,11 @@ class StudyNote {
     required this.content,
     required this.createdAt,
     required this.updatedAt,
+    this.aiFeedbackTitle,
+    this.aiFeedbackMessage,
+    this.aiFeedbackSteps,
+    this.aiFeedbackWhyItWorks,
+    this.aiFeedbackProvider,
   });
 
   final String id;
@@ -22,6 +27,11 @@ class StudyNote {
   final String content;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? aiFeedbackTitle;
+  final String? aiFeedbackMessage;
+  final List<String>? aiFeedbackSteps;
+  final String? aiFeedbackWhyItWorks;
+  final String? aiFeedbackProvider;
 
   factory StudyNote.fromJson(Map<String, dynamic> json) {
     return StudyNote(
@@ -33,6 +43,13 @@ class StudyNote {
       content: _readString(json, 'content'),
       createdAt: _readDateTime(json, 'created_at'),
       updatedAt: _readDateTime(json, 'updated_at'),
+      aiFeedbackTitle: json['ai_feedback_title'] as String?,
+      aiFeedbackMessage: json['ai_feedback_message'] as String?,
+      aiFeedbackSteps: (json['ai_feedback_steps'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      aiFeedbackWhyItWorks: json['ai_feedback_why_it_works'] as String?,
+      aiFeedbackProvider: json['ai_feedback_provider'] as String?,
     );
   }
 
@@ -46,6 +63,11 @@ class StudyNote {
       'content': content,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      if (aiFeedbackTitle != null) 'ai_feedback_title': aiFeedbackTitle,
+      if (aiFeedbackMessage != null) 'ai_feedback_message': aiFeedbackMessage,
+      if (aiFeedbackSteps != null) 'ai_feedback_steps': aiFeedbackSteps,
+      if (aiFeedbackWhyItWorks != null) 'ai_feedback_why_it_works': aiFeedbackWhyItWorks,
+      if (aiFeedbackProvider != null) 'ai_feedback_provider': aiFeedbackProvider,
     };
   }
 
@@ -58,6 +80,11 @@ class StudyNote {
     String? content,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? aiFeedbackTitle,
+    String? aiFeedbackMessage,
+    List<String>? aiFeedbackSteps,
+    String? aiFeedbackWhyItWorks,
+    String? aiFeedbackProvider,
   }) {
     return StudyNote(
       id: id ?? this.id,
@@ -68,6 +95,11 @@ class StudyNote {
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      aiFeedbackTitle: aiFeedbackTitle ?? this.aiFeedbackTitle,
+      aiFeedbackMessage: aiFeedbackMessage ?? this.aiFeedbackMessage,
+      aiFeedbackSteps: aiFeedbackSteps ?? this.aiFeedbackSteps,
+      aiFeedbackWhyItWorks: aiFeedbackWhyItWorks ?? this.aiFeedbackWhyItWorks,
+      aiFeedbackProvider: aiFeedbackProvider ?? this.aiFeedbackProvider,
     );
   }
 
