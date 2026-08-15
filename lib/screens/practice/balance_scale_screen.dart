@@ -226,12 +226,15 @@ class _ApiStatusBadge extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            'Powered by $providerUsed',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: AppColors.pink,
+          Flexible(
+            child: Text(
+              'Powered by $providerUsed',
+              style: GoogleFonts.nunito(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppColors.pink,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -285,18 +288,22 @@ class _EquationBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Solve for x',
-                      style: AppTextStyles.subtitle2.copyWith(
-                        color: AppColors.pink,
-                        fontWeight: FontWeight.w800,
+                    Flexible(
+                      child: Text(
+                        'Solve for x',
+                        style: AppTextStyles.subtitle2.copyWith(
+                          color: AppColors.pink,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 6),
                     // Moves Counter Badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: moveCount <= optimalMoves
                             ? AppColors.lightMint
@@ -306,7 +313,7 @@ class _EquationBanner extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        '${moveCount}/${optimalMoves} moves',
+                        '$moveCount/$optimalMoves moves',
                         style: GoogleFonts.nunito(
                           fontSize: 12,
                           fontWeight: FontWeight.w900,
@@ -881,11 +888,23 @@ class _DraggableNumberBlockState extends State<_DraggableNumberBlock>
     _bobController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 1800 + (widget.scaleOp.value.toInt() * 100) % 600),
-    )..repeat(reverse: true);
+    );
 
     _bobAnimation = Tween<double>(begin: -2, end: 2).animate(
       CurvedAnimation(parent: _bobController, curve: Curves.easeInOut),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (TickerMode.of(context)) {
+      if (!_bobController.isAnimating) {
+        _bobController.repeat(reverse: true);
+      }
+    } else {
+      _bobController.stop();
+    }
   }
 
   @override
