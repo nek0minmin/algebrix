@@ -202,7 +202,7 @@ CRITICAL RULES:
     return text.trim();
   }
 
-  bool _isOffTopicText(String userPrompt) {
+  bool isOffTopicText(String userPrompt) {
     final lower = userPrompt.toLowerCase().trim();
     if (lower.length < 10) return false;
 
@@ -245,7 +245,7 @@ CRITICAL RULES:
     required String systemPrompt,
     required String userPrompt,
   }) async {
-    if (_isOffTopicText(userPrompt)) {
+    if (isOffTopicText(userPrompt)) {
       return const AiFeedbackResult(
         title: 'Let\'s focus on Algebra!',
         message: 'Xy is your dedicated algebra tutor! This note doesn\'t seem to be about math or equations.',

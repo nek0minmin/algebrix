@@ -6,12 +6,14 @@ import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/core/providers/notes_provider.dart';
 import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/screens/notes/note_lesson_options.dart';
+import 'package:algebrix/services/ai_tutor_service.dart';
 import 'package:algebrix/widgets/ai_feedback_card.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class NoteFormScreen extends StatefulWidget {
@@ -97,6 +99,112 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     if (lesson == null) return;
 
     FocusManager.instance.primaryFocus?.unfocus();
+
+    final service = AiTutorService();
+    final rawContent = _contentController.text.trim();
+
+    // Check if the note content is off-topic
+    if (service.isOffTopicText(rawContent)) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          backgroundColor: Colors.white,
+          elevation: 8,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: const BoxDecoration(
+                    color: AppColors.extraLightPink,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Image.asset(
+                      AppAssets.xyDefault,
+                      width: 44,
+                      height: 44,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Off-topic Note Detected',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.text,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'This note doesn\'t seem to be related to algebra. Do you still want to proceed with saving it?',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: const BorderSide(color: AppColors.border),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel & edit',
+                          style: AppTextStyles.buttonSmall.copyWith(
+                            color: AppColors.text,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          backgroundColor: AppColors.pink,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          'Save anyway',
+                          style: AppTextStyles.buttonSmall.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      if (confirm != true) return;
+    }
+
     final notesProvider = context.read<NotesProvider>();
     final aiProvider = context.read<AiNotesProvider>();
     final currentFeedback = aiProvider.currentFeedback;
