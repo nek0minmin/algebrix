@@ -26,37 +26,31 @@ class RootPageHeader extends StatelessWidget {
     final useCompactAction = viewportWidth < 560;
     final mascotSize = viewportWidth < 340 ? 64.0 : 72.0;
 
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.border)),
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
-          child: Padding(
-            padding: padding,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: _PageHeaderIdentity(
-                    title: title,
-                    supportingText: subtitle,
-                    mascotSize: mascotSize,
-                    titleSize: 24,
-                    supportingTextSize: 14,
-                  ),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: Padding(
+          padding: padding,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: _PageHeaderIdentity(
+                  title: title,
+                  supportingText: subtitle,
+                  mascotSize: mascotSize,
+                  titleSize: 24,
+                  supportingTextSize: 14,
                 ),
-                if (trailing != null) ...[
-                  const SizedBox(width: 8),
-                  if (useCompactAction && compactTrailing != null)
-                    compactTrailing!
-                  else
-                    trailing!,
-                ],
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                if (useCompactAction && compactTrailing != null)
+                  compactTrailing!
+                else
+                  trailing!,
               ],
-            ),
+            ],
           ),
         ),
       ),
@@ -89,11 +83,10 @@ class SecondaryPageAppBar extends StatelessWidget
     return AppBar(
       automaticallyImplyLeading: false,
       toolbarHeight: 96,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
-      shape: const Border(bottom: BorderSide(color: AppColors.border)),
       titleSpacing: 0,
       title: Center(
         child: ConstrainedBox(

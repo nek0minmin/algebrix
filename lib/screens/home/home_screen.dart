@@ -60,20 +60,15 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const RootPageHeader(title: 'Home', subtitle: 'Let’s keep learning!'),
+          RootPageHeader(
+            title: 'Welcome Back!',
+            subtitle: 'Ready to solve and level up, ${user.name}?',
+          ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  AppStrings.greeting(user.name),
-                  style: AppTextStyles.greeting,
-                ),
-                const SizedBox(height: 4),
-                Text(AppStrings.readyToLearn, style: AppTextStyles.subtitle2),
-                const SizedBox(height: 20),
-
                 if (lessonProvider.isHydrating)
                   const Center(
                     child: Padding(

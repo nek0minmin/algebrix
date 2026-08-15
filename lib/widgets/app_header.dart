@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
@@ -45,13 +46,14 @@ class AppHeader extends StatelessWidget {
                 width: 36,
                 height: 36,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Text(
                 'ALGEBRIX',
-                style: AppTextStyles.heading3.copyWith(
-                  letterSpacing: 1.5,
+                style: GoogleFonts.nunito(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
                   color: AppColors.text,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
