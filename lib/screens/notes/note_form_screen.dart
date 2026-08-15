@@ -7,6 +7,7 @@ import 'package:algebrix/core/providers/notes_provider.dart';
 import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/screens/notes/note_lesson_options.dart';
 import 'package:algebrix/widgets/ai_feedback_card.dart';
+import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
@@ -49,8 +50,10 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
     if (content.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Type a few words first so Xy can analyze your note!')),
+      showAlgebrixSnackBar(
+        context,
+        message: 'Type a few words first so Xy can analyze your note!',
+        icon: Icons.lightbulb_outline_rounded,
       );
       return;
     }
@@ -78,47 +81,38 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     final aiProvider = context.read<AiNotesProvider>();
     final currentFeedback = aiProvider.currentFeedback;
 
+    // Encode AI feedback persistently into note content if generated
+    final encodedContent = StudyNote.encodeContentWithAiFeedback(
+      _contentController.text,
+      currentFeedback,
+    );
+
     final success = widget.isEditing
         ? await notesProvider.updateNote(
             noteId: widget.note!.id,
             moduleId: lesson.moduleId,
             lessonId: lesson.lessonId,
             title: _titleController.text,
-            content: _contentController.text,
+            content: encodedContent,
           )
         : await notesProvider.createNote(
             moduleId: lesson.moduleId,
             lessonId: lesson.lessonId,
             title: _titleController.text,
-            content: _contentController.text,
+            content: encodedContent,
           );
 
     if (!mounted) return;
     if (success) {
-      // If AI feedback was generated, update the selected note with persistent AI feedback
-      final savedNote = notesProvider.selectedNote;
-      if (savedNote != null && currentFeedback != null) {
-        notesProvider.selectNote(
-          savedNote.copyWith(
-            aiFeedbackTitle: currentFeedback.title,
-            aiFeedbackMessage: currentFeedback.message,
-            aiFeedbackSteps: currentFeedback.steps,
-            aiFeedbackWhyItWorks: currentFeedback.whyItWorks,
-            aiFeedbackProvider: currentFeedback.providerUsed,
-          ).id,
-        );
-      }
       Navigator.of(context).pop(true);
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          notesProvider.errorMessage ??
-              'Your study note could not be saved. Please try again.',
-        ),
-      ),
+    showAlgebrixSnackBar(
+      context,
+      message: notesProvider.errorMessage ??
+          'Your study note could not be saved. Please try again.',
+      isError: true,
     );
   }
 
@@ -136,10 +130,10 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     final nextText = '$before$insertion$after';
 
     if (nextText.length > 2000) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Make a little room before adding this prompt.'),
-        ),
+      showAlgebrixSnackBar(
+        context,
+        message: 'Make a little room before adding this prompt.',
+        isError: true,
       );
       return;
     }
@@ -338,8 +332,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                         feedback: aiProvider.currentFeedback!,
                         onClose: () => aiProvider.clearFeedback(),
                         onChipSelected: (chipText) {
-                          final current = _contentController.text;
-                          _contentController.text = '$current\n\n[$chipText]: ';
+                          aiProvider.getSocraticHint(question: chipText, hintType: chipText);
                         },
                       ),
                     ],

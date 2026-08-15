@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:algebrix/services/ai_tutor_service.dart';
+
 /// An account-owned study note linked to one Algebrix lesson.
 ///
 /// Instances are immutable. Supabase is responsible for generating [id],
@@ -32,6 +35,63 @@ class StudyNote {
   final List<String>? aiFeedbackSteps;
   final String? aiFeedbackWhyItWorks;
   final String? aiFeedbackProvider;
+
+  static const String _aiMarker = '<!-- ALGEBRIX_AI_FEEDBACK:';
+
+  /// Returns the clean user explanation text with hidden AI feedback markers stripped out.
+  String get displayContent {
+    final idx = content.indexOf(_aiMarker);
+    if (idx == -1) return content;
+    return content.substring(0, idx).trimRight();
+  }
+
+  /// Extracts the stored [AiFeedbackResult] if present in this note's content or fields.
+  AiFeedbackResult? get aiFeedbackResult {
+    if (aiFeedbackMessage != null) {
+      return AiFeedbackResult(
+        title: aiFeedbackTitle ?? 'Xy Insights',
+        message: aiFeedbackMessage!,
+        steps: aiFeedbackSteps ?? const [],
+        whyItWorks: aiFeedbackWhyItWorks,
+        providerUsed: aiFeedbackProvider ?? 'Algebrix AI',
+      );
+    }
+
+    final idx = content.indexOf(_aiMarker);
+    if (idx == -1) return null;
+
+    try {
+      final jsonStart = idx + _aiMarker.length;
+      final jsonEnd = content.indexOf('-->', jsonStart);
+      if (jsonEnd == -1) return null;
+
+      final jsonString = content.substring(jsonStart, jsonEnd).trim();
+      final map = jsonDecode(jsonString) as Map<String, dynamic>;
+      return AiFeedbackResult.fromJson(map, map['provider'] as String? ?? 'Algebrix AI');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Encodes raw user content and AI feedback into a single persistent string.
+  static String encodeContentWithAiFeedback(String rawContent, AiFeedbackResult? feedback) {
+    final cleanContent = rawContent.contains(_aiMarker)
+        ? rawContent.substring(0, rawContent.indexOf(_aiMarker)).trimRight()
+        : rawContent.trim();
+
+    if (feedback == null) return cleanContent;
+
+    final feedbackMap = {
+      'title': feedback.title,
+      'message': feedback.message,
+      'steps': feedback.steps,
+      if (feedback.whyItWorks != null) 'whyItWorks': feedback.whyItWorks,
+      'isCorrect': feedback.isCorrect,
+      'provider': feedback.providerUsed,
+    };
+
+    return '$cleanContent\n\n$_aiMarker${jsonEncode(feedbackMap)}-->';
+  }
 
   factory StudyNote.fromJson(Map<String, dynamic> json) {
     return StudyNote(

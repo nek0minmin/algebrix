@@ -5,6 +5,7 @@ import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/screens/notes/note_detail_screen.dart';
 import 'package:algebrix/screens/notes/note_form_screen.dart';
 import 'package:algebrix/screens/notes/note_lesson_options.dart';
+import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:flutter/material.dart';
@@ -18,9 +19,11 @@ class NotesScreen extends StatelessWidget {
       context,
     ).push<bool>(MaterialPageRoute(builder: (_) => const NoteFormScreen()));
     if (created == true && context.mounted) {
-      ScaffoldMessenger.of(
+      showAlgebrixSnackBar(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Study note created.')));
+        message: 'Study note created!',
+        icon: Icons.check_circle_rounded,
+      );
     }
   }
 
@@ -30,9 +33,11 @@ class NotesScreen extends StatelessWidget {
       MaterialPageRoute(builder: (_) => NoteDetailScreen(note: note)),
     );
     if (deleted == true && context.mounted) {
-      ScaffoldMessenger.of(
+      showAlgebrixSnackBar(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Study note deleted.')));
+        message: 'Study note deleted.',
+        icon: Icons.delete_outline_rounded,
+      );
     }
   }
 
@@ -328,7 +333,7 @@ class _NoteCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          note.content,
+                          note.displayContent,
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.body2.copyWith(

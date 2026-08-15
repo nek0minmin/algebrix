@@ -36,7 +36,7 @@ void main() {
       );
 
       expect(result.isCorrect, isTrue);
-      expect(result.title, '🐙 Looks good!');
+      expect(result.title, 'Looks good!');
       expect(result.whyItWorks, contains('Inverse operations isolate X.'));
       expect(result.providerUsed, contains('Groq'));
     });
@@ -54,7 +54,7 @@ void main() {
                 'message': {
                   'content': jsonEncode({
                     'isCorrect': false,
-                    'title': '🐙 Let\'s look at what happened!',
+                    'title': 'Let\'s look at what happened!',
                     'message': 'You tried to divide first before undoing +4.',
                     'keyConcept': 'Undo addition first',
                     'promptForStudent': '💡 What did you learn?',

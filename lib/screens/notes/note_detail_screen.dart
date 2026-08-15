@@ -4,8 +4,8 @@ import 'package:algebrix/core/providers/notes_provider.dart';
 import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/screens/notes/note_form_screen.dart';
 import 'package:algebrix/screens/notes/note_lesson_options.dart';
-import 'package:algebrix/services/ai_tutor_service.dart';
 import 'package:algebrix/widgets/ai_feedback_card.dart';
+import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,9 +27,11 @@ class NoteDetailScreen extends StatelessWidget {
       MaterialPageRoute(builder: (_) => NoteFormScreen(note: currentNote)),
     );
     if (updated == true && context.mounted) {
-      ScaffoldMessenger.of(
+      showAlgebrixSnackBar(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Study note updated.')));
+        message: 'Study note updated!',
+        icon: Icons.check_circle_rounded,
+      );
     }
   }
 
@@ -50,6 +52,7 @@ class NoteDetailScreen extends StatelessWidget {
     final provider = context.watch<NotesProvider>();
     final currentNote = _currentNote(provider);
     final isDeleting = provider.isDeletingNote(currentNote.id);
+    final aiFeedback = currentNote.aiFeedbackResult;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -91,18 +94,10 @@ class NoteDetailScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _ExplanationCard(content: currentNote.content),
-                  if (currentNote.aiFeedbackMessage != null) ...[
+                  _ExplanationCard(content: currentNote.displayContent),
+                  if (aiFeedback != null) ...[
                     const SizedBox(height: 20),
-                    AiFeedbackCard(
-                      feedback: AiFeedbackResult(
-                        title: currentNote.aiFeedbackTitle ?? 'Xy Insights',
-                        message: currentNote.aiFeedbackMessage!,
-                        steps: currentNote.aiFeedbackSteps ?? const [],
-                        whyItWorks: currentNote.aiFeedbackWhyItWorks,
-                        providerUsed: currentNote.aiFeedbackProvider ?? 'Algebrix AI',
-                      ),
-                    ),
+                    AiFeedbackCard(feedback: aiFeedback),
                   ],
                   const SizedBox(height: 20),
                   _NoteActions(
