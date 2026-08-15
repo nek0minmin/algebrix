@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/app_constants.dart';
+import 'core/providers/ai_notes_provider.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/lesson_provider.dart';
 import 'core/providers/notes_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'models/lesson_progress_model.dart';
 import 'models/study_note_model.dart';
+import 'services/ai_tutor_service.dart';
 import 'services/auth_service.dart';
 import 'services/notes_repository.dart';
 import 'services/progress_repository.dart';
@@ -16,6 +19,13 @@ import 'screens/splash/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load Environment Variables (.env)
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('Dotenv loading warning: $e');
+  }
 
   // Lock to portrait mode for optimal learning experience
   await SystemChrome.setPreferredOrientations([
@@ -55,6 +65,12 @@ class AlgebrixApp extends StatelessWidget {
         ChangeNotifierProvider<AuthProvider>(
           create: (context) =>
               AuthProvider(authService: context.read<AuthService>()),
+        ),
+        Provider<AiTutorService>(create: (_) => AiTutorService()),
+        ChangeNotifierProvider<AiNotesProvider>(
+          create: (context) => AiNotesProvider(
+            aiService: context.read<AiTutorService>(),
+          ),
         ),
         Provider<ProgressRepository>(
           create: (_) => _createProgressRepository(),

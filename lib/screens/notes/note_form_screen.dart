@@ -1,10 +1,14 @@
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
+import 'package:algebrix/core/providers/ai_notes_provider.dart';
 import 'package:algebrix/core/providers/notes_provider.dart';
 import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/screens/notes/note_lesson_options.dart';
+import 'package:algebrix/widgets/ai_feedback_card.dart';
+import 'package:algebrix/widgets/ai_suggestion_dialog.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
+import 'package:algebrix/widgets/secondary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +43,61 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _analyzeWithAi() async {
+    final title = _titleController.text.trim();
+    final content = _contentController.text.trim();
+    if (content.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Type a few words first so Xy can analyze your note!')),
+      );
+      return;
+    }
+
+    final aiProvider = context.read<AiNotesProvider>();
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    if (content.toLowerCase().contains('problem') || content.contains('=')) {
+      await aiProvider.checkWorkedExample(problem: title.isEmpty ? 'Equation' : title, solution: content);
+    } else if (content.toLowerCase().contains('question') || content.endsWith('?')) {
+      await aiProvider.getSocraticHint(question: content);
+    } else {
+      await aiProvider.evaluateExplanation(topic: title.isEmpty ? 'Algebra' : title, explanation: content);
+    }
+  }
+
+  Future<void> _improveUnderstanding() async {
+    final content = _contentController.text.trim();
+    if (content.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Write a draft note first before polishing with AI!')),
+      );
+      return;
+    }
+
+    final aiProvider = context.read<AiNotesProvider>();
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    final suggestion = await aiProvider.improveUnderstanding(content);
+    if (suggestion != null && mounted) {
+      final accept = await showDialog<bool>(
+        context: context,
+        builder: (_) => AiSuggestionDialog(
+          originalText: content,
+          suggestedText: suggestion,
+        ),
+      );
+
+      if (accept == true && mounted) {
+        setState(() {
+          _contentController.text = suggestion;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✨ Updated note with AI suggestion!')),
+        );
+      }
+    }
   }
 
   Future<void> _submit() async {
@@ -111,6 +170,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isSaving = context.watch<NotesProvider>().isSaving;
+    final aiProvider = context.watch<AiNotesProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -189,10 +249,26 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                     const SizedBox(height: 10),
                     _PromptGrid(enabled: !isSaving, onSelected: _insertPrompt),
                     const SizedBox(height: 24),
-                    const _FieldLabel(
-                      label: 'Your explanation',
-                      helper:
-                          'Use words, examples, and equations that make sense to you.',
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(
+                          child: _FieldLabel(
+                            label: 'Your explanation',
+                            helper:
+                                'Use words, examples, and equations that make sense to you.',
+                          ),
+                        ),
+                        if (aiProvider.isAnalyzing)
+                          const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: AppColors.pink,
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
@@ -218,6 +294,50 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                         return null;
                       },
                     ),
+
+                    // AI Tutor Action Bar
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            label: '🐙 Ask Xy for Insights',
+                            icon: Icons.psychology_rounded,
+                            borderColor: AppColors.lightPink,
+                            textColor: AppColors.darkPink,
+                            onPressed: (isSaving || aiProvider.isAnalyzing)
+                                ? null
+                                : _analyzeWithAi,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: SecondaryButton(
+                            label: '✨ Improve Note',
+                            icon: Icons.auto_awesome_rounded,
+                            borderColor: AppColors.lightPurple,
+                            textColor: AppColors.purple,
+                            onPressed: (isSaving || aiProvider.isAnalyzing)
+                                ? null
+                                : _improveUnderstanding,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Active Xy AI Feedback Card
+                    if (aiProvider.currentFeedback != null) ...[
+                      const SizedBox(height: 14),
+                      AiFeedbackCard(
+                        feedback: aiProvider.currentFeedback!,
+                        onClose: () => aiProvider.clearFeedback(),
+                        onChipSelected: (chipText) {
+                          final current = _contentController.text;
+                          _contentController.text = '$current\n\n[$chipText]: ';
+                        },
+                      ),
+                    ],
+
                     const SizedBox(height: 24),
                     PrimaryButton(
                       key: const Key('save-note-button'),
