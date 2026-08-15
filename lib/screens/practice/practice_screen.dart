@@ -20,7 +20,7 @@ class PracticeScreen extends StatelessWidget {
           children: [
             const RootPageHeader(
               title: 'Practice Arena',
-              supportingText: 'Master algebra concepts through interactive challenges.',
+              subtitle: 'Master algebra concepts through interactive challenges.',
             ),
             Expanded(
               child: SingleChildScrollView(

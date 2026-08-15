@@ -556,7 +556,7 @@ class _OperationPalette extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             PrimaryButton(
-              text: 'Apply Operation',
+              label: 'Apply Operation',
               onPressed: () {
                 final val = num.tryParse(controller.text.trim());
                 if (val == null || val == 0) {
@@ -645,7 +645,7 @@ class _CelebrationCard extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           PrimaryButton(
-            text: 'Next Equation →',
+            label: 'Next Equation →',
             onPressed: onNext,
           ),
         ],
