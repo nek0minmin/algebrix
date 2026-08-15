@@ -35,8 +35,21 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.note?.title);
-    _contentController = TextEditingController(text: widget.note?.content);
+    _contentController = TextEditingController(
+      text: widget.note?.displayContent,
+    );
     _lessonId = noteLessonOptionFor(widget.note?.lessonId ?? '')?.lessonId;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final aiProvider = context.read<AiNotesProvider>();
+        if (widget.note?.aiFeedbackResult != null) {
+          aiProvider.setFeedback(widget.note!.aiFeedbackResult!);
+        } else {
+          aiProvider.clearFeedback();
+        }
+      }
+    });
   }
 
   @override
@@ -250,7 +263,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                             hintText: 'Explain the idea in your own words…',
                             radius: 20,
                           ).copyWith(
-                            contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 54),
+                            contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 58),
                           ),
                           validator: (value) {
                             final length = value?.trim().length ?? 0;
@@ -262,8 +275,8 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                           },
                         ),
                         Positioned(
-                          bottom: 24,
-                          right: 12,
+                          bottom: 34,
+                          right: 14,
                           child: Material(
                             color: AppColors.extraLightPink,
                             borderRadius: BorderRadius.circular(99),

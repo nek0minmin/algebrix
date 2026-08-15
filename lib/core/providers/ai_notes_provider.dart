@@ -101,6 +101,11 @@ class AiNotesProvider extends ChangeNotifier {
     }
   }
 
+  void setFeedback(AiFeedbackResult feedback) {
+    _currentFeedback = feedback;
+    notifyListeners();
+  }
+
   void clearFeedback() {
     _currentFeedback = null;
     _improvedSuggestion = null;
