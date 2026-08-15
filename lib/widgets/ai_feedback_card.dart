@@ -59,7 +59,7 @@ class AiFeedbackCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      feedback.title,
+                      _sanitizeTitle(feedback.title),
                       style: AppTextStyles.heading3.copyWith(
                         fontSize: 17,
                         fontWeight: FontWeight.w900,
@@ -88,7 +88,7 @@ class AiFeedbackCard extends StatelessWidget {
             ],
           ),
 
-          // Step-by-Step Bulleted List (Reduces cognitive load!)
+          // Step-by-Step Bulleted List with Pill Badges [Step 1], [Step 2]
           if (feedback.steps.isNotEmpty) ...[
             const SizedBox(height: 12),
             Container(
@@ -102,22 +102,33 @@ class AiFeedbackCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: feedback.steps.asMap().entries.map((entry) {
                   final index = entry.key + 1;
-                  final stepText = entry.value;
+                  final rawStep = entry.value;
+                  // Strip redundant leading "Step 1:" text if present
+                  final cleanStepText = rawStep.replaceAll(
+                    RegExp(r'^Step\s*\d+[:\-]?\s*', caseSensitive: false),
+                    '',
+                  );
+
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 20,
-                          height: 20,
-                          alignment: Alignment.center,
-                          decoration: const BoxDecoration(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
                             color: AppColors.extraLightPink,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: AppColors.lightPink,
+                              width: 0.8,
+                            ),
                           ),
                           child: Text(
-                            '$index',
+                            'Step $index',
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.darkPink,
                               fontWeight: FontWeight.w900,
@@ -127,12 +138,15 @@ class AiFeedbackCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: FormattedMathText(
-                            text: stepText,
-                            style: AppTextStyles.body2.copyWith(
-                              fontSize: 13,
-                              height: 1.35,
-                              color: AppColors.text,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: FormattedMathText(
+                              text: cleanStepText,
+                              style: AppTextStyles.body2.copyWith(
+                                fontSize: 13,
+                                height: 1.35,
+                                color: AppColors.text,
+                              ),
                             ),
                           ),
                         ),
@@ -295,5 +309,14 @@ class FormattedMathText extends StatelessWidget {
 
     return spans;
   }
+}
+
+String _sanitizeTitle(String rawTitle) {
+  // Strip non-ASCII emoji characters that produce missing glyph rectangles on Windows font engine
+  final clean = rawTitle.replaceAll(
+    RegExp(r'[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]', unicode: true),
+    '',
+  ).trim();
+  return clean.isEmpty ? 'Xy Insights' : clean;
 }
 

@@ -66,15 +66,15 @@ class AiTutorService {
     final systemPrompt = '''
 You are Xy, the friendly octopus algebra tutor in Algebrix.
 A student solved a math problem. Verify their work.
-Rule: Be concise. Wrap ALL math numbers, variables, and expressions in **bold** (e.g. **2x + 5 = 15**, **+5**, **x = 5**).
-Provide clear step-by-step bullet points in "steps".
+Rule: Be concise. Do NOT include emoji in "title". Wrap ALL math numbers, variables, and expressions in **bold** (e.g. **2x + 5 = 15**, **+5**, **x = 5**).
+Provide clear step-by-step bullet points in "steps" (do NOT prefix with "Step 1", just the action).
 Return JSON ONLY with exact keys:
 {
   "isCorrect": boolean,
-  "title": "🐙 Looks good!" or "🐙 Let's check step by step!",
+  "title": "Looks good!" or "Let's check step by step!",
   "message": "1 short sentence overview",
-  "steps": ["Step 1: Subtract **5** from both sides (**2x = 10**)", "Step 2: Divide by **2** (**x = 5**)"],
-  "whyItWorks": "1-line punchy rule: Inverse operations keep the scale balanced",
+  "steps": ["Subtract **5** from both sides (**2x = 10**)", "Divide both sides by **2** (**x = 5**)"],
+  "whyItWorks": "Inverse operations keep the scale balanced",
   "keyConcept": "The main takeaway rule"
 }
 ''';
@@ -91,14 +91,14 @@ Return JSON ONLY with exact keys:
     final systemPrompt = '''
 You are Xy, the supportive octopus tutor in Algebrix.
 The student made a mistake in solving an equation.
-Rule: Do NOT dump long paragraphs. Wrap ALL numbers, variables, and math operations in **bold** (e.g. **+4**, **3x**, **16**, **3**).
-Break down the corrections into 2-3 clear step-by-step bullet points in "steps".
+Rule: Do NOT include emoji in "title". Do NOT dump long paragraphs. Wrap ALL numbers, variables, and math operations in **bold** (e.g. **+4**, **3x**, **16**, **3**).
+Provide 2-3 clear step-by-step bullet points in "steps" (do NOT prefix with "Step 1", just the action).
 Return JSON ONLY with exact keys:
 {
   "isCorrect": false,
-  "title": "🐙 Let's check step by step!",
+  "title": "Let's check step by step!",
   "message": "You tried to divide by **3** first, but **+4** is still attached to **3x**.",
-  "steps": ["Undo **+4** first: **3x + 4 - 4 = 16 - 4** → **3x = 12**", "Then divide both sides by **3**: **x = 4**"],
+  "steps": ["Undo **+4** first: **3x + 4 - 4 = 16 - 4** → **3x = 12**", "Divide both sides by **3**: **x = 4**"],
   "whyItWorks": "Undo operations from the outside in (PEMDAS in reverse)",
   "promptForStudent": "💡 What did you learn from this step?"
 }
@@ -115,12 +115,12 @@ Return JSON ONLY with exact keys:
   }) async {
     final systemPrompt = '''
 You are Xy, the friendly octopus algebra tutor in Algebrix.
-The student asked a conceptual question about algebra (e.g., "Why subtract 5 from both sides?").
+The student asked a conceptual question about algebra.
 Type of guidance requested: $hintType.
-Rule: Use the balance scale analogy. Never give a dry textbook dump. Keep it conversational.
+Rule: Use the balance scale analogy. Do NOT include emoji in "title". Keep it conversational.
 Return JSON ONLY with exact keys:
 {
-  "title": "🐙 Think about it like a balance scale!",
+  "title": "Think about it like a balance scale!",
   "message": "Socratic explanation or hint using a balance scale analogy",
   "keyConcept": "Property of Equality concept",
   "suggestions": ["💡 Give me a hint", "📖 Explain it", "⚖️ Show visually", "🧩 Give an example"]
@@ -141,11 +141,11 @@ Return JSON ONLY with exact keys:
     final systemPrompt = '''
 You are Xy, the algebra tutor in Algebrix.
 The student tried to explain a concept ($topic) in their own words.
-Evaluate if they grasped the core intuition.
+Rule: Do NOT include emoji in "title". Evaluate if they grasped the core intuition.
 Return JSON ONLY with exact keys:
 {
   "isCorrect": boolean,
-  "title": "🐙 You're on the right track!" or "🐙 Almost there!",
+  "title": "You're on the right track!" or "Almost there!",
   "message": "Friendly constructive feedback on their explanation",
   "keyConcept": "Core rule or intuition"
 }
@@ -155,13 +155,17 @@ Return JSON ONLY with exact keys:
     return _callAiWithFallback(systemPrompt: systemPrompt, userPrompt: userPrompt);
   }
 
-  /// ✨ Improve My Understanding: Refines a messy note without overwriting original.
+  /// ✨ Improve My Understanding: Refines a messy note into clean first-person study note.
   Future<String> improveUnderstanding({required String rawNote}) async {
     final systemPrompt = '''
-You are Xy, an educational math assistant.
-Transform the student's rough study note into a clear, beautifully formatted, bulleted study note summary.
-Keep it student-friendly and concise.
-Return ONLY the refined markdown study note text. Do not wrap in JSON.
+You are Xy, an educational algebra assistant in Algebrix.
+The student wrote a rough study note. Transform it into a clean, beautifully formatted study note.
+
+CRITICAL RULES:
+1. Write ONLY in FIRST PERSON ("What I learned:", "My steps:"). NEVER talk about "the student" in 3rd person!
+2. Wrap key math numbers, variables, and expressions in **bold** (e.g. **2x + 5 = 15**, **x = 5**).
+3. Do NOT wrap output in markdown codeblocks (no ```markdown).
+4. Format clearly with bullet points.
 ''';
 
     try {
@@ -170,7 +174,7 @@ Return ONLY the refined markdown study note text. Do not wrap in JSON.
         userPrompt: rawNote,
         isJsonMode: false,
       );
-      return response;
+      return _cleanMarkdownResponse(response);
     } catch (_) {
       try {
         final response = await _callNvidia(
@@ -178,11 +182,24 @@ Return ONLY the refined markdown study note text. Do not wrap in JSON.
           userPrompt: rawNote,
           isJsonMode: false,
         );
-        return response;
+        return _cleanMarkdownResponse(response);
       } catch (e) {
-        return 'To solve equations, isolate the variable step-by-step using inverse operations on both sides of the balance scale.';
+        return 'What I Learned:\n• To solve equations, I isolate the variable step-by-step using inverse operations.\n• Whatever I do to one side of the balance scale, I apply to the other side.';
       }
     }
+  }
+
+  String _cleanMarkdownResponse(String raw) {
+    var text = raw.trim();
+    if (text.startsWith('```markdown')) {
+      text = text.substring(11);
+    } else if (text.startsWith('```')) {
+      text = text.substring(3);
+    }
+    if (text.endsWith('```')) {
+      text = text.substring(0, text.length - 3);
+    }
+    return text.trim();
   }
 
   /// Core HTTP executor with Groq -> NVIDIA fallback.
