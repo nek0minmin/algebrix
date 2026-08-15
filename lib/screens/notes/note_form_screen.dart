@@ -71,6 +71,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
     if (content.length < 20) {
+      _formKey.currentState?.validate();
       showAlgebrixSnackBar(
         context,
         message: 'Write at least 20 characters so Xy can analyze your note!',
@@ -80,6 +81,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
       return;
     }
 
+    _formKey.currentState?.validate();
     final aiProvider = context.read<AiNotesProvider>();
     FocusManager.instance.primaryFocus?.unfocus();
 
@@ -296,6 +298,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
               child: Form(
                 key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
