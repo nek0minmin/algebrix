@@ -24,7 +24,7 @@ class RootPageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewportWidth = MediaQuery.sizeOf(context).width;
     final useCompactAction = viewportWidth < 560;
-    final mascotSize = viewportWidth < 340 ? 64.0 : 72.0;
+    final mascotSize = viewportWidth < 340 ? 56.0 : 72.0;
 
     return Center(
       child: ConstrainedBox(

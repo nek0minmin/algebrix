@@ -68,7 +68,7 @@ void main() {
 
     await pumpRootHeader(tester, width: 320, textScale: 1.3);
     expect(xyImages(), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(64));
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(56));
     expect(tester.takeException(), isNull);
   });
 
