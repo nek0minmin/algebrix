@@ -7,7 +7,7 @@ import 'package:algebrix/widgets/bottom_nav_bar.dart';
 import 'package:algebrix/screens/home/home_screen.dart';
 import 'package:algebrix/screens/lessons/lessons_screen.dart';
 import 'package:algebrix/screens/notes/notes_screen.dart';
-import 'package:algebrix/screens/practice/quiz_screen.dart';
+import 'package:algebrix/screens/practice/practice_screen.dart';
 import 'package:algebrix/screens/auth/login_screen.dart';
 import 'package:algebrix/models/user_model.dart';
 
@@ -30,7 +30,7 @@ class _MainShellState extends State<MainShell> {
   final List<Widget> _screens = const [
     HomeScreen(),
     LessonsScreen(),
-    QuizScreen(),
+    PracticeScreen(),
     NotesScreen(),
   ];
 
