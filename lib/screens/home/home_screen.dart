@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
-import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_strings.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
@@ -10,12 +9,10 @@ import 'package:algebrix/models/user_model.dart';
 import 'package:algebrix/models/daily_challenge_model.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/data/module1_content.dart';
-import 'package:algebrix/widgets/search_bar_widget.dart';
 import 'package:algebrix/widgets/lesson_card.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/secondary_button.dart';
 import 'package:algebrix/widgets/daily_challenge_card.dart';
-import 'package:algebrix/widgets/xy_dialog.dart';
 import 'package:algebrix/widgets/progress_card.dart';
 import 'package:algebrix/widgets/streak_badge.dart';
 import 'package:algebrix/widgets/page_headers.dart';
@@ -63,10 +60,7 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const RootPageHeader(
-            title: 'Home',
-            subtitle: 'Your learning dashboard',
-          ),
+          const RootPageHeader(title: 'Home', subtitle: 'Let’s keep learning!'),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
             child: Column(
@@ -165,11 +159,7 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                 ],
 
-                // Section 2: Search Bar
-                SearchBarWidget(onChanged: (val) {}, onSubmitted: (val) {}),
-                const SizedBox(height: 24),
-
-                // Section 3: Continue Learning
+                // Section 2: Continue Learning
                 Text('Continue Learning', style: AppTextStyles.heading3),
                 const SizedBox(height: 12),
                 if (currentLesson != null) ...[
@@ -219,13 +209,10 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Section 5: Xy's Tip of the Day
-                Text("Today's Tip from Xy", style: AppTextStyles.heading3),
+                // Section 4: Learning tip
+                Text("Today's learning tip", style: AppTextStyles.heading3),
                 const SizedBox(height: 12),
-                XyDialog(
-                  message: AppStrings.tipOfTheDay,
-                  xyAsset: AppAssets.xyPointing,
-                ),
+                _LearningTipCallout(message: AppStrings.tipOfTheDay),
 
                 const SizedBox(height: 28),
 
@@ -319,5 +306,52 @@ class HomeScreen extends StatelessWidget {
       MaterialPageRoute(builder: (_) => const ModuleOverviewScreen()),
     );
     navigator.push(MaterialPageRoute(builder: (_) => const LessonScreen()));
+  }
+}
+
+class _LearningTipCallout extends StatelessWidget {
+  const _LearningTipCallout({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: AppColors.extraLightPink,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.tips_and_updates_outlined,
+              color: AppColors.darkPink,
+              size: 22,
+              semanticLabel: 'Learning tip',
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTextStyles.body2.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

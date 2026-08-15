@@ -1,4 +1,3 @@
-import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/notes_provider.dart';
@@ -50,7 +49,7 @@ class NotesScreen extends StatelessWidget {
             children: [
               RootPageHeader(
                 title: 'Notes',
-                subtitle: 'Write the why in your own words.',
+                subtitle: 'Keep your algebra ideas close.',
                 trailing: FilledButton.icon(
                   key: const Key('new-note-button'),
                   onPressed: () => _createNote(context),
@@ -221,11 +220,19 @@ class _EmptyNotes extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                AppAssets.xyPointing,
-                width: 112,
-                height: 112,
-                fit: BoxFit.contain,
+              Container(
+                width: 72,
+                height: 72,
+                decoration: const BoxDecoration(
+                  color: AppColors.extraLightPink,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.note_alt_outlined,
+                  size: 34,
+                  color: AppColors.pink,
+                  semanticLabel: 'Empty notes',
+                ),
               ),
               const SizedBox(height: 12),
               Text(

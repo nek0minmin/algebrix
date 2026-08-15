@@ -29,7 +29,7 @@ void main() {
 
     expect(find.text('Your ideas belong here'), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('new-note-button')));
+    await tester.tap(find.byKey(const Key('new-note-button-compact')));
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.byKey(const Key('save-note-button')));
@@ -115,7 +115,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('new-note-button')));
+      await tester.tap(find.byKey(const Key('new-note-button-compact')));
       await tester.pumpAndSettle();
       await tester.ensureVisible(
         find.byKey(const Key('note-prompt-explain-why')),
@@ -136,6 +136,82 @@ void main() {
       expect(content.controller!.text, contains('Where I got stuck:'));
     },
   );
+
+  testWidgets('secondary notes header has branded back navigation', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final provider = NotesProvider(repository: _MemoryNotesRepository());
+    provider.bindAccount('student-1');
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: const MaterialApp(home: Scaffold(body: NotesScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('new-note-button-compact')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('NOTES'), findsNothing);
+    expect(find.text('Explain one idea in your own words.'), findsOneWidget);
+    expect(find.byTooltip('Back to Notes'), findsOneWidget);
+    expect(find.bySemanticsLabel('Back to Notes'), findsWidgets);
+
+    await tester.tap(find.byKey(const Key('secondary-page-back-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('Notes'), findsOneWidget);
+    semantics.dispose();
+  });
+
+  testWidgets('thinking prompts respond at the 380px content breakpoint', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(480, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final provider = NotesProvider(repository: _MemoryNotesRepository());
+    provider.bindAccount('student-1');
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: const MaterialApp(home: Scaffold(body: NotesScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('new-note-button-compact')));
+    await tester.pumpAndSettle();
+
+    final explainWhy = find.byKey(const Key('note-prompt-explain-why'));
+    final workedExample = find.byKey(const Key('note-prompt-worked-example'));
+    expect(
+      tester.getTopLeft(explainWhy).dy,
+      tester.getTopLeft(workedExample).dy,
+    );
+    expect(
+      tester.getTopLeft(explainWhy).dx,
+      lessThan(tester.getTopLeft(workedExample).dx),
+    );
+    expect(tester.getSize(explainWhy).height, 52);
+    expect(find.bySemanticsLabel('Insert Explain why prompt'), findsOneWidget);
+
+    await tester.binding.setSurfaceSize(const Size(390, 900));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getTopLeft(explainWhy).dx,
+      tester.getTopLeft(workedExample).dx,
+    );
+    expect(
+      tester.getTopLeft(explainWhy).dy,
+      lessThan(tester.getTopLeft(workedExample).dy),
+    );
+    expect(tester.getSize(explainWhy).height, 52);
+  });
 
   testWidgets('notes and form remain usable at a narrow phone width', (
     tester,
@@ -168,6 +244,8 @@ void main() {
     await tester.tap(find.byKey(const Key('new-note-button-compact')));
     await tester.pumpAndSettle();
     expect(find.text('New note'), findsOneWidget);
+    expect(find.text('Explain one idea in your own words.'), findsOneWidget);
+    expect(find.byTooltip('Back to Notes'), findsOneWidget);
     expect(find.byKey(const Key('note-prompt-explain-why')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

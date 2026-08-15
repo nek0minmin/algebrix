@@ -116,6 +116,9 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
       backgroundColor: AppColors.background,
       appBar: SecondaryPageAppBar(
         title: widget.isEditing ? 'Edit note' : 'New note',
+        supportingText: widget.isEditing
+            ? 'Make your explanation even clearer.'
+            : 'Explain one idea in your own words.',
       ),
       body: SafeArea(
         top: false,
@@ -124,19 +127,17 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
             constraints: const BoxConstraints(maxWidth: 680),
             child: SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 36),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _FormIntro(isEditing: widget.isEditing),
-                    const SizedBox(height: 24),
                     const _FieldLabel(
                       label: 'Lesson',
                       helper: 'Connect this note to what you are learning.',
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     FormField<String>(
                       key: const Key('note-lesson-field'),
                       initialValue: _lessonId,
@@ -153,9 +154,9 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     const _FieldLabel(label: 'Note title'),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     TextFormField(
                       key: const Key('note-title-field'),
                       controller: _titleController,
@@ -179,30 +180,21 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Start with a thinking prompt',
-                      style: AppTextStyles.subtitle1.copyWith(
-                        color: AppColors.text,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    const SizedBox(height: 18),
+                    const _FieldLabel(
+                      label: 'Start with a thinking prompt',
+                      helper:
+                          'Choose a structure, then make the explanation your own.',
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Choose a structure, then make the explanation your own.',
-                      style: AppTextStyles.body2.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     _PromptGrid(enabled: !isSaving, onSelected: _insertPrompt),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     const _FieldLabel(
                       label: 'Your explanation',
                       helper:
                           'Use words, examples, and equations that make sense to you.',
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     TextFormField(
                       key: const Key('note-content-field'),
                       controller: _contentController,
@@ -226,7 +218,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 24),
                     PrimaryButton(
                       key: const Key('save-note-button'),
                       label: widget.isEditing ? 'Save changes' : 'Save note',
@@ -240,63 +232,6 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _FormIntro extends StatelessWidget {
-  const _FormIntro({required this.isEditing});
-
-  final bool isEditing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.extraLightPink,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.lightPink),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.lightbulb_outline_rounded,
-              color: AppColors.pink,
-            ),
-          ),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isEditing ? 'Refine your thinking' : 'Capture the why',
-                  style: AppTextStyles.heading3.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  'Connect an explanation, example, or question to Algebra Foundations.',
-                  style: AppTextStyles.body2.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -317,16 +252,15 @@ class _FieldLabel extends StatelessWidget {
           label,
           style: AppTextStyles.subtitle1.copyWith(
             color: AppColors.text,
+            fontSize: 18,
             fontWeight: FontWeight.w800,
           ),
         ),
         if (helper != null) ...[
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
           Text(
             helper!,
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
           ),
         ],
       ],
@@ -591,7 +525,7 @@ class _PromptGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 250 ? 2 : 1;
+        final columns = constraints.maxWidth >= 380 ? 2 : 1;
         final width = columns == 2
             ? (constraints.maxWidth - 10) / 2
             : constraints.maxWidth;
@@ -629,35 +563,58 @@ class _PromptCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: prompt.surfaceColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: prompt.accentColor.withValues(alpha: 0.35)),
-      ),
-      child: InkWell(
-        key: Key('note-prompt-${prompt.keyName}'),
-        onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(16),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 70),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(prompt.icon, color: prompt.accentColor, size: 21),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Text(
-                    prompt.label,
-                    style: AppTextStyles.body2.copyWith(
-                      color: AppColors.text,
-                      fontWeight: FontWeight.w800,
+    return Semantics(
+      container: true,
+      button: true,
+      enabled: enabled,
+      label: 'Insert ${prompt.label} prompt',
+      onTap: enabled ? onTap : null,
+      child: ExcludeSemantics(
+        child: Material(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: AppColors.border),
+          ),
+          child: InkWell(
+            key: Key('note-prompt-${prompt.keyName}'),
+            onTap: enabled ? onTap : null,
+            borderRadius: BorderRadius.circular(14),
+            child: SizedBox(
+              height: 52,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 11),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: prompt.surfaceColor,
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Icon(
+                        prompt.icon,
+                        color: prompt.accentColor,
+                        size: 18,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Text(
+                        prompt.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.body2.copyWith(
+                          color: AppColors.text,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

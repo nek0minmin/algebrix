@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
-import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
@@ -23,7 +22,7 @@ class LessonsScreen extends StatelessWidget {
         children: [
           const RootPageHeader(
             title: 'Lessons',
-            subtitle: 'Follow your algebra learning path.',
+            subtitle: 'Let’s learn together!',
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -171,12 +170,11 @@ class _ModuleCard extends StatelessWidget {
                     color: accentColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Image.asset(
-                      module.xyAsset ?? AppAssets.xyWave,
-                      fit: BoxFit.contain,
-                    ),
+                  child: Icon(
+                    Icons.functions_rounded,
+                    color: accentColor,
+                    size: 26,
+                    semanticLabel: 'Algebra module',
                   ),
                 ),
                 const SizedBox(width: 14),

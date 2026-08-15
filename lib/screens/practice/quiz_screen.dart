@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
-import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/models/equation_model.dart';
 import 'package:algebrix/services/equation_generator_service.dart';
 import 'package:algebrix/services/ai_service.dart';
 import 'package:algebrix/widgets/balance_scale_widget.dart';
 import 'package:algebrix/widgets/draggable_action_chip.dart';
-import 'package:algebrix/widgets/xy_dialog.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 
@@ -137,200 +135,257 @@ class _QuizScreenState extends State<QuizScreen> {
     final isBalanced = _equation.isBalanced;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const RootPageHeader(
             title: 'Practice',
-            subtitle: 'Balance, test, and understand each step.',
-            padding: EdgeInsets.fromLTRB(4, 12, 4, 14),
+            subtitle: 'Solve one step at a time.',
           ),
-          // ── Clean Header ──────────────────────────────────────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'Solve: ',
-                    style: AppTextStyles.subtitle1.copyWith(fontSize: 15),
-                  ),
-                  Text(
-                    _equation.equationText,
-                    style: AppTextStyles.heading2.copyWith(
-                      color: AppColors.darkPink,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Clean Header ────────────────────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Solve: ',
+                          style: AppTextStyles.subtitle1.copyWith(fontSize: 15),
+                        ),
+                        Text(
+                          _equation.equationText,
+                          style: AppTextStyles.heading2.copyWith(
+                            color: AppColors.darkPink,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: isSolved
-                      ? AppColors.lightMint
-                      : (isBalanced
-                            ? AppColors.lightYellow
-                            : AppColors.extraLightPink),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isSolved
-                        ? AppColors.success
-                        : (isBalanced ? AppColors.yellow : AppColors.darkPink),
-                    width: 1.2,
-                  ),
-                ),
-                child: Text(
-                  isSolved
-                      ? 'x = ${_equation.targetXValue} 🎉'
-                      : (isBalanced ? 'Balanced ✨' : 'Tilted ⚖️'),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: isSolved
-                        ? AppColors.success
-                        : (isBalanced
-                              ? const Color(0xFFB78103)
-                              : AppColors.darkPink),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-
-          // ── Minimal Level Filter Bar ──────────────────────────────────────
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: DifficultyLevel.values.map((level) {
-                final isSelected = level == _currentLevel;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6.0),
-                  child: ChoiceChip(
-                    label: Text(_getLevelName(level)),
-                    selected: isSelected,
-                    onSelected: (_) => _changeLevel(level),
-                    selectedColor: AppColors.pink,
-                    backgroundColor: AppColors.extraLightPink,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? Colors.white
-                          : AppColors.textSecondary,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      fontSize: 11,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // ── Interactive Drag & Drop Balance Scale Visualizer ───────────────
-          BalanceScaleWidget(
-            equation: _equation,
-            onDropOnCenterFulcrum: _handleDropOnCenter,
-            onDropOnLeftPan: _handleDropOnLeft,
-            onDropOnRightPan: _handleDropOnRight,
-          ),
-          const SizedBox(height: 8),
-
-          // ── Victory Card when Solved ───────────────────────────────────────
-          if (isSolved) ...[
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.lightMint,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.success, width: 2),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    '✨ YOU DISCOVERED X = ${_equation.targetXValue} ✨',
-                    style: AppTextStyles.heading2.copyWith(
-                      fontSize: 20,
-                      color: AppColors.success,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Solved in $_movesUsed moves! (${'⭐' * _starRating})',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF0F7263),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            PrimaryButton(label: 'Next problem', onPressed: _loadNextEquation),
-          ] else ...[
-            // ── Mascot Xy Hint ─────────────────────────────────────────────
-            XyDialog(
-              message: _xyMessage,
-              xyAsset: isBalanced
-                  ? AppAssets.xyPointing
-                  : AppAssets.xyExplaining,
-            ),
-            const SizedBox(height: 10),
-
-            // ── Clean 5-Item Action Chips Palette ───────────────────────────
-            Center(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: _paletteOptions.map((opt) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: DraggableActionChip(
-                        value: opt.value,
-                        label: opt.label,
-                        isDivision: opt.isDivision,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
                       ),
-                    );
-                  }).toList(),
+                      decoration: BoxDecoration(
+                        color: isSolved
+                            ? AppColors.lightMint
+                            : (isBalanced
+                                  ? AppColors.lightYellow
+                                  : AppColors.extraLightPink),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isSolved
+                              ? AppColors.success
+                              : (isBalanced
+                                    ? AppColors.yellow
+                                    : AppColors.darkPink),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Text(
+                        isSolved
+                            ? 'x = ${_equation.targetXValue} 🎉'
+                            : (isBalanced ? 'Balanced ✨' : 'Tilted ⚖️'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: isSolved
+                              ? AppColors.success
+                              : (isBalanced
+                                    ? const Color(0xFFB78103)
+                                    : AppColors.darkPink),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 12),
+                const SizedBox(height: 6),
 
-            Center(
-              child: TextButton.icon(
-                onPressed: _loadNextEquation,
-                icon: const Icon(
-                  Icons.refresh,
-                  size: 16,
-                  color: AppColors.purple,
-                ),
-                label: Text(
-                  'Reset Scale (Moves: $_movesUsed / $_targetMovesMax)',
-                  style: const TextStyle(
-                    color: AppColors.purple,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                // ── Minimal Level Filter Bar ──────────────────────────────────────
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: DifficultyLevel.values.map((level) {
+                      final isSelected = level == _currentLevel;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 6.0),
+                        child: ChoiceChip(
+                          label: Text(_getLevelName(level)),
+                          selected: isSelected,
+                          onSelected: (_) => _changeLevel(level),
+                          selectedColor: AppColors.pink,
+                          backgroundColor: AppColors.extraLightPink,
+                          labelStyle: TextStyle(
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.textSecondary,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            fontSize: 11,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
+                const SizedBox(height: 8),
+
+                // ── Interactive Drag & Drop Balance Scale Visualizer ───────────────
+                BalanceScaleWidget(
+                  equation: _equation,
+                  onDropOnCenterFulcrum: _handleDropOnCenter,
+                  onDropOnLeftPan: _handleDropOnLeft,
+                  onDropOnRightPan: _handleDropOnRight,
+                ),
+                const SizedBox(height: 8),
+
+                // ── Victory Card when Solved ───────────────────────────────────────
+                if (isSolved) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightMint,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.success, width: 2),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          '✨ YOU DISCOVERED X = ${_equation.targetXValue} ✨',
+                          style: AppTextStyles.heading2.copyWith(
+                            fontSize: 20,
+                            color: AppColors.success,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Solved in $_movesUsed moves! (${'⭐' * _starRating})',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF0F7263),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  PrimaryButton(
+                    label: 'Next problem',
+                    onPressed: _loadNextEquation,
+                  ),
+                ] else ...[
+                  _PracticeHint(message: _xyMessage, isBalanced: isBalanced),
+                  const SizedBox(height: 10),
+
+                  // ── Clean 5-Item Action Chips Palette ───────────────────────────
+                  Center(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: _paletteOptions.map((opt) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4.0,
+                            ),
+                            child: DraggableActionChip(
+                              value: opt.value,
+                              label: opt.label,
+                              isDivision: opt.isDivision,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: _loadNextEquation,
+                      icon: const Icon(
+                        Icons.refresh,
+                        size: 16,
+                        color: AppColors.purple,
+                      ),
+                      label: Text(
+                        'Reset Scale (Moves: $_movesUsed / $_targetMovesMax)',
+                        style: const TextStyle(
+                          color: AppColors.purple,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PracticeHint extends StatelessWidget {
+  const _PracticeHint({required this.message, required this.isBalanced});
+
+  final String message;
+  final bool isBalanced;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = isBalanced ? AppColors.mint : AppColors.purple;
+    final surface = isBalanced ? AppColors.lightMint : AppColors.lightPurple;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(color: surface, shape: BoxShape.circle),
+            child: Icon(
+              isBalanced
+                  ? Icons.balance_rounded
+                  : Icons.tips_and_updates_outlined,
+              color: accent,
+              size: 21,
+              semanticLabel: isBalanced ? 'Balance hint' : 'Practice hint',
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTextStyles.body2.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          ],
-          const SizedBox(height: 12),
+          ),
         ],
       ),
     );
