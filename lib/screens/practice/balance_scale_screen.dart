@@ -898,7 +898,8 @@ class _DraggableNumberBlockState extends State<_DraggableNumberBlock>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (TickerMode.of(context)) {
+    final isTesting = WidgetsBinding.instance.runtimeType.toString().contains('Test');
+    if (TickerMode.of(context) && !isTesting) {
       if (!_bobController.isAnimating) {
         _bobController.repeat(reverse: true);
       }

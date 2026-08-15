@@ -104,7 +104,8 @@ void main() {
       expect(find.text('Root Finder'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('practice-mode-balance-scale')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
 
       expect(find.text('Solve for x'), findsOneWidget);
       expect(find.text('Number Blocks'), findsOneWidget);
