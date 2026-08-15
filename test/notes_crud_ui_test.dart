@@ -36,7 +36,11 @@ void main() {
     await tester.tap(find.byKey(const Key('save-note-button')));
     await tester.pump();
     expect(find.text('Choose a lesson for this note.'), findsOneWidget);
-    expect(find.text('Enter at least 3 characters.'), findsNWidgets(2));
+    expect(find.text('Enter at least 3 characters.'), findsOneWidget);
+    expect(
+      find.text('Write at least 20 characters explaining your idea.'),
+      findsOneWidget,
+    );
 
     await tester.ensureVisible(
       find.byKey(const Key('note-lesson-selector-button')),

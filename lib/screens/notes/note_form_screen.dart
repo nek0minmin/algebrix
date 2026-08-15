@@ -68,11 +68,12 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
   Future<void> _analyzeWithAi() async {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
-    if (content.isEmpty) {
+    if (content.length < 20) {
       showAlgebrixSnackBar(
         context,
-        message: 'Type a few words first so Xy can analyze your note!',
+        message: 'Write at least 20 characters so Xy can analyze your note!',
         icon: Icons.lightbulb_outline_rounded,
+        isError: true,
       );
       return;
     }
@@ -274,7 +275,9 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                           ),
                           validator: (value) {
                             final length = value?.trim().length ?? 0;
-                            if (length < 3) return 'Enter at least 3 characters.';
+                            if (length < 20) {
+                              return 'Write at least 20 characters explaining your idea.';
+                            }
                             if (length > 2000) {
                               return 'Use no more than 2000 characters.';
                             }

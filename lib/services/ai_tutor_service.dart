@@ -202,11 +202,61 @@ CRITICAL RULES:
     return text.trim();
   }
 
+  bool _isOffTopicText(String userPrompt) {
+    final lower = userPrompt.toLowerCase().trim();
+    if (lower.length < 10) return false;
+
+    // Standard math keywords or symbols
+    final mathKeywords = [
+      'x', 'y', 'z', '=', '+', '-', '*', '/', 'equation', 'variable',
+      'solve', 'math', 'algebra', 'constant', 'term', 'expression',
+      'subtract', 'add', 'divide', 'multiply', 'step', 'linear',
+      'quadratic', 'slope', 'graph', 'intercept', 'factor', 'number',
+      'fraction', 'decimal', 'power', 'exponent', 'formula', 'ratio',
+      'problem', 'solution', 'how', 'why', 'what', 'worked', 'hint',
+    ];
+
+    final hasMathKeyword = mathKeywords.any((kw) => lower.contains(kw));
+    if (hasMathKeyword) return false;
+
+    // Off-topic keywords
+    final offTopicKeywords = [
+      'recipe', 'pizza', 'burger', 'playstation', 'xbox', 'nintendo',
+      'fifa', 'fortnite', 'minecraft', 'movie', 'song', 'music',
+      'restaurant', 'hotel', 'car', 'dog', 'cat', 'sleep', 'party',
+    ];
+
+    final hasOffTopic = offTopicKeywords.any((kw) => lower.contains(kw));
+    if (hasOffTopic) return true;
+
+    // Gibberish check: long word without vowels
+    final words = lower.split(RegExp(r'\s+'));
+    for (final w in words) {
+      if (w.length > 12 && !RegExp(r'[aeiouy]').hasMatch(w)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /// Core HTTP executor with Groq -> NVIDIA fallback.
   Future<AiFeedbackResult> _callAiWithFallback({
     required String systemPrompt,
     required String userPrompt,
   }) async {
+    if (_isOffTopicText(userPrompt)) {
+      return const AiFeedbackResult(
+        title: 'Let\'s focus on Algebra!',
+        message: 'Xy is your dedicated algebra tutor! This note doesn\'t seem to be about math or equations.',
+        steps: ['Try writing about an algebra concept like **variables**, **equations**, or **solving for x**!'],
+        whyItWorks: 'Xy provides step-by-step insights when you share math concepts or worked examples.',
+        keyConcept: 'Algebrix Topic Boundary',
+        providerUsed: 'Algebrix Topic Guard',
+        isCorrect: false,
+      );
+    }
+
     try {
       final text = await _callGroq(
         systemPrompt: systemPrompt,
@@ -228,7 +278,7 @@ CRITICAL RULES:
       } catch (nvidiaError) {
         debugPrint('NVIDIA API error: $nvidiaError. Using offline fallback.');
         return const AiFeedbackResult(
-          title: '🐙 Xy\'s Learning Nudge',
+          title: 'Xy\'s Learning Nudge',
           message:
               'Keep both sides of your equation balanced like a scale! Whatever operation you perform on the left, apply equally to the right.',
           whyItWorks: 'The Property of Equality maintains balance.',
