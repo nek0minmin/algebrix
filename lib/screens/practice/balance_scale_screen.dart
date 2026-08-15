@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
@@ -46,7 +47,7 @@ class BalanceScaleScreen extends StatelessWidget {
               _ApiStatusBadge(providerUsed: provider.providerUsed),
               const SizedBox(height: 16),
 
-              // Target Equation Banner
+              // Target Equation Banner & Balance Indicator
               if (problem != null) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -75,12 +76,41 @@ class BalanceScaleScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Goal: Solve for x',
-                              style: AppTextStyles.subtitle2.copyWith(
-                                color: AppColors.pink,
-                                fontWeight: FontWeight.w800,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  'Goal: Solve for x',
+                                  style: AppTextStyles.subtitle2.copyWith(
+                                    color: AppColors.pink,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: provider.isCurrentlyBalanced
+                                        ? Colors.green.withValues(alpha: 0.15)
+                                        : Colors.amber.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    provider.isCurrentlyBalanced
+                                        ? 'Balanced ✨'
+                                        : 'Unbalanced ⚠️',
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w900,
+                                      color: provider.isCurrentlyBalanced
+                                          ? Colors.green.shade800
+                                          : Colors.amber.shade900,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -119,7 +149,7 @@ class BalanceScaleScreen extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Drag an operation chip onto the Center Fulcrum (both sides) or Left/Right Pans (single side), or tap directly!',
+                        'Drag weight chips onto Center Fulcrum (both sides) or Left/Right Pans (single side)! Watch the scale tilt!',
                         style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
@@ -133,12 +163,14 @@ class BalanceScaleScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Visual Interactive Drag-Target Scale Canvas
+              // Visual Interactive Drag-Target Tilted Scale Canvas
               _VisualScaleWidget(
                 leftExpr: provider.leftExpr,
                 rightExpr: provider.rightExpr,
                 isSolved: provider.isSolved,
                 isLoading: provider.isLoading,
+                tiltAngle: provider.tiltAngle,
+                isBalanced: provider.isCurrentlyBalanced,
                 onApply: (op, val, targetSide) =>
                     provider.applyOperation(op, val, targetSide: targetSide),
               ),
@@ -271,6 +303,8 @@ class _VisualScaleWidget extends StatelessWidget {
     required this.rightExpr,
     required this.isSolved,
     required this.isLoading,
+    required this.tiltAngle,
+    required this.isBalanced,
     required this.onApply,
   });
 
@@ -278,6 +312,8 @@ class _VisualScaleWidget extends StatelessWidget {
   final String rightExpr;
   final bool isSolved;
   final bool isLoading;
+  final double tiltAngle;
+  final bool isBalanced;
   final Function(String op, num val, String targetSide) onApply;
 
   @override
@@ -288,7 +324,9 @@ class _VisualScaleWidget extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: isSolved ? AppColors.pink : AppColors.border,
+          color: isSolved
+              ? AppColors.pink
+              : (isBalanced ? AppColors.border : Colors.amber.shade700),
           width: 2,
         ),
         boxShadow: [
@@ -346,74 +384,81 @@ class _VisualScaleWidget extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // Tilted Beam & Drag-Target Scale Pans
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left Scale Pan Drag Target
-              Expanded(
-                child: DragTarget<ScaleOp>(
-                  onWillAcceptWithDetails: (details) => !isLoading && !isSolved,
-                  onAcceptWithDetails: (details) {
-                    onApply(details.data.op, details.data.value, 'left');
-                  },
-                  builder: (ctx, candidateData, rejectedData) {
-                    final isHovered = candidateData.isNotEmpty;
-                    return _ScalePan(
-                      expression: leftExpr,
-                      isLeft: true,
-                      isSolved: isSolved,
-                      isHovered: isHovered,
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              // Fulcrum Triangle Centerpiece
-              Column(
-                children: [
-                  const SizedBox(height: 24),
-                  CustomPaint(
-                    size: const Size(40, 36),
-                    painter: _FulcrumPainter(),
+          // Tilted Beam & Drag-Target Scale Pans with Animated Rotation
+          AnimatedRotation(
+            turns: tiltAngle / (2 * math.pi),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutBack,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Left Scale Pan Drag Target
+                Expanded(
+                  child: DragTarget<ScaleOp>(
+                    onWillAcceptWithDetails: (details) => !isLoading && !isSolved,
+                    onAcceptWithDetails: (details) {
+                      onApply(details.data.op, details.data.value, 'left');
+                    },
+                    builder: (ctx, candidateData, rejectedData) {
+                      final isHovered = candidateData.isNotEmpty;
+                      return _ScalePan(
+                        expression: leftExpr,
+                        isLeft: true,
+                        isSolved: isSolved,
+                        isHovered: isHovered,
+                      );
+                    },
                   ),
-                  Container(
-                    height: 8,
-                    width: 60,
-                    decoration: BoxDecoration(
-                      color: AppColors.text,
-                      borderRadius: BorderRadius.circular(4),
+                ),
+
+                const SizedBox(width: 10),
+
+                // Beam Line Bar & Fulcrum Pivot
+                Column(
+                  children: [
+                    Container(
+                      height: 10,
+                      width: 50,
+                      decoration: BoxDecoration(
+                        color: isSolved
+                            ? AppColors.pink
+                            : (isBalanced ? AppColors.text : Colors.amber.shade700),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(width: 12),
-
-              // Right Scale Pan Drag Target
-              Expanded(
-                child: DragTarget<ScaleOp>(
-                  onWillAcceptWithDetails: (details) => !isLoading && !isSolved,
-                  onAcceptWithDetails: (details) {
-                    onApply(details.data.op, details.data.value, 'right');
-                  },
-                  builder: (ctx, candidateData, rejectedData) {
-                    final isHovered = candidateData.isNotEmpty;
-                    return _ScalePan(
-                      expression: rightExpr,
-                      isLeft: false,
-                      isSolved: isSolved,
-                      isHovered: isHovered,
-                    );
-                  },
+                    const SizedBox(height: 6),
+                    CustomPaint(
+                      size: const Size(36, 30),
+                      painter: _FulcrumPainter(),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+
+                const SizedBox(width: 10),
+
+                // Right Scale Pan Drag Target
+                Expanded(
+                  child: DragTarget<ScaleOp>(
+                    onWillAcceptWithDetails: (details) => !isLoading && !isSolved,
+                    onAcceptWithDetails: (details) {
+                      onApply(details.data.op, details.data.value, 'right');
+                    },
+                    builder: (ctx, candidateData, rejectedData) {
+                      final isHovered = candidateData.isNotEmpty;
+                      return _ScalePan(
+                        expression: rightExpr,
+                        isLeft: false,
+                        isSolved: isSolved,
+                        isHovered: isHovered,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -540,7 +585,7 @@ class _OperationPalette extends StatelessWidget {
               ),
             ),
             Text(
-              'Drag or Tap',
+              'Drag to scale or Tap',
               style: GoogleFonts.nunito(
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
@@ -601,7 +646,7 @@ class _OperationPalette extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(28),
       ),
       builder: (ctx) => Padding(
@@ -689,20 +734,23 @@ class _DraggableOperationChip extends StatelessWidget {
       return _ChipWidget(label: scaleOp.label, isDragging: false);
     }
 
-    return Draggable<ScaleOp>(
-      data: scaleOp,
-      feedback: Material(
-        color: Colors.transparent,
-        child: _ChipWidget(label: scaleOp.label, isDragging: true),
-      ),
-      childWhenDragging: Opacity(
-        opacity: 0.4,
-        child: _ChipWidget(label: scaleOp.label, isDragging: false),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: _ChipWidget(label: scaleOp.label, isDragging: false),
+    return MouseRegion(
+      cursor: SystemMouseCursors.grab,
+      child: Draggable<ScaleOp>(
+        data: scaleOp,
+        feedback: Material(
+          color: Colors.transparent,
+          child: _ChipWidget(label: scaleOp.label, isDragging: true),
+        ),
+        childWhenDragging: Opacity(
+          opacity: 0.4,
+          child: _ChipWidget(label: scaleOp.label, isDragging: false),
+        ),
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: _ChipWidget(label: scaleOp.label, isDragging: false),
+        ),
       ),
     );
   }

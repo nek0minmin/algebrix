@@ -47,6 +47,43 @@ class BalanceScaleProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   int get xpEarned => _xpEarned;
 
+  /// Returns scale tilt angle in radians:
+  /// 0.0 = Balanced horizontal
+  /// Negative angle (-0.14 rad) = Left side heavier (Left tilts down)
+  /// Positive angle (+0.14 rad) = Right side heavier (Right tilts down)
+  double get tiltAngle {
+    if (_currentProblem == null) return 0.0;
+    final targetX = _currentProblem!.targetX;
+
+    final leftWeight = _evaluateExprWeight(_leftExpr, targetX);
+    final rightWeight = _evaluateExprWeight(_rightExpr, targetX);
+
+    final diff = leftWeight - rightWeight;
+    if (diff.abs() < 0.01) return 0.0;
+
+    return diff > 0 ? -0.14 : 0.14;
+  }
+
+  bool get isCurrentlyBalanced => tiltAngle == 0.0;
+
+  double _evaluateExprWeight(String expr, int targetX) {
+    var cleaned = expr.replaceAll(' ', '').toLowerCase();
+    if (cleaned == 'x') return targetX.toDouble();
+
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'(\d+)x'),
+      (match) => '${int.parse(match.group(1)!) * targetX}',
+    );
+    cleaned = cleaned.replaceAll('x', '$targetX');
+
+    double total = 0.0;
+    final matches = RegExp(r'([\+\-]?\d+)').allMatches(cleaned);
+    for (final m in matches) {
+      total += double.tryParse(m.group(0) ?? '0') ?? 0;
+    }
+    return total == 0 ? 1.0 : total;
+  }
+
   void initNewProblem() {
     final nextProb = _apiService.getRandomProblem(currentId: _currentProblem?.id);
     _currentProblem = nextProb;
