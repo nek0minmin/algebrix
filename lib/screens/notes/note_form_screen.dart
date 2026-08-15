@@ -53,6 +53,12 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
   }
 
   @override
+  void deactivate() {
+    context.read<AiNotesProvider>().clearFeedback();
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
@@ -117,6 +123,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
     if (!mounted) return;
     if (success) {
+      aiProvider.clearFeedback();
       Navigator.of(context).pop(true);
       return;
     }
