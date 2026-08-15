@@ -12,8 +12,8 @@ class AppStrings {
   // ── Navigation Labels ─────────────────────────────────────────────────────
   static const String navHome = 'Home';
   static const String navLessons = 'Lessons';
-  static const String navQuiz = 'Quiz';
   static const String navPractice = 'Practice';
+  static const String navNotes = 'Notes';
 
   // ── Dashboard ─────────────────────────────────────────────────────────────
   static const String searchHint = 'Search lessons or topics';
@@ -48,9 +48,9 @@ class AppStrings {
 
   /// Returns the tip of the day based on the current date.
   static String get tipOfTheDay {
-    final dayOfYear = DateTime.now().difference(
-      DateTime(DateTime.now().year, 1, 1),
-    ).inDays;
+    final dayOfYear = DateTime.now()
+        .difference(DateTime(DateTime.now().year, 1, 1))
+        .inDays;
     return xyTips[dayOfYear % xyTips.length];
   }
 

@@ -19,12 +19,7 @@ class BottomNavBar extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: AppColors.border,
-            width: 1.0,
-          ),
-        ),
+        border: Border(top: BorderSide(color: AppColors.border, width: 1.0)),
       ),
       child: BottomNavigationBar(
         currentIndex: currentIndex,
@@ -48,14 +43,14 @@ class BottomNavBar extends StatelessWidget {
             label: AppStrings.navLessons,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.edit_outlined),
-            activeIcon: Icon(Icons.edit_note_rounded),
-            label: AppStrings.navQuiz,
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.psychology_outlined),
             activeIcon: Icon(Icons.psychology_rounded),
             label: AppStrings.navPractice,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.note_alt_outlined),
+            activeIcon: Icon(Icons.note_alt_rounded),
+            label: AppStrings.navNotes,
           ),
         ],
       ),

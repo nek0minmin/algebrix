@@ -5,9 +5,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/app_constants.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/lesson_provider.dart';
+import 'core/providers/notes_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'models/lesson_progress_model.dart';
+import 'models/study_note_model.dart';
 import 'services/auth_service.dart';
+import 'services/notes_repository.dart';
 import 'services/progress_repository.dart';
 import 'screens/splash/splash_screen.dart';
 
@@ -56,6 +59,7 @@ class AlgebrixApp extends StatelessWidget {
         Provider<ProgressRepository>(
           create: (_) => _createProgressRepository(),
         ),
+        Provider<NotesRepository>(create: (_) => _createNotesRepository()),
         ChangeNotifierProxyProvider2<
           AuthProvider,
           ProgressRepository,
@@ -66,6 +70,20 @@ class AlgebrixApp extends StatelessWidget {
           update: (context, authProvider, repository, lessonProvider) {
             final provider =
                 lessonProvider ?? LessonProvider(repository: repository);
+            provider.bindAccount(authProvider.currentUser?.id);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider2<
+          AuthProvider,
+          NotesRepository,
+          NotesProvider
+        >(
+          create: (context) =>
+              NotesProvider(repository: context.read<NotesRepository>()),
+          update: (context, authProvider, repository, notesProvider) {
+            final provider =
+                notesProvider ?? NotesProvider(repository: repository);
             provider.bindAccount(authProvider.currentUser?.id);
             return provider;
           },
@@ -89,6 +107,14 @@ ProgressRepository _createProgressRepository() {
   }
 }
 
+NotesRepository _createNotesRepository() {
+  try {
+    return SupabaseNotesRepository();
+  } catch (_) {
+    return const _UnavailableNotesRepository();
+  }
+}
+
 class _UnavailableProgressRepository implements ProgressRepository {
   const _UnavailableProgressRepository();
 
@@ -109,4 +135,38 @@ class _UnavailableProgressRepository implements ProgressRepository {
     bool answerCorrect = false,
     int contentVersion = 1,
   }) => Future.error(StateError('Supabase progress is unavailable.'));
+}
+
+class _UnavailableNotesRepository implements NotesRepository {
+  const _UnavailableNotesRepository();
+
+  StateError get _error => StateError('Supabase study notes are unavailable.');
+
+  @override
+  Future<StudyNote> createNote({
+    required String moduleId,
+    required String lessonId,
+    required String title,
+    required String content,
+  }) => Future<StudyNote>.error(_error);
+
+  @override
+  Future<bool> deleteNote(String noteId) => Future<bool>.error(_error);
+
+  @override
+  Future<StudyNote?> fetchNoteById(String noteId) =>
+      Future<StudyNote?>.error(_error);
+
+  @override
+  Future<List<StudyNote>> fetchNotes({String? moduleId, String? lessonId}) =>
+      Future<List<StudyNote>>.error(_error);
+
+  @override
+  Future<StudyNote> updateNote({
+    required String noteId,
+    required String moduleId,
+    required String lessonId,
+    required String title,
+    required String content,
+  }) => Future<StudyNote>.error(_error);
 }

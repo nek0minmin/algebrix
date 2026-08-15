@@ -9,6 +9,7 @@ import 'package:algebrix/widgets/balance_scale_widget.dart';
 import 'package:algebrix/widgets/draggable_action_chip.dart';
 import 'package:algebrix/widgets/xy_dialog.dart';
 import 'package:algebrix/widgets/primary_button.dart';
+import 'package:algebrix/widgets/page_headers.dart';
 
 /// Minimalist Balance Scale Screen supporting Drag & Drop on Left Pan, Right Pan, or Center Pivot.
 class QuizScreen extends StatefulWidget {
@@ -140,6 +141,11 @@ class _QuizScreenState extends State<QuizScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const RootPageHeader(
+            title: 'Practice',
+            subtitle: 'Balance, test, and understand each step.',
+            padding: EdgeInsets.fromLTRB(4, 12, 4, 14),
+          ),
           // ── Clean Header ──────────────────────────────────────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -161,11 +167,16 @@ class _QuizScreenState extends State<QuizScreen> {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isSolved
                       ? AppColors.lightMint
-                      : (isBalanced ? AppColors.lightYellow : AppColors.extraLightPink),
+                      : (isBalanced
+                            ? AppColors.lightYellow
+                            : AppColors.extraLightPink),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: isSolved
@@ -183,7 +194,9 @@ class _QuizScreenState extends State<QuizScreen> {
                     fontWeight: FontWeight.bold,
                     color: isSolved
                         ? AppColors.success
-                        : (isBalanced ? const Color(0xFFB78103) : AppColors.darkPink),
+                        : (isBalanced
+                              ? const Color(0xFFB78103)
+                              : AppColors.darkPink),
                   ),
                 ),
               ),
@@ -206,8 +219,12 @@ class _QuizScreenState extends State<QuizScreen> {
                     selectedColor: AppColors.pink,
                     backgroundColor: AppColors.extraLightPink,
                     labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.textSecondary,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected
+                          ? Colors.white
+                          : AppColors.textSecondary,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                       fontSize: 11,
                     ),
                     shape: RoundedRectangleBorder(
@@ -262,15 +279,14 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            PrimaryButton(
-              label: 'Next Problem (+15 XP) ⭐',
-              onPressed: _loadNextEquation,
-            ),
+            PrimaryButton(label: 'Next problem', onPressed: _loadNextEquation),
           ] else ...[
             // ── Mascot Xy Hint ─────────────────────────────────────────────
             XyDialog(
               message: _xyMessage,
-              xyAsset: isBalanced ? AppAssets.xyPointing : AppAssets.xyExplaining,
+              xyAsset: isBalanced
+                  ? AppAssets.xyPointing
+                  : AppAssets.xyExplaining,
             ),
             const SizedBox(height: 10),
 
@@ -298,7 +314,11 @@ class _QuizScreenState extends State<QuizScreen> {
             Center(
               child: TextButton.icon(
                 onPressed: _loadNextEquation,
-                icon: const Icon(Icons.refresh, size: 16, color: AppColors.purple),
+                icon: const Icon(
+                  Icons.refresh,
+                  size: 16,
+                  color: AppColors.purple,
+                ),
                 label: Text(
                   'Reset Scale (Moves: $_movesUsed / $_targetMovesMax)',
                   style: const TextStyle(

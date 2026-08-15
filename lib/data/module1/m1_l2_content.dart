@@ -52,6 +52,7 @@ const m1Lesson2 = LessonContent(
       question:
           'Sort each part by whether its value can change or must stay fixed.',
       isAnswerStep: true,
+      xyAsset: AppAssets.xyPointing,
       activity: ClassificationActivityData(
         categories: [
           ActivityCategory(id: 'change', label: 'Can change'),
@@ -97,6 +98,7 @@ const m1Lesson2 = LessonContent(
       ],
       correctChoiceIndex: 2,
       isAnswerStep: true,
+      xyAsset: AppAssets.xyPointing,
       explanation: 'Correct! 9 is written by itself, so its value stays fixed.',
       incorrectExplanation:
           'Look for the number written by itself rather than the number multiplying x.',
@@ -114,6 +116,7 @@ const m1Lesson2 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
+      xyAsset: AppAssets.xyPointing,
       explanation: 'Exactly. x can change from 2 to 10, while 7 remains 7.',
       incorrectExplanation: 'A constant is defined by keeping the same value.',
     ),

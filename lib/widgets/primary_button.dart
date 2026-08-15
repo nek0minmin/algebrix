@@ -36,7 +36,8 @@ class PrimaryButton extends StatelessWidget {
     final bool isDisabled = onPressed == null || isLoading;
     final effectiveGradient = isDisabled
         ? null
-        : (gradient ?? (backgroundColor == null ? AppColors.primaryGradient : null));
+        : (gradient ??
+              (backgroundColor == null ? AppColors.primaryGradient : null));
     final effectiveColor = isDisabled
         ? AppColors.divider
         : (backgroundColor ?? (gradient == null ? null : Colors.transparent));
@@ -74,23 +75,25 @@ class PrimaryButton extends StatelessWidget {
                     ),
                   )
                 : Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (iconWidget != null) ...[
                         iconWidget!,
                         const SizedBox(width: 8),
                       ] else if (icon != null) ...[
-                        Icon(
-                          icon,
-                          color: textColor ?? Colors.white,
-                          size: 20,
-                        ),
+                        Icon(icon, color: textColor ?? Colors.white, size: 20),
                         const SizedBox(width: 8),
                       ],
-                      Text(
-                        label,
-                        style: AppTextStyles.button.copyWith(
-                          color: textColor ?? Colors.white,
+                      Flexible(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.button.copyWith(
+                            color: textColor ?? Colors.white,
+                          ),
                         ),
                       ),
                     ],

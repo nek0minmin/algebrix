@@ -7,6 +7,7 @@ import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
 import 'package:algebrix/data/module1_content.dart';
+import 'package:algebrix/widgets/page_headers.dart';
 
 /// Learning Path screen — replaces the placeholder "Coming Soon" Lessons tab.
 /// Shows available modules with progress indicators and lock states.
@@ -17,113 +18,96 @@ class LessonsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with Xy
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Learning Path',
-                      style: AppTextStyles.heading1.copyWith(
-                        color: AppColors.text,
-                        fontWeight: FontWeight.w900,
+          const RootPageHeader(
+            title: 'Lessons',
+            subtitle: 'Follow your algebra learning path.',
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            child: Column(
+              children: [
+                // Module 1 — Algebra Foundations (Active)
+                _ModuleCard(
+                  module: module1,
+                  moduleNumber: 1,
+                  accentColor: AppColors.pink,
+                  isLocked: false,
+                  onTap: () {
+                    final lessonProvider = context.read<LessonProvider>();
+                    lessonProvider.startModule(module1);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ModuleOverviewScreen(),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Your journey through algebra starts here!',
-                      style: AppTextStyles.subtitle2.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              ),
-              Image.asset(AppAssets.xyWave, width: 72, height: 72),
-            ],
+
+                const SizedBox(height: 16),
+
+                // Module 2 — Solving Equations (Locked)
+                _LockedModuleCard(
+                  title: 'Solving Equations',
+                  description: 'One-step, two-step, and multi-step equations.',
+                  moduleNumber: 2,
+                  icon: '⚖️',
+                  accentColor: AppColors.purple,
+                ),
+
+                const SizedBox(height: 16),
+
+                // Module 3 — Algebraic Properties (Locked)
+                _LockedModuleCard(
+                  title: 'Algebraic Properties',
+                  description:
+                      'Combining like terms, distributive property, and equality.',
+                  moduleNumber: 3,
+                  icon: '🧩',
+                  accentColor: AppColors.mint,
+                ),
+
+                const SizedBox(height: 16),
+
+                // Module 4 — Inequalities (Locked)
+                _LockedModuleCard(
+                  title: 'Inequalities',
+                  description: 'One-step, two-step, and graphing inequalities.',
+                  moduleNumber: 4,
+                  icon: '📊',
+                  accentColor: AppColors.yellow,
+                ),
+
+                const SizedBox(height: 16),
+
+                // Module 5 — Linear Relationships (Locked)
+                _LockedModuleCard(
+                  title: 'Linear Relationships',
+                  description:
+                      'Coordinate plane, slope, linear equations, and graphing.',
+                  moduleNumber: 5,
+                  icon: '📈',
+                  accentColor: AppColors.info,
+                ),
+
+                const SizedBox(height: 16),
+
+                // Module 6 — Polynomials (Locked)
+                _LockedModuleCard(
+                  title: 'Polynomials',
+                  description:
+                      'Adding, subtracting, multiplying, and factoring.',
+                  moduleNumber: 6,
+                  icon: '🔢',
+                  accentColor: AppColors.error,
+                ),
+
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
-
-          const SizedBox(height: 28),
-
-          // Module 1 — Algebra Foundations (Active)
-          _ModuleCard(
-            module: module1,
-            moduleNumber: 1,
-            accentColor: AppColors.pink,
-            isLocked: false,
-            onTap: () {
-              final lessonProvider = context.read<LessonProvider>();
-              lessonProvider.startModule(module1);
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ModuleOverviewScreen()),
-              );
-            },
-          ),
-
-          const SizedBox(height: 16),
-
-          // Module 2 — Solving Equations (Locked)
-          _LockedModuleCard(
-            title: 'Solving Equations',
-            description: 'One-step, two-step, and multi-step equations.',
-            moduleNumber: 2,
-            icon: '⚖️',
-            accentColor: AppColors.purple,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Module 3 — Algebraic Properties (Locked)
-          _LockedModuleCard(
-            title: 'Algebraic Properties',
-            description:
-                'Combining like terms, distributive property, and equality.',
-            moduleNumber: 3,
-            icon: '🧩',
-            accentColor: AppColors.mint,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Module 4 — Inequalities (Locked)
-          _LockedModuleCard(
-            title: 'Inequalities',
-            description: 'One-step, two-step, and graphing inequalities.',
-            moduleNumber: 4,
-            icon: '📊',
-            accentColor: AppColors.yellow,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Module 5 — Linear Relationships (Locked)
-          _LockedModuleCard(
-            title: 'Linear Relationships',
-            description:
-                'Coordinate plane, slope, linear equations, and graphing.',
-            moduleNumber: 5,
-            icon: '📈',
-            accentColor: AppColors.info,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Module 6 — Polynomials (Locked)
-          _LockedModuleCard(
-            title: 'Polynomials',
-            description: 'Adding, subtracting, multiplying, and factoring.',
-            moduleNumber: 6,
-            icon: '🔢',
-            accentColor: AppColors.error,
-          ),
-
-          const SizedBox(height: 24),
         ],
       ),
     );

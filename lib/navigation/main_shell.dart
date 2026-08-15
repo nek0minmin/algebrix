@@ -6,8 +6,8 @@ import 'package:algebrix/widgets/app_header.dart';
 import 'package:algebrix/widgets/bottom_nav_bar.dart';
 import 'package:algebrix/screens/home/home_screen.dart';
 import 'package:algebrix/screens/lessons/lessons_screen.dart';
+import 'package:algebrix/screens/notes/notes_screen.dart';
 import 'package:algebrix/screens/practice/quiz_screen.dart';
-import 'package:algebrix/screens/practice/practice_screen.dart';
 import 'package:algebrix/screens/auth/login_screen.dart';
 import 'package:algebrix/models/user_model.dart';
 
@@ -31,7 +31,7 @@ class _MainShellState extends State<MainShell> {
     HomeScreen(),
     LessonsScreen(),
     QuizScreen(),
-    PracticeScreen(),
+    NotesScreen(),
   ];
 
   @override
@@ -50,9 +50,7 @@ class _MainShellState extends State<MainShell> {
       });
       return const Scaffold(
         backgroundColor: AppColors.background,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.pink),
-        ),
+        body: Center(child: CircularProgressIndicator(color: AppColors.pink)),
       );
     }
 
@@ -76,10 +74,7 @@ class _MainShellState extends State<MainShell> {
               },
             ),
             Expanded(
-              child: IndexedStack(
-                index: _currentIndex,
-                children: _screens,
-              ),
+              child: IndexedStack(index: _currentIndex, children: _screens),
             ),
           ],
         ),
