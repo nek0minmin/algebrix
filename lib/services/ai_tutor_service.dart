@@ -206,36 +206,36 @@ CRITICAL RULES:
     final lower = userPrompt.toLowerCase().trim();
     if (lower.length < 10) return false;
 
-    // Standard math keywords or symbols
-    final mathKeywords = [
-      'x', 'y', 'z', '=', '+', '-', '*', '/', 'equation', 'variable',
-      'solve', 'math', 'algebra', 'constant', 'term', 'expression',
-      'subtract', 'add', 'divide', 'multiply', 'step', 'linear',
-      'quadratic', 'slope', 'graph', 'intercept', 'factor', 'number',
-      'fraction', 'decimal', 'power', 'exponent', 'formula', 'ratio',
-      'problem', 'solution', 'how', 'why', 'what', 'worked', 'hint',
-    ];
-
-    final hasMathKeyword = mathKeywords.any((kw) => lower.contains(kw));
-    if (hasMathKeyword) return false;
-
-    // Off-topic keywords
+    // Explicit off-topic keywords (food, recipes, games, pop culture)
     final offTopicKeywords = [
-      'recipe', 'pizza', 'burger', 'playstation', 'xbox', 'nintendo',
+      'lumpia', 'ice cream', 'recipe', 'pizza', 'burger', 'milk', 'sugar',
+      'cook', 'bake', 'ingredient', 'food', 'playstation', 'xbox', 'nintendo',
       'fifa', 'fortnite', 'minecraft', 'movie', 'song', 'music',
       'restaurant', 'hotel', 'car', 'dog', 'cat', 'sleep', 'party',
     ];
 
-    final hasOffTopic = offTopicKeywords.any((kw) => lower.contains(kw));
-    if (hasOffTopic) return true;
+    final hasOffTopicKeyword = offTopicKeywords.any((kw) => lower.contains(kw));
 
-    // Gibberish check: long word without vowels
-    final words = lower.split(RegExp(r'\s+'));
-    for (final w in words) {
-      if (w.length > 12 && !RegExp(r'[aeiouy]').hasMatch(w)) {
-        return true;
-      }
-    }
+    // Math symbols check (=, +, -, *, /, ^, <, >)
+    final hasMathSymbols = RegExp(r'[=\+\-\*\/\^<>]').hasMatch(lower);
+
+    // Specific math vocabulary terms
+    final mathTerms = [
+      'equation', 'variable', 'algebra', 'constant', 'coefficient',
+      'term', 'expression', 'subtract', 'divide', 'multiply',
+      'linear', 'quadratic', 'slope', 'intercept', 'factor',
+      'fraction', 'decimal', 'exponent', 'formula', 'ratio',
+      'polynomial', 'binomial', 'trinomial', 'inequality', 'solving',
+      'isolate', 'inverse', 'operation',
+    ];
+
+    final hasMathTerm = mathTerms.any((term) => lower.contains(term));
+
+    // If it contains explicit off-topic keywords without math terms, it's OFF TOPIC
+    if (hasOffTopicKeyword && !hasMathTerm) return true;
+
+    // If it has no math symbols and no math terms, it's OFF TOPIC
+    if (!hasMathSymbols && !hasMathTerm) return true;
 
     return false;
   }

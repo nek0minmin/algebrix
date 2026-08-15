@@ -105,8 +105,20 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     final service = AiTutorService();
     final rawContent = _contentController.text.trim();
 
-    // Check if the note content is off-topic
-    if (service.isOffTopicText(rawContent)) {
+    final notesProvider = context.read<NotesProvider>();
+    final aiProvider = context.read<AiNotesProvider>();
+    final currentFeedback = aiProvider.currentFeedback;
+
+    final isAiDetectedOffTopic = currentFeedback != null &&
+        (currentFeedback.isCorrect == false ||
+            currentFeedback.title.toLowerCase().contains('focus on algebra') ||
+            currentFeedback.message.toLowerCase().contains('recipe') ||
+            currentFeedback.message.toLowerCase().contains('lumpia') ||
+            currentFeedback.message.toLowerCase().contains('food') ||
+            currentFeedback.message.toLowerCase().contains('ice cream'));
+
+    // Check if the note content or AI feedback indicates off-topic
+    if (service.isOffTopicText(rawContent) || isAiDetectedOffTopic) {
       final confirm = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => Dialog(
