@@ -37,6 +37,13 @@ class BalanceScaleProvider extends ChangeNotifier {
   String? _errorMessage;
   int _xpEarned = 0;
 
+  // Reasoning check state
+  bool _reasoningPassed = false;
+  bool _showReasoningCheck = false;
+
+  // Dynamic operation chips for the current problem
+  List<Map<String, dynamic>> _dynamicOps = [];
+
   BalanceScaleProblem? get currentProblem => _currentProblem;
   String get leftExpr => _leftExpr;
   String get rightExpr => _rightExpr;
@@ -46,42 +53,25 @@ class BalanceScaleProvider extends ChangeNotifier {
   String get providerUsed => _providerUsed;
   String? get errorMessage => _errorMessage;
   int get xpEarned => _xpEarned;
+  bool get reasoningPassed => _reasoningPassed;
+  bool get showReasoningCheck => _showReasoningCheck;
+  List<Map<String, dynamic>> get dynamicOps => List.unmodifiable(_dynamicOps);
 
-  /// Returns scale tilt angle in radians:
-  /// 0.0 = Balanced horizontal
-  /// Negative angle (-0.14 rad) = Left side heavier (Left tilts down)
-  /// Positive angle (+0.14 rad) = Right side heavier (Right tilts down)
-  double get tiltAngle {
-    if (_currentProblem == null) return 0.0;
-    final targetX = _currentProblem!.targetX;
+  /// Number of moves (operations applied) so far.
+  int get moveCount => _history.length;
 
-    final leftWeight = _evaluateExprWeight(_leftExpr, targetX);
-    final rightWeight = _evaluateExprWeight(_rightExpr, targetX);
+  /// Optimal number of moves for the current problem.
+  int get optimalMoves => _currentProblem?.optimalMoves ?? 2;
 
-    final diff = leftWeight - rightWeight;
-    if (diff.abs() < 0.01) return 0.0;
-
-    return diff > 0 ? -0.14 : 0.14;
-  }
-
-  bool get isCurrentlyBalanced => tiltAngle == 0.0;
-
-  double _evaluateExprWeight(String expr, int targetX) {
-    var cleaned = expr.replaceAll(' ', '').toLowerCase();
-    if (cleaned == 'x') return targetX.toDouble();
-
-    cleaned = cleaned.replaceAllMapped(
-      RegExp(r'(\d+)x'),
-      (match) => '${int.parse(match.group(1)!) * targetX}',
-    );
-    cleaned = cleaned.replaceAll('x', '$targetX');
-
-    double total = 0.0;
-    final matches = RegExp(r'([\+\-]?\d+)').allMatches(cleaned);
-    for (final m in matches) {
-      total += double.tryParse(m.group(0) ?? '0') ?? 0;
-    }
-    return total == 0 ? 1.0 : total;
+  /// Star rating based on moves vs optimal.
+  /// 3★ = solved in optimal moves or fewer
+  /// 2★ = solved in optimal + 1 or + 2 moves
+  /// 1★ = solved in more than optimal + 2 moves
+  int get starRating {
+    if (!_isSolved) return 0;
+    if (moveCount <= optimalMoves) return 3;
+    if (moveCount <= optimalMoves + 2) return 2;
+    return 1;
   }
 
   void initNewProblem() {
@@ -94,6 +84,9 @@ class BalanceScaleProvider extends ChangeNotifier {
     _isSolved = false;
     _errorMessage = null;
     _xpEarned = 0;
+    _reasoningPassed = false;
+    _showReasoningCheck = false;
+    _dynamicOps = _apiService.generateOpsForProblem(nextProb);
     notifyListeners();
   }
 
@@ -155,8 +148,40 @@ class BalanceScaleProvider extends ChangeNotifier {
 
     if ((isLeftX && isRightTarget) || (isRightX && isLeftTarget)) {
       _isSolved = true;
-      _xpEarned = 20;
+      // Award XP based on star rating
+      switch (starRating) {
+        case 3:
+          _xpEarned = 30;
+          break;
+        case 2:
+          _xpEarned = 20;
+          break;
+        default:
+          _xpEarned = 10;
+      }
+      // Show reasoning check instead of immediate celebration
+      _showReasoningCheck = true;
     }
+  }
+
+  /// Called when user selects a reasoning option.
+  /// Returns true if the answer was correct.
+  bool submitReasoningAnswer(int selectedIndex) {
+    if (_currentProblem == null) return false;
+    final isCorrect = selectedIndex == _currentProblem!.correctReasoningIndex;
+    if (isCorrect) {
+      _reasoningPassed = true;
+      _showReasoningCheck = false;
+    }
+    notifyListeners();
+    return isCorrect;
+  }
+
+  /// Skip reasoning (still lets them proceed but no bonus).
+  void skipReasoning() {
+    _showReasoningCheck = false;
+    _reasoningPassed = false;
+    notifyListeners();
   }
 
   void resetCurrentProblem() {
@@ -167,6 +192,8 @@ class BalanceScaleProvider extends ChangeNotifier {
     _isSolved = false;
     _errorMessage = null;
     _xpEarned = 0;
+    _reasoningPassed = false;
+    _showReasoningCheck = false;
     notifyListeners();
   }
 }

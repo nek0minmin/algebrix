@@ -21,6 +21,24 @@ void main() {
       expect(result.rightSimplified, '12');
       expect(result.isSuccess, isTrue);
     });
+
+    test('generates dynamic operations for a problem', () {
+      final service = MathApiService();
+      final problem = service.getRandomProblem();
+      final ops = service.generateOpsForProblem(problem);
+
+      expect(ops.length, greaterThanOrEqualTo(4));
+      expect(ops.every((o) => o.containsKey('op') && o.containsKey('value')), isTrue);
+    });
+
+    test('problems have reasoning options and optimal moves', () {
+      final service = MathApiService();
+      final problem = service.getRandomProblem();
+
+      expect(problem.optimalMoves, greaterThanOrEqualTo(2));
+      expect(problem.reasoningOptions.length, 3);
+      expect(problem.correctReasoningIndex, inInclusiveRange(0, 2));
+    });
   });
 
   group('BalanceScaleProvider Tests', () {
@@ -28,9 +46,38 @@ void main() {
       final provider = BalanceScaleProvider();
       expect(provider.currentProblem, isNotNull);
       expect(provider.isSolved, isFalse);
+      expect(provider.moveCount, 0);
+      expect(provider.dynamicOps, isNotEmpty);
 
       await provider.applyOperation('-', 6);
+      expect(provider.moveCount, 1);
       expect(provider.history, hasLength(1));
+    });
+
+    test('star rating tiers based on move count', () async {
+      final provider = BalanceScaleProvider();
+      // Star rating is 0 before solving
+      expect(provider.starRating, 0);
+    });
+
+    test('reasoning check flow works', () {
+      final provider = BalanceScaleProvider();
+      final problem = provider.currentProblem!;
+
+      // Initially, reasoning not passed
+      expect(provider.reasoningPassed, isFalse);
+      expect(provider.showReasoningCheck, isFalse);
+
+      // Wrong answer
+      final wrongIdx = (problem.correctReasoningIndex + 1) % 3;
+      final isCorrect = provider.submitReasoningAnswer(wrongIdx);
+      expect(isCorrect, isFalse);
+      expect(provider.reasoningPassed, isFalse);
+
+      // Correct answer
+      final correct = provider.submitReasoningAnswer(problem.correctReasoningIndex);
+      expect(correct, isTrue);
+      expect(provider.reasoningPassed, isTrue);
     });
   });
 
@@ -59,8 +106,8 @@ void main() {
       await tester.tap(find.byKey(const Key('practice-mode-balance-scale')));
       await tester.pumpAndSettle();
 
-      expect(find.text('Goal: Solve for x'), findsOneWidget);
-      expect(find.text('Operation Weight Chips'), findsOneWidget);
+      expect(find.text('Solve for x'), findsOneWidget);
+      expect(find.text('Number Blocks'), findsOneWidget);
     });
   });
 }

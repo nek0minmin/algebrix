@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -13,6 +14,9 @@ class BalanceScaleProblem {
     required this.coefficientX,
     required this.constantLeft,
     required this.targetX,
+    required this.optimalMoves,
+    required this.reasoningOptions,
+    required this.correctReasoningIndex,
   });
 
   final String id;
@@ -22,6 +26,15 @@ class BalanceScaleProblem {
   final int coefficientX;
   final int constantLeft;
   final int targetX;
+
+  /// Minimum number of moves to solve optimally.
+  final int optimalMoves;
+
+  /// Three reasoning explanation options shown after solving.
+  final List<String> reasoningOptions;
+
+  /// Index (0–2) of the correct reasoning option.
+  final int correctReasoningIndex;
 }
 
 /// Evaluation result from MathJS HTTP POST API.
@@ -62,6 +75,13 @@ class MathApiService {
       coefficientX: 2,
       constantLeft: 6,
       targetX: 6,
+      optimalMoves: 2,
+      reasoningOptions: [
+        'Subtracting 6 from both sides removes the constant, then dividing by 2 isolates x — keeping the equation balanced at each step.',
+        'We subtracted 6 because it is the smallest number in the equation.',
+        'Dividing by 2 works because 18 is an even number.',
+      ],
+      correctReasoningIndex: 0,
     ),
     BalanceScaleProblem(
       id: 'p2',
@@ -71,6 +91,13 @@ class MathApiService {
       coefficientX: 3,
       constantLeft: 4,
       targetX: 4,
+      optimalMoves: 2,
+      reasoningOptions: [
+        'We divided by 3 because 3 is a prime number.',
+        'Subtracting 4 from both sides eliminates the constant term, then dividing by 3 isolates x while keeping both sides equal.',
+        'Adding 4 to both sides cancels out the x term.',
+      ],
+      correctReasoningIndex: 1,
     ),
     BalanceScaleProblem(
       id: 'p3',
@@ -80,6 +107,13 @@ class MathApiService {
       coefficientX: 4,
       constantLeft: -5,
       targetX: 4,
+      optimalMoves: 2,
+      reasoningOptions: [
+        'We added 5 because subtracting would make x negative.',
+        'Multiplying both sides by 4 directly gives us x.',
+        'Adding 5 to both sides cancels the -5, then dividing by 4 isolates x — each step preserves the equality.',
+      ],
+      correctReasoningIndex: 2,
     ),
     BalanceScaleProblem(
       id: 'p4',
@@ -89,6 +123,13 @@ class MathApiService {
       coefficientX: 2,
       constantLeft: 8,
       targetX: 6,
+      optimalMoves: 2,
+      reasoningOptions: [
+        'Subtracting 8 from both sides removes the constant, then dividing by 2 isolates x — the equation stays balanced throughout.',
+        'We subtract 8 because 8 is the largest single digit.',
+        'Dividing first by 2 gives us x + 4 = 10, so we should always divide first.',
+      ],
+      correctReasoningIndex: 0,
     ),
     BalanceScaleProblem(
       id: 'p5',
@@ -98,6 +139,13 @@ class MathApiService {
       coefficientX: 5,
       constantLeft: 3,
       targetX: 4,
+      optimalMoves: 2,
+      reasoningOptions: [
+        'We subtract 3 because 23 minus 3 is 20, a round number.',
+        'Subtracting 3 from both sides removes the constant term, then dividing by 5 isolates x — each inverse operation keeps the balance.',
+        'We can just guess x = 4 because 5 × 4 = 20 and 20 + 3 = 23.',
+      ],
+      correctReasoningIndex: 1,
     ),
   ];
 
@@ -193,6 +241,34 @@ class MathApiService {
     return available.first;
   }
 
+  /// Generates dynamic operation chips from a problem's coefficients,
+  /// including correct operations plus distractors. Shuffled.
+  List<Map<String, dynamic>> generateOpsForProblem(BalanceScaleProblem problem) {
+    final rng = Random();
+    final ops = <Map<String, dynamic>>[];
+
+    // Correct operations
+    if (problem.constantLeft > 0) {
+      ops.add({'op': '-', 'value': problem.constantLeft});
+    } else if (problem.constantLeft < 0) {
+      ops.add({'op': '+', 'value': problem.constantLeft.abs()});
+    }
+    ops.add({'op': '/', 'value': problem.coefficientX});
+
+    // Distractors — wrong direction / wrong value
+    if (problem.constantLeft > 0) {
+      ops.add({'op': '+', 'value': problem.constantLeft}); // wrong direction
+    } else {
+      ops.add({'op': '-', 'value': problem.constantLeft.abs()});
+    }
+    ops.add({'op': '-', 'value': problem.coefficientX}); // wrong value for subtract
+    ops.add({'op': '*', 'value': 2}); // tempting multiply
+    ops.add({'op': '/', 'value': (problem.constantLeft.abs() > 1) ? problem.constantLeft.abs() : (rng.nextInt(3) + 2)}); // wrong divisor
+
+    ops.shuffle(rng);
+    return ops;
+  }
+
   String _buildExpr(String baseExpr, String op, num value) {
     final valStr = value.toString().replaceAll('.0', '');
     if (op == '+') return '($baseExpr) + $valStr';
@@ -227,10 +303,22 @@ class MathApiService {
     if (expr.contains('3x + 4') && op == '-' && v == 4) return '3x';
     if (expr == '16' && op == '-' && v == 4) return '12';
     if (expr == '3x' && op == '/' && v == 3) return 'x';
+    if (expr == '12' && op == '/' && v == 3) return '4';
 
     if (expr.contains('4x - 5') && op == '+' && v == 5) return '4x';
     if (expr == '11' && op == '+' && v == 5) return '16';
     if (expr == '4x' && op == '/' && v == 4) return 'x';
+    if (expr == '16' && op == '/' && v == 4) return '4';
+
+    if (expr.contains('2x + 8') && op == '-' && v == 8) return '2x';
+    if (expr == '20' && op == '-' && v == 8) return '12';
+    if (expr == '2x' && op == '/' && v == 2) return 'x';
+    if (expr == '12' && op == '/' && v == 2) return '6';
+
+    if (expr.contains('5x + 3') && op == '-' && v == 3) return '5x';
+    if (expr == '23' && op == '-' && v == 3) return '20';
+    if (expr == '5x' && op == '/' && v == 5) return 'x';
+    if (expr == '20' && op == '/' && v == 5) return '4';
 
     // Simple numeric calculation fallback
     final numVal = double.tryParse(expr);
