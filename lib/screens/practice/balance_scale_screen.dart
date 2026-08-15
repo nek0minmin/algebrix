@@ -9,6 +9,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+/// Data class representing a scale operation to drag or apply.
+class ScaleOp {
+  const ScaleOp({
+    required this.op,
+    required this.value,
+    required this.label,
+  });
+
+  final String op;
+  final num value;
+  final String label;
+}
+
 class BalanceScaleScreen extends StatelessWidget {
   const BalanceScaleScreen({super.key});
 
@@ -21,7 +34,7 @@ class BalanceScaleScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: SecondaryPageAppBar(
         title: 'Balance Scale',
-        supportingText: 'Isolate x by applying equal operations to both sides.',
+        supportingText: 'Isolate x by dragging equal operations onto the scale.',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -89,22 +102,54 @@ class BalanceScaleScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
               ],
 
-              // Visual Interactive Balance Scale
+              // Drag & Drop Instructions Banner
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.extraLightPink,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.pink.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.touch_app_rounded, color: AppColors.pink, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Drag an operation chip onto the Center Fulcrum (both sides) or Left/Right Pans (single side), or tap directly!',
+                        style: GoogleFonts.nunito(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.text,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Visual Interactive Drag-Target Scale Canvas
               _VisualScaleWidget(
                 leftExpr: provider.leftExpr,
                 rightExpr: provider.rightExpr,
                 isSolved: provider.isSolved,
+                isLoading: provider.isLoading,
+                onApply: (op, val, targetSide) =>
+                    provider.applyOperation(op, val, targetSide: targetSide),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
-              // Operation Palette
+              // Draggable Chips Operation Palette
               _OperationPalette(
                 isLoading: provider.isLoading,
                 isSolved: provider.isSolved,
-                onApply: provider.applyOperation,
+                onApply: (op, val, targetSide) =>
+                    provider.applyOperation(op, val, targetSide: targetSide),
               ),
               const SizedBox(height: 24),
 
@@ -225,21 +270,27 @@ class _VisualScaleWidget extends StatelessWidget {
     required this.leftExpr,
     required this.rightExpr,
     required this.isSolved,
+    required this.isLoading,
+    required this.onApply,
   });
 
   final String leftExpr;
   final String rightExpr;
   final bool isSolved;
+  final bool isLoading;
+  final Function(String op, num val, String targetSide) onApply;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 240,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.border, width: 2),
+        border: Border.all(
+          color: isSolved ? AppColors.pink : AppColors.border,
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -248,68 +299,121 @@ class _VisualScaleWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
         children: [
-          // Scale Base & Fulcrum Triangle
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                // Fulcrum Triangle
-                CustomPaint(
-                  size: const Size(44, 38),
-                  painter: _FulcrumPainter(),
-                ),
-                Container(
-                  height: 10,
-                  width: 140,
-                  decoration: BoxDecoration(
-                    color: AppColors.text,
-                    borderRadius: BorderRadius.circular(6),
+          // Center Fulcrum Drag Target (Applies to BOTH sides equal)
+          DragTarget<ScaleOp>(
+            onWillAcceptWithDetails: (details) => !isLoading && !isSolved,
+            onAcceptWithDetails: (details) {
+              onApply(details.data.op, details.data.value, 'both');
+            },
+            builder: (ctx, candidateData, rejectedData) {
+              final isHovered = candidateData.isNotEmpty;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isHovered
+                      ? AppColors.extraLightPink
+                      : AppColors.background.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isHovered ? AppColors.pink : AppColors.border.withValues(alpha: 0.6),
+                    width: isHovered ? 2.5 : 1.5,
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          // Tilted Beam & Scale Pans
-          Positioned(
-            top: 40,
-            left: 20,
-            right: 20,
-            child: Column(
-              children: [
-                // Beam
-                Container(
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: isSolved ? AppColors.pink : AppColors.text,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Left Scale Pan
-                    _ScalePan(
-                      expression: leftExpr,
-                      isLeft: true,
-                      isSolved: isSolved,
+                    Icon(
+                      isHovered ? Icons.add_circle_rounded : Icons.center_focus_strong_rounded,
+                      color: isHovered ? AppColors.pink : AppColors.textSecondary,
+                      size: 20,
                     ),
-                    // Right Scale Pan
-                    _ScalePan(
-                      expression: rightExpr,
-                      isLeft: false,
-                      isSolved: isSolved,
+                    const SizedBox(width: 8),
+                    Text(
+                      isHovered
+                          ? 'RELEASE HERE TO APPLY TO BOTH SIDES! 🎯'
+                          : '🎯 Drop here to apply to BOTH sides equally',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        color: isHovered ? AppColors.pink : AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+
+          // Tilted Beam & Drag-Target Scale Pans
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left Scale Pan Drag Target
+              Expanded(
+                child: DragTarget<ScaleOp>(
+                  onWillAcceptWithDetails: (details) => !isLoading && !isSolved,
+                  onAcceptWithDetails: (details) {
+                    onApply(details.data.op, details.data.value, 'left');
+                  },
+                  builder: (ctx, candidateData, rejectedData) {
+                    final isHovered = candidateData.isNotEmpty;
+                    return _ScalePan(
+                      expression: leftExpr,
+                      isLeft: true,
+                      isSolved: isSolved,
+                      isHovered: isHovered,
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              // Fulcrum Triangle Centerpiece
+              Column(
+                children: [
+                  const SizedBox(height: 24),
+                  CustomPaint(
+                    size: const Size(40, 36),
+                    painter: _FulcrumPainter(),
+                  ),
+                  Container(
+                    height: 8,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: AppColors.text,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(width: 12),
+
+              // Right Scale Pan Drag Target
+              Expanded(
+                child: DragTarget<ScaleOp>(
+                  onWillAcceptWithDetails: (details) => !isLoading && !isSolved,
+                  onAcceptWithDetails: (details) {
+                    onApply(details.data.op, details.data.value, 'right');
+                  },
+                  builder: (ctx, candidateData, rejectedData) {
+                    final isHovered = candidateData.isNotEmpty;
+                    return _ScalePan(
+                      expression: rightExpr,
+                      isLeft: false,
+                      isSolved: isSolved,
+                      isHovered: isHovered,
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -322,68 +426,59 @@ class _ScalePan extends StatelessWidget {
     required this.expression,
     required this.isLeft,
     required this.isSolved,
+    required this.isHovered,
   });
 
   final String expression;
   final bool isLeft;
   final bool isSolved;
+  final bool isHovered;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Pan Hanger Lines
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 2, height: 28, color: AppColors.border),
-            const SizedBox(width: 80),
-            Container(width: 2, height: 28, color: AppColors.border),
-          ],
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      decoration: BoxDecoration(
+        color: isHovered
+            ? AppColors.extraLightPink
+            : (isSolved ? AppColors.extraLightPink : AppColors.background),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isHovered
+              ? AppColors.pink
+              : (isSolved ? AppColors.pink : AppColors.border),
+          width: isHovered ? 2.5 : 1.5,
         ),
-        // Dish Pan
-        Container(
-          width: 110,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          decoration: BoxDecoration(
-            color: isSolved ? AppColors.extraLightPink : AppColors.background,
-            borderRadius: const BorderRadius.vertical(
-              bottom: Radius.circular(24),
-              top: Radius.circular(8),
-            ),
-            border: Border.all(
-              color: isSolved ? AppColors.pink : AppColors.border,
-              width: 2,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            isHovered
+                ? (isLeft ? 'RELEASE ON LEFT' : 'RELEASE ON RIGHT')
+                : (isLeft ? 'LEFT PAN' : 'RIGHT PAN'),
+            style: GoogleFonts.nunito(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              color: isHovered ? AppColors.pink : AppColors.textSecondary,
+              letterSpacing: 0.8,
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                isLeft ? 'LEFT PAN' : 'RIGHT PAN',
-                style: GoogleFonts.nunito(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.8,
-                ),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              expression.isEmpty ? '?' : expression,
+              style: GoogleFonts.nunito(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: isSolved || isHovered ? AppColors.pink : AppColors.text,
               ),
-              const SizedBox(height: 6),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  expression.isEmpty ? '?' : expression,
-                  style: GoogleFonts.nunito(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: isSolved ? AppColors.pink : AppColors.text,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -417,18 +512,42 @@ class _OperationPalette extends StatelessWidget {
 
   final bool isLoading;
   final bool isSolved;
-  final Function(String op, num val) onApply;
+  final Function(String op, num val, String targetSide) onApply;
+
+  static const List<ScaleOp> _presetOps = [
+    ScaleOp(op: '-', value: 6, label: '- 6'),
+    ScaleOp(op: '-', value: 4, label: '- 4'),
+    ScaleOp(op: '-', value: 8, label: '- 8'),
+    ScaleOp(op: '+', value: 5, label: '+ 5'),
+    ScaleOp(op: '/', value: 2, label: '÷ 2'),
+    ScaleOp(op: '/', value: 3, label: '÷ 3'),
+    ScaleOp(op: '/', value: 4, label: '÷ 4'),
+    ScaleOp(op: '/', value: 5, label: '÷ 5'),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Perform Equal Operation on Both Sides',
-          style: AppTextStyles.subtitle1.copyWith(
-            fontWeight: FontWeight.w900,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Operation Weight Chips',
+              style: AppTextStyles.subtitle1.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            Text(
+              'Drag or Tap',
+              style: GoogleFonts.nunito(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppColors.pink,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         if (isLoading)
@@ -443,33 +562,12 @@ class _OperationPalette extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              _ActionChip(
-                label: '- 6',
-                onPressed: isSolved ? null : () => onApply('-', 6),
-              ),
-              _ActionChip(
-                label: '- 4',
-                onPressed: isSolved ? null : () => onApply('-', 4),
-              ),
-              _ActionChip(
-                label: '+ 5',
-                onPressed: isSolved ? null : () => onApply('+', 5),
-              ),
-              _ActionChip(
-                label: '÷ 2',
-                onPressed: isSolved ? null : () => onApply('/', 2),
-              ),
-              _ActionChip(
-                label: '÷ 3',
-                onPressed: isSolved ? null : () => onApply('/', 3),
-              ),
-              _ActionChip(
-                label: '÷ 4',
-                onPressed: isSolved ? null : () => onApply('/', 4),
-              ),
-              _ActionChip(
-                label: '÷ 5',
-                onPressed: isSolved ? null : () => onApply('/', 5),
+              ..._presetOps.map(
+                (scaleOp) => _DraggableOperationChip(
+                  scaleOp: scaleOp,
+                  isSolved: isSolved,
+                  onTap: () => onApply(scaleOp.op, scaleOp.value, 'both'),
+                ),
               ),
               ActionChip(
                 avatar: const Icon(Icons.add_rounded, size: 18, color: AppColors.pink),
@@ -495,7 +593,7 @@ class _OperationPalette extends StatelessWidget {
 
   void _showCustomOperationModal(
     BuildContext context,
-    Function(String op, num val) onApply,
+    Function(String op, num val, String targetSide) onApply,
   ) {
     String selectedOp = '-';
     final controller = TextEditingController(text: '1');
@@ -504,7 +602,7 @@ class _OperationPalette extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.circular(28),
       ),
       builder: (ctx) => Padding(
         padding: EdgeInsets.fromLTRB(
@@ -564,7 +662,7 @@ class _OperationPalette extends StatelessWidget {
                   return;
                 }
                 Navigator.pop(ctx);
-                onApply(selectedOp, val);
+                onApply(selectedOp, val, 'both');
               },
             ),
           ],
@@ -574,31 +672,83 @@ class _OperationPalette extends StatelessWidget {
   }
 }
 
-class _ActionChip extends StatelessWidget {
-  const _ActionChip({required this.label, required this.onPressed});
+class _DraggableOperationChip extends StatelessWidget {
+  const _DraggableOperationChip({
+    required this.scaleOp,
+    required this.isSolved,
+    required this.onTap,
+  });
 
-  final String label;
-  final VoidCallback? onPressed;
+  final ScaleOp scaleOp;
+  final bool isSolved;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.text,
-        elevation: 0,
-        side: const BorderSide(color: AppColors.border, width: 1.5),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    if (isSolved) {
+      return _ChipWidget(label: scaleOp.label, isDragging: false);
+    }
+
+    return Draggable<ScaleOp>(
+      data: scaleOp,
+      feedback: Material(
+        color: Colors.transparent,
+        child: _ChipWidget(label: scaleOp.label, isDragging: true),
       ),
-      child: Text(
-        label,
-        style: GoogleFonts.nunito(
-          fontSize: 16,
-          fontWeight: FontWeight.w900,
-          color: AppColors.text,
+      childWhenDragging: Opacity(
+        opacity: 0.4,
+        child: _ChipWidget(label: scaleOp.label, isDragging: false),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: _ChipWidget(label: scaleOp.label, isDragging: false),
+      ),
+    );
+  }
+}
+
+class _ChipWidget extends StatelessWidget {
+  const _ChipWidget({required this.label, required this.isDragging});
+
+  final String label;
+  final bool isDragging;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDragging ? AppColors.extraLightPink : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDragging ? AppColors.pink : AppColors.border,
+          width: isDragging ? 2 : 1.5,
         ),
+        boxShadow: isDragging
+            ? [
+                BoxShadow(
+                  color: AppColors.pink.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ]
+            : null,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.drag_indicator_rounded, size: 16, color: AppColors.pink),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.nunito(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: AppColors.text,
+            ),
+          ),
+        ],
       ),
     );
   }

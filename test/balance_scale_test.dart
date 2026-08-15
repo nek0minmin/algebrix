@@ -60,7 +60,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Goal: Solve for x'), findsOneWidget);
-      expect(find.text('Perform Equal Operation on Both Sides'), findsOneWidget);
+      expect(find.text('Operation Weight Chips'), findsOneWidget);
     });
   });
 }

@@ -60,7 +60,7 @@ class BalanceScaleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> applyOperation(String op, num val) async {
+  Future<void> applyOperation(String op, num val, {String targetSide = 'both'}) async {
     if (_isSolved || _isLoading) return;
 
     _isLoading = true;
@@ -73,10 +73,14 @@ class BalanceScaleProvider extends ChangeNotifier {
         rightExpr: _rightExpr,
         op: op,
         value: val,
+        targetSide: targetSide,
       );
 
       final valStr = val.toString().replaceAll('.0', '');
-      final opText = '$op $valStr';
+      final targetLabel = targetSide == 'both'
+          ? 'both sides'
+          : (targetSide == 'left' ? 'left side' : 'right side');
+      final opText = '$op $valStr ($targetLabel)';
 
       _history.add(
         BalanceScaleStep(

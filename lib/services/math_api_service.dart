@@ -126,9 +126,14 @@ class MathApiService {
     required String rightExpr,
     required String op, // '+', '-', '*', '/'
     required num value,
+    String targetSide = 'both', // 'both', 'left', 'right'
   }) async {
-    final leftOp = _buildExpr(leftExpr, op, value);
-    final rightOp = _buildExpr(rightExpr, op, value);
+    final leftOp = (targetSide == 'both' || targetSide == 'left')
+        ? _buildExpr(leftExpr, op, value)
+        : leftExpr;
+    final rightOp = (targetSide == 'both' || targetSide == 'right')
+        ? _buildExpr(rightExpr, op, value)
+        : rightExpr;
 
     try {
       final url = Uri.parse(_mathJsApiUrl);
@@ -170,8 +175,12 @@ class MathApiService {
     return ScaleStepResult(
       newLeftExpr: leftOp,
       newRightExpr: rightOp,
-      leftSimplified: _localStepSimplify(leftExpr, op, value),
-      rightSimplified: _localStepSimplify(rightExpr, op, value),
+      leftSimplified: (targetSide == 'both' || targetSide == 'left')
+          ? _localStepSimplify(leftExpr, op, value)
+          : leftExpr,
+      rightSimplified: (targetSide == 'both' || targetSide == 'right')
+          ? _localStepSimplify(rightExpr, op, value)
+          : rightExpr,
       providerUsed: 'Offline Math Engine',
       isSuccess: true,
     );
