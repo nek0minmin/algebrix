@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 class AiFeedbackResult {
   final String title;
   final String message;
+  final List<String> steps;
   final String? whyItWorks;
   final String? keyConcept;
   final String? promptForStudent;
@@ -17,6 +18,7 @@ class AiFeedbackResult {
   const AiFeedbackResult({
     required this.title,
     required this.message,
+    this.steps = const [],
     this.whyItWorks,
     this.keyConcept,
     this.promptForStudent,
@@ -29,6 +31,10 @@ class AiFeedbackResult {
     return AiFeedbackResult(
       title: json['title'] as String? ?? '🐙 Xy Insights',
       message: json['message'] as String? ?? 'Great effort in reviewing this problem!',
+      steps: (json['steps'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
       whyItWorks: json['whyItWorks'] as String?,
       keyConcept: json['keyConcept'] as String?,
       promptForStudent: json['promptForStudent'] as String?,
@@ -60,13 +66,15 @@ class AiTutorService {
     final systemPrompt = '''
 You are Xy, the friendly octopus algebra tutor in Algebrix.
 A student solved a math problem. Verify their work.
-Rule: Be encouraging. Identify inverse operations used.
+Rule: Be concise. Wrap ALL math numbers, variables, and expressions in **bold** (e.g. **2x + 5 = 15**, **+5**, **x = 5**).
+Provide clear step-by-step bullet points in "steps".
 Return JSON ONLY with exact keys:
 {
   "isCorrect": boolean,
   "title": "🐙 Looks good!" or "🐙 Let's check step by step!",
-  "message": "Friendly explanation of what they did right or where they tripped",
-  "whyItWorks": "Why the balance scale property / inverse operation works",
+  "message": "1 short sentence overview",
+  "steps": ["Step 1: Subtract **5** from both sides (**2x = 10**)", "Step 2: Divide by **2** (**x = 5**)"],
+  "whyItWorks": "1-line punchy rule: Inverse operations keep the scale balanced",
   "keyConcept": "The main takeaway rule"
 }
 ''';
@@ -83,14 +91,15 @@ Return JSON ONLY with exact keys:
     final systemPrompt = '''
 You are Xy, the supportive octopus tutor in Algebrix.
 The student made a mistake in solving an equation.
-Rule: Do NOT just give the answer. Pinpoint the misconception (e.g. dividing before undoing addition).
-Guide them to see what to undo first, then prompt them to reflect.
+Rule: Do NOT dump long paragraphs. Wrap ALL numbers, variables, and math operations in **bold** (e.g. **+4**, **3x**, **16**, **3**).
+Break down the corrections into 2-3 clear step-by-step bullet points in "steps".
 Return JSON ONLY with exact keys:
 {
   "isCorrect": false,
-  "title": "🐙 Let's look at what happened!",
-  "message": "Clear explanation of the order of operations / balance rule they missed",
-  "keyConcept": "We undo operations from the outside in (PEMDAS in reverse)",
+  "title": "🐙 Let's check step by step!",
+  "message": "You tried to divide by **3** first, but **+4** is still attached to **3x**.",
+  "steps": ["Undo **+4** first: **3x + 4 - 4 = 16 - 4** → **3x = 12**", "Then divide both sides by **3**: **x = 4**"],
+  "whyItWorks": "Undo operations from the outside in (PEMDAS in reverse)",
   "promptForStudent": "💡 What did you learn from this step?"
 }
 ''';
