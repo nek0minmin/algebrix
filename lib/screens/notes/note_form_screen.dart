@@ -219,10 +219,6 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
       if (confirm != true) return;
     }
 
-    final notesProvider = context.read<NotesProvider>();
-    final aiProvider = context.read<AiNotesProvider>();
-    final currentFeedback = aiProvider.currentFeedback;
-
     // Encode AI feedback persistently into note content if generated
     final encodedContent = StudyNote.encodeContentWithAiFeedback(
       _contentController.text,
