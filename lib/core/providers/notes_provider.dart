@@ -4,6 +4,8 @@ import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/services/notes_repository.dart';
 import 'package:flutter/foundation.dart';
 
+enum NoteSortOption { newest, oldest, title, lesson }
+
 /// Account-scoped state for the My Study Notes CRUD feature.
 ///
 /// Supabase remains authoritative: the in-memory list is changed only after a
@@ -27,8 +29,50 @@ class NotesProvider extends ChangeNotifier {
   bool _isSaving = false;
   final Set<String> _deletingNoteIds = <String>{};
   String? _errorMessage;
+  String _searchQuery = '';
+  NoteSortOption _sortOption = NoteSortOption.newest;
 
   String? get accountId => _accountId;
+  String get searchQuery => _searchQuery;
+  NoteSortOption get sortOption => _sortOption;
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  void setSortOption(NoteSortOption option) {
+    _sortOption = option;
+    notifyListeners();
+  }
+
+  List<StudyNote> get filteredNotes {
+    final query = _searchQuery.trim().toLowerCase();
+    var list = _notes.where((note) {
+      if (query.isEmpty) return true;
+      final titleMatch = note.title.toLowerCase().contains(query);
+      final contentMatch = note.displayContent.toLowerCase().contains(query);
+      final lessonMatch = note.lessonId.toLowerCase().contains(query);
+      return titleMatch || contentMatch || lessonMatch;
+    }).toList();
+
+    switch (_sortOption) {
+      case NoteSortOption.newest:
+        list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        break;
+      case NoteSortOption.oldest:
+        list.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
+        break;
+      case NoteSortOption.title:
+        list.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        break;
+      case NoteSortOption.lesson:
+        list.sort((a, b) => a.lessonId.compareTo(b.lessonId));
+        break;
+    }
+    return list;
+  }
+
   List<StudyNote> get notes => List<StudyNote>.unmodifiable(_notes);
   StudyNote? get selectedNote => _selectedNote;
   bool get isLoading => _isLoading;

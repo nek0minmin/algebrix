@@ -9,6 +9,8 @@ import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/lesson/xy_speech_bubble.dart';
 import 'package:algebrix/screens/lessons/lesson_screen.dart';
 
+import 'package:algebrix/widgets/search_bar_widget.dart';
+
 /// Module Overview screen showing the module intro and lesson list with progressive unlocking.
 class ModuleOverviewScreen extends StatefulWidget {
   const ModuleOverviewScreen({super.key});
@@ -23,6 +25,8 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
   late Animation<double> _fadeAnimation;
   bool _introSeen = false;
   int? _expandedLessonIndex;
+  String _searchQuery = '';
+  String _statusFilter = 'all'; // 'all', 'completed', 'unlocked', 'locked'
 
   @override
   void initState() {
@@ -201,9 +205,46 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-                // Lesson List
+                // Search & Status Filter
+                SearchBarWidget(
+                  onChanged: (q) => setState(() => _searchQuery = q),
+                ),
+                const SizedBox(height: 10),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _LessonFilterChip(
+                        label: 'All',
+                        isSelected: _statusFilter == 'all',
+                        onTap: () => setState(() => _statusFilter = 'all'),
+                      ),
+                      const SizedBox(width: 8),
+                      _LessonFilterChip(
+                        label: 'Completed',
+                        isSelected: _statusFilter == 'completed',
+                        onTap: () => setState(() => _statusFilter = 'completed'),
+                      ),
+                      const SizedBox(width: 8),
+                      _LessonFilterChip(
+                        label: 'Unlocked',
+                        isSelected: _statusFilter == 'unlocked',
+                        onTap: () => setState(() => _statusFilter = 'unlocked'),
+                      ),
+                      const SizedBox(width: 8),
+                      _LessonFilterChip(
+                        label: 'Locked',
+                        isSelected: _statusFilter == 'locked',
+                        onTap: () => setState(() => _statusFilter = 'locked'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Lesson List Header
                 Text(
                   'Lessons',
                   style: AppTextStyles.heading3.copyWith(
@@ -211,18 +252,46 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
-                ...List.generate(module.lessons.length, (index) {
-                  final lesson = module.lessons[index];
-                  final isCompleted = lessonProvider.isLessonCompleted(
-                    lesson.lessonId,
-                  );
-                  final isUnlocked = lessonProvider.isLessonUnlocked(
-                    lesson.lessonId,
-                    module.lessons,
-                  );
-                  final hasContent = lesson.steps.isNotEmpty;
+                ...() {
+                  final query = _searchQuery.trim().toLowerCase();
+                  final filtered = module.lessons.where((lesson) {
+                    final isCompleted = lessonProvider.isLessonCompleted(lesson.lessonId);
+                    final isUnlocked = lessonProvider.isLessonUnlocked(lesson.lessonId, module.lessons) && lesson.steps.isNotEmpty;
+                    final isLocked = !isUnlocked;
+
+                    if (_statusFilter == 'completed' && !isCompleted) return false;
+                    if (_statusFilter == 'unlocked' && !isUnlocked) return false;
+                    if (_statusFilter == 'locked' && !isLocked) return false;
+
+                    if (query.isNotEmpty) {
+                      final titleMatch = lesson.title.toLowerCase().contains(query);
+                      final descMatch = lesson.objective.toLowerCase().contains(query);
+                      return titleMatch || descMatch;
+                    }
+                    return true;
+                  }).toList();
+
+                  if (filtered.isEmpty) {
+                    return [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Center(
+                          child: Text(
+                            'No lessons match your search/filter.',
+                            style: AppTextStyles.body2.copyWith(color: AppColors.subtitle),
+                          ),
+                        ),
+                      ),
+                    ];
+                  }
+
+                  return filtered.map((lesson) {
+                    final index = module.lessons.indexOf(lesson);
+                    final isCompleted = lessonProvider.isLessonCompleted(lesson.lessonId);
+                    final isUnlocked = lessonProvider.isLessonUnlocked(lesson.lessonId, module.lessons);
+                    final hasContent = lesson.steps.isNotEmpty;
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -267,12 +336,49 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
                           : null,
                     ),
                   );
-                }),
+                }).toList();
+              }(),
 
                 const SizedBox(height: 16),
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LessonFilterChip extends StatelessWidget {
+  const _LessonFilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilterChip(
+      label: Text(
+        label,
+        style: AppTextStyles.caption.copyWith(
+          color: isSelected ? Colors.white : AppColors.text,
+          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+        ),
+      ),
+      selected: isSelected,
+      onSelected: (_) => onTap(),
+      backgroundColor: Colors.white,
+      selectedColor: AppColors.pink,
+      checkmarkColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isSelected ? AppColors.pink : AppColors.border,
         ),
       ),
     );

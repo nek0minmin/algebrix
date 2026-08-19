@@ -8,6 +8,8 @@ import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/screens/auth/login_screen.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 
+import 'package:algebrix/screens/profile/profile_screen.dart';
+
 enum ProfileMenuOption { profile, settings, help, logout }
 
 /// Reusable app header widget with profile menu popup & Logout confirmation dialog.
@@ -150,10 +152,8 @@ class AppHeader extends StatelessWidget {
         if (onProfileTap != null) {
           onProfileTap!();
         } else {
-          showAlgebrixSnackBar(
-            context,
-            message: 'Profile settings coming soon!',
-            icon: Icons.person_rounded,
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ProfileScreen()),
           );
         }
         break;

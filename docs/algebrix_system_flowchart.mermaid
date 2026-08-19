@@ -1,0 +1,54 @@
+flowchart TD
+    Start([START]) --> CheckSession[Load App & Check Auth Token]
+    CheckSession --> IsLoggedIn{Is User Logged In?}
+    
+    IsLoggedIn -- No --> HasAccount{Has Account?}
+    HasAccount -- No --> InputSignUp[/Input Name, Email, Password/]
+    InputSignUp --> ValidatePass[Validate Email & Password Strength]
+    ValidatePass --> IsSignUpValid{Is Input Valid?}
+    IsSignUpValid -- No --> ShowSignUpErr[/Display Validation Error/]
+    ShowSignUpErr --> InputSignUp
+    IsSignUpValid -- Yes --> DBUsers[(Supabase Auth: auth.users Table)]
+    DBUsers --> DBProfiles[(Trigger: public.profiles Table)]
+    DBProfiles --> InputLogin[/Input Email & Password/]
+    
+    HasAccount -- Yes --> InputLogin
+    InputLogin --> VerifyAuth[Verify Credentials with auth.users]
+    VerifyAuth --> IsAuthValid{Is Auth Valid?}
+    IsAuthValid -- No --> ShowAuthErr[/Display Invalid Credentials Error/]
+    ShowAuthErr --> InputLogin
+    
+    IsAuthValid -- Yes --> FetchProfile[Fetch User Stats & XP from public.profiles]
+    IsLoggedIn -- Yes --> FetchProfile
+    
+    FetchProfile --> DisplayDashboard[/Display Main Shell & Dashboard/]
+    DisplayDashboard --> IsPracticeMode{Selected Practice Mode?}
+    
+    IsPracticeMode -- Yes --> IsBalanceScale{Selected Balance Scale?}
+    IsBalanceScale -- Yes --> InputScaleOp[/Input Algebraic Operation/]
+    InputScaleOp --> CallMathAPI[Send HTTP POST to MathJS / Newton API]
+    CallMathAPI --> OutScaleResult[/Display Updated Scale Visual & Step Equation/]
+    
+    IsBalanceScale -- No --> InputQuizAns[/Input Quiz Answer Choice/]
+    InputQuizAns --> CallGeminiAPI[Send Prompt to Google Gemini AI API]
+    CallGeminiAPI --> OutQuizFeedback[/Display Score & AI Pedagogical Feedback/]
+    
+    IsPracticeMode -- No --> IsStudyNotes{Selected Study Notes?}
+    IsStudyNotes -- Yes --> IsCreateNote{Create New Note?}
+    IsCreateNote -- Yes --> InputNoteData[/Input Note Title and Content/]
+    InputNoteData --> DBStudyNotes[(study_notes Table: Insert/Update/Delete)]
+    DBStudyNotes --> OutNotesList[/Display Updated Notes List & Details/]
+    IsCreateNote -- No --> DBStudyNotes
+    
+    IsStudyNotes -- No --> PlayLesson[Select Module 1 Lesson & Complete Activity]
+    PlayLesson --> UpdateXP[Update XP & Completed Lessons in public.profiles]
+    UpdateXP --> OutLessonReward[/Display Lesson Complete Screen & XP Badge/]
+    
+    OutScaleResult --> IsLogout{Logout of App?}
+    OutQuizFeedback --> IsLogout
+    OutNotesList --> IsLogout
+    OutLessonReward --> IsLogout
+    
+    IsLogout -- No --> DisplayDashboard
+    IsLogout -- Yes --> ClearSession[Clear User Auth Session]
+    ClearSession --> End([END])

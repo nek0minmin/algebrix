@@ -63,7 +63,7 @@ class MathApiService {
   final http.Client _client;
 
   static const String _mathJsApiUrl = 'https://api.mathjs.org/v4/';
-  static const String _newtonApiUrl = 'https://newton.now.sh/v2/simplify/';
+  static const String _newtonApiUrl = 'https://newton.vercel.app/api/v2/simplify/';
 
   /// Sample pool of linear equations for Balance Scale mode.
   static const List<BalanceScaleProblem> _sampleProblems = [

@@ -1,0 +1,168 @@
+<mxfile host="app.diagrams.net" agent="Antigravity AI">
+  <diagram id="algebrix-standard-flowchart" name="Algebrix System Flowchart">
+    <mxGraphModel dx="87806" dy="52053" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="1700" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=20;fontColor=#000000;" value="ALGEBRIX SYSTEM FLOWCHART" vertex="1">
+          <mxGeometry height="40" width="400" x="350" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2.5;fontStyle=1;fontSize=15;" value="START" vertex="1">
+          <mxGeometry height="70" width="240" x="430" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="checkSession" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=13;fontStyle=1;" value="Load App &amp; Check Auth Token" vertex="1">
+          <mxGeometry height="70" width="260" x="420" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="isLoggedIn" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=13;" value="Is User Logged In?" vertex="1">
+          <mxGeometry height="100" width="240" x="430" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="hasAccount" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=13;" value="Has Account?" vertex="1">
+          <mxGeometry height="100" width="200" x="140" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="inputSignUp" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Input Name, Email, Password" vertex="1">
+          <mxGeometry height="70" width="230" x="100" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="validatePass" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Validate Email &amp; Password Strength" vertex="1">
+          <mxGeometry height="70" width="230" x="100" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="isSignUpValid" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" value="Is Input Valid?" vertex="1">
+          <mxGeometry height="90" width="180" x="125" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="showSignUpErr" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Display Validation Error" vertex="1">
+          <mxGeometry height="70" width="210" x="-120" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="dbUsers" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" value="Supabase Auth&#xa;(auth.users Table)" vertex="1">
+          <mxGeometry height="80" width="180" x="125" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="dbProfilesTrigger" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" value="Trigger: Auto-Create Profile&#xa;(public.profiles Table)" vertex="1">
+          <mxGeometry height="80" width="180" x="125" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="inputLogin" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Input Email &amp; Password" vertex="1">
+          <mxGeometry height="70" width="240" x="430" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="verifyAuth" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Verify Credentials with auth.users" vertex="1">
+          <mxGeometry height="70" width="240" x="430" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="isAuthValid" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" value="Is Auth Valid?" vertex="1">
+          <mxGeometry height="90" width="180" x="460" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="showAuthErr" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Display Credentials Error" vertex="1">
+          <mxGeometry height="70" width="240" x="430" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="fetchProfile" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=13;fontStyle=1;" value="Fetch Stats from public.profiles" vertex="1">
+          <mxGeometry height="70" width="240" x="740" y="275" as="geometry" />
+        </mxCell>
+        <mxCell id="displayDashboard" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=13;fontStyle=1;" value="Display Main Shell &amp; Dashboard" vertex="1">
+          <mxGeometry height="70" width="260" x="730" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="isPracticeMode" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=13;" value="Selected Practice Mode?" vertex="1">
+          <mxGeometry height="100" width="240" x="740" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="isBalanceScale" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" value="Selected Balance Scale?" vertex="1">
+          <mxGeometry height="100" width="220" x="1030" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="inputScaleOp" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Input Algebraic Operation" vertex="1">
+          <mxGeometry height="70" width="240" x="1020" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="callMathAPI" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Send HTTP POST to MathJS API" vertex="1">
+          <mxGeometry height="70" width="240" x="1020" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="outScaleResult" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Display Updated Scale Visual" vertex="1">
+          <mxGeometry height="70" width="260" x="1010" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="inputQuizAns" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Input Quiz Answer Choice" vertex="1">
+          <mxGeometry height="70" width="230" x="1300" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="callGeminiAPI" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Send Prompt to Gemini AI API" vertex="1">
+          <mxGeometry height="70" width="230" x="1300" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="outQuizFeedback" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Display Score &amp; AI Feedback" vertex="1">
+          <mxGeometry height="70" width="250" x="1290" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="isStudyNotes" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=13;" value="Selected Study Notes?" vertex="1">
+          <mxGeometry height="100" width="240" x="740" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="isCreateNote" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" value="Create New Note?" vertex="1">
+          <mxGeometry height="90" width="200" x="760" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="inputNoteData" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Input Note Title &amp; Content" vertex="1">
+          <mxGeometry height="70" width="240" x="740" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="dbStudyNotes" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" value="study_notes Table&#xa;(Insert / Update / Delete)" vertex="1">
+          <mxGeometry height="80" width="240" x="740" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="outNotesList" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Display Updated Notes List" vertex="1">
+          <mxGeometry height="70" width="260" x="730" y="1080" as="geometry" />
+        </mxCell>
+        <mxCell id="playLesson" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Play Lesson &amp; Complete Activity" vertex="1">
+          <mxGeometry height="70" width="240" x="430" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="updateXP" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Update XP in public.profiles" vertex="1">
+          <mxGeometry height="70" width="240" x="440" y="890" as="geometry" />
+        </mxCell>
+        <mxCell id="outLessonReward" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=12;fontStyle=1;" value="Display Completion &amp; XP Badge" vertex="1">
+          <mxGeometry height="70" width="260" x="420" y="1030" as="geometry" />
+        </mxCell>
+        <mxCell id="isLogout" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontStyle=1;fontSize=13;" value="Logout of App?" vertex="1">
+          <mxGeometry height="100" width="240" x="740" y="1190" as="geometry" />
+        </mxCell>
+        <mxCell id="clearSession" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontSize=13;fontStyle=1;" value="Clear User Auth Session" vertex="1">
+          <mxGeometry height="70" width="240" x="740" y="1320" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;strokeWidth=2.5;fontStyle=1;fontSize=15;" value="END" vertex="1">
+          <mxGeometry height="70" width="240" x="740" y="1420" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="checkSession" />
+        <mxCell id="e2" edge="1" parent="1" source="checkSession" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="isLoggedIn" />
+        <mxCell id="e3" edge="1" parent="1" source="isLoggedIn" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="hasAccount" value="No" />
+        <mxCell id="e4" edge="1" parent="1" source="isLoggedIn" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="fetchProfile" value="Yes" />
+        <mxCell id="e5" edge="1" parent="1" source="hasAccount" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="inputSignUp" value="No" />
+        <mxCell id="e6" edge="1" parent="1" source="hasAccount" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="inputLogin" value="Yes" />
+        <mxCell id="e7" edge="1" parent="1" source="inputSignUp" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="validatePass" />
+        <mxCell id="e8" edge="1" parent="1" source="validatePass" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="isSignUpValid" />
+        <mxCell id="e9" edge="1" parent="1" source="isSignUpValid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="showSignUpErr" value="No" />
+        <mxCell id="e10" edge="1" parent="1" source="showSignUpErr" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="inputSignUp" />
+        <mxCell id="e11" edge="1" parent="1" source="isSignUpValid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="dbUsers" value="Yes" />
+        <mxCell id="e12" edge="1" parent="1" source="dbUsers" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="dbProfilesTrigger" />
+        <mxCell id="e13" edge="1" parent="1" source="dbProfilesTrigger" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="inputLogin" />
+        <mxCell id="e14" edge="1" parent="1" source="inputLogin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="verifyAuth" />
+        <mxCell id="e15" edge="1" parent="1" source="verifyAuth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="isAuthValid" />
+        <mxCell id="e16" edge="1" parent="1" source="isAuthValid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="showAuthErr" value="No" />
+        <mxCell id="e17" edge="1" parent="1" source="showAuthErr" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="inputLogin" />
+        <mxCell id="e18" edge="1" parent="1" source="isAuthValid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="fetchProfile" value="Yes" />
+        <mxCell id="e19" edge="1" parent="1" source="fetchProfile" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="displayDashboard" />
+        <mxCell id="e20" edge="1" parent="1" source="displayDashboard" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="isPracticeMode" />
+        <mxCell id="e21" edge="1" parent="1" source="isPracticeMode" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="isBalanceScale" value="Yes" />
+        <mxCell id="e22" edge="1" parent="1" source="isPracticeMode" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="isStudyNotes" value="No" />
+        <mxCell id="e23" edge="1" parent="1" source="isBalanceScale" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="inputScaleOp" value="Yes" />
+        <mxCell id="e24" edge="1" parent="1" source="inputScaleOp" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="callMathAPI" />
+        <mxCell id="e25" edge="1" parent="1" source="callMathAPI" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="outScaleResult" />
+        <mxCell id="e26" edge="1" parent="1" source="isBalanceScale" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="inputQuizAns" value="No" />
+        <mxCell id="e27" edge="1" parent="1" source="inputQuizAns" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="callGeminiAPI" />
+        <mxCell id="e28" edge="1" parent="1" source="callGeminiAPI" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="outQuizFeedback" />
+        <mxCell id="e29" edge="1" parent="1" source="isStudyNotes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="isCreateNote" value="Yes" />
+        <mxCell id="e30" edge="1" parent="1" source="isStudyNotes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="playLesson" value="No" />
+        <mxCell id="e31" edge="1" parent="1" source="isCreateNote" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="inputNoteData" value="Yes" />
+        <mxCell id="e32" edge="1" parent="1" source="inputNoteData" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="dbStudyNotes" />
+        <mxCell id="e33" edge="1" parent="1" source="dbStudyNotes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="outNotesList" />
+        <mxCell id="e34" edge="1" parent="1" source="isCreateNote" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="dbStudyNotes" value="No" />
+        <mxCell id="e35" edge="1" parent="1" source="playLesson" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="updateXP" />
+        <mxCell id="e36" edge="1" parent="1" source="updateXP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="outLessonReward" />
+        <mxCell id="e37" edge="1" parent="1" source="outScaleResult" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="isLogout" />
+        <mxCell id="e38" edge="1" parent="1" source="outQuizFeedback" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="isLogout" />
+        <mxCell id="e39" edge="1" parent="1" source="outNotesList" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="isLogout" />
+        <mxCell id="e40" edge="1" parent="1" source="outLessonReward" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="isLogout" />
+        <mxCell id="e41" edge="1" parent="1" source="isLogout" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="displayDashboard" value="No">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1600" y="1240" />
+              <mxPoint x="1600" y="425" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e42" edge="1" parent="1" source="isLogout" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;" target="clearSession" value="Yes" />
+        <mxCell id="e43" edge="1" parent="1" source="clearSession" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;" target="end" />
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

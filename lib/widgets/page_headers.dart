@@ -111,6 +111,7 @@ class SecondaryPageAppBar extends StatelessWidget
                       style: IconButton.styleFrom(
                         minimumSize: const Size.square(44),
                         maximumSize: const Size.square(44),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         backgroundColor: AppColors.extraLightPink,
                         foregroundColor: AppColors.darkPink,
                         side: const BorderSide(color: AppColors.lightPink),
