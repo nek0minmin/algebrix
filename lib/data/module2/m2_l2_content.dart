@@ -19,7 +19,7 @@ const m2Lesson2 = LessonContent(
       xyAsset: AppAssets.xyExplaining,
       bodyText:
           'You already know that **3x** and **5x** are like terms.\n\nSo what happens when we add them?\n\n**3x + 5x = ?**',
-      mathExpression: '3x + 5x = \\text{?}',
+      mathExpression: '3x + 5x = ?',
       buttonLabel: 'Explore combining',
     ),
     LessonStep(
@@ -40,7 +40,7 @@ const m2Lesson2 = LessonContent(
       title: 'The Rule for Combining',
       bodyText:
           'To combine like terms:\n1. **Find** terms with matching variable parts.\n2. **Add or subtract** their coefficients.\n3. **Keep** the variable part the same.\n\nExample:\n**7x − 2x**\nSubtract coefficients: **7 − 2 = 5**\nSo: **7x − 2x = 5x**',
-      mathExpression: '7x - 2x = (7 - 2)x = 5x',
+      mathExpression: '7x − 2x = (7 − 2)x = 5x',
       mathAnnotation: 'Subtract the coefficients, keep x the same!',
       xyDialogue:
           'Only the coefficients change. The variable rides along!',
@@ -83,7 +83,8 @@ const m2Lesson2 = LessonContent(
       title: 'Watch Out for Unlike Terms!',
       bodyText:
           'Can we simplify **3x + 4y** into **7xy**?\n\n**No! ❌**\n**3x** and **4y** are unlike terms.\n\nThe simplified expression remains:\n**3x + 4y**',
-      mathExpression: '3x + 4y \\neq 7xy \\quad (\\text{Already simplified!})',
+      mathExpression: '3x + 4y ≠ 7xy',
+      mathAnnotation: '3x + 4y is already as simple as it can be!',
       xyDialogue:
           'Not everything needs to combine. Sometimes an expression is already as simple as it can be!',
       xyAsset: AppAssets.xyHappy,

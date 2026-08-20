@@ -103,7 +103,7 @@ void main() {
       expect(steps['m2_l1_s05']!.choices![2].label, '4a² and 7a²');
 
       // 2.2 Combining
-      expect(steps['m2_l2_s03']!.mathExpression, contains('7x - 2x'));
+      expect(steps['m2_l2_s03']!.mathExpression, contains('7x − 2x'));
       expect(steps['m2_l2_s04']!.choices![1].label, '7y');
 
       // 2.3 Distributive property

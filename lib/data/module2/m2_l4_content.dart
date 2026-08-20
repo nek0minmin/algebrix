@@ -28,7 +28,8 @@ const m2Lesson4 = LessonContent(
       title: 'Commutative Property',
       bodyText:
           '**Change the Order**\n\n**a + b = b + a**\n\nExample:\n**4 + 7 = 7 + 4 = 11**\n\nIt also works with multiplication:\n**3 × 5 = 5 × 3 = 15**\n\nThis is called the **Commutative Property**.',
-      mathExpression: 'a + b = b + a \\quad\\quad a \\cdot b = b \\cdot a',
+      mathExpression: 'a + b = b + a    •    a × b = b × a',
+      mathAnnotation: 'Order changes, but result stays the same!',
       xyDialogue: 'Think: commute = move around!',
       xyAsset: AppAssets.xyPointing,
     ),
@@ -38,7 +39,8 @@ const m2Lesson4 = LessonContent(
       title: 'Does It Always Work?',
       bodyText:
           'What about:\n**10 − 4 = 6**\n\nIf we switch them:\n**4 − 10 = −6** (Not the same!)\n\nSo subtraction is **not** commutative. Neither is division (**10 ÷ 2 ≠ 2 ÷ 10**).',
-      mathExpression: '10 - 4 \\neq 4 - 10 \\quad\\quad 10 \\div 2 \\neq 2 \\div 10',
+      mathExpression: '10 − 4 ≠ 4 − 10    •    10 ÷ 2 ≠ 2 ÷ 10',
+      mathAnnotation: 'Subtraction & division are NOT commutative!',
       xyDialogue:
           'A pattern is only useful when we know where it works!',
       xyAsset: AppAssets.xyExplaining,
@@ -49,7 +51,8 @@ const m2Lesson4 = LessonContent(
       title: 'Associative Property',
       bodyText:
           '**Change the Grouping**\n\nLook at:\n**(2 + 3) + 4**  →  **5 + 4 = 9**\n\nNow:\n**2 + (3 + 4)**  →  **2 + 7 = 9**\n\nChanging the grouping didn\'t change the answer.\nThis is the **Associative Property**.',
-      mathExpression: '(a + b) + c = a + (b + c) \\quad\\quad (ab)c = a(bc)',
+      mathExpression: '(a + b) + c = a + (b + c)',
+      mathAnnotation: 'Grouping changes, result stays identical!',
       xyDialogue: 'Think: associate = who you group with!',
       xyAsset: AppAssets.xyPointing,
     ),
@@ -59,7 +62,8 @@ const m2Lesson4 = LessonContent(
       title: 'Identity Property',
       bodyText:
           'Some numbers leave values exactly as they are:\n\n• **Addition**: **x + 0 = x** (Adding zero changes nothing)\n• **Multiplication**: **x × 1 = x** (Multiplying by one changes nothing)\n\nThese are called identity elements.',
-      mathExpression: 'x + 0 = x \\quad\\quad x \\cdot 1 = x',
+      mathExpression: 'x + 0 = x    •    x × 1 = x',
+      mathAnnotation: 'Zero & One keep values unchanged.',
       xyDialogue:
           'Zero and one know when to leave things alone!',
       xyAsset: AppAssets.xyExplaining,
@@ -70,7 +74,8 @@ const m2Lesson4 = LessonContent(
       title: 'Zero Property',
       bodyText:
           'What happens when we multiply something by zero?\n\n• **8 × 0 = 0**\n• **100 × 0 = 0**\n• **x × 0 = 0**\n\nAnything multiplied by zero equals zero!',
-      mathExpression: 'x \\cdot 0 = 0',
+      mathExpression: 'x × 0 = 0',
+      mathAnnotation: 'Zero product property',
       xyDialogue: 'Zero absorbs everything in multiplication!',
       xyAsset: AppAssets.xyPointing,
     ),

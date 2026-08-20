@@ -20,6 +20,7 @@ const m2Lesson3 = LessonContent(
       bodyText:
           'Look at:\n\n**3(x + 2)**\n\nWhat does the 3 actually mean?\nIt means we have **3 groups of (x + 2)**.',
       mathExpression: '3(x + 2)',
+      mathAnnotation: '3 groups of (x + 2)',
       buttonLabel: 'Explore distribution',
     ),
     LessonStep(
@@ -40,7 +41,8 @@ const m2Lesson3 = LessonContent(
       title: 'The Shortcut: Distribute',
       bodyText:
           'Instead of expanding all the groups, we can **distribute**.\n\nFor **3(x + 2)**, multiply 3 by each term inside:\n• **3 × x = 3x**\n• **3 × 2 = 6**\n\nTherefore:\n**3(x + 2) = 3x + 6**',
-      mathExpression: '3 \\cdot (x + 2) = 3(x) + 3(2) = 3x + 6',
+      mathExpression: '3(x + 2) = 3(x) + 3(2) = 3x + 6',
+      mathAnnotation: 'Multiply 3 by everything inside!',
       xyDialogue:
           'The number outside doesn\'t choose favorites. Everyone inside gets multiplied!',
       xyAsset: AppAssets.xyPointing,
@@ -71,7 +73,8 @@ const m2Lesson3 = LessonContent(
       title: 'What About Subtraction?',
       bodyText:
           'Try:\n**2(x − 5)**\n\nDistribute 2:\n• **2 × x = 2x**\n• **2 × (−5) = −10**\n\nTherefore:\n**2(x − 5) = 2x − 10**',
-      mathExpression: '2(x - 5) = 2(x) + 2(-5) = 2x - 10',
+      mathExpression: '2(x − 5) = 2(x) + 2(−5) = 2x − 10',
+      mathAnnotation: 'The negative sign stays with 5!',
       xyDialogue:
           'The sign travels with its term, so keep an eye on those negatives!',
       xyAsset: AppAssets.xyPointing,
@@ -83,6 +86,7 @@ const m2Lesson3 = LessonContent(
       bodyText:
           'Remember:\n**3(x + 2)** really means **3 groups of (x + 2)**.\n\nThe distributive property is simply a faster way of counting everything in those groups.',
       mathExpression: 'a(b + c) = ab + ac',
+      mathAnnotation: 'The Distributive Property Shortcut',
       xyDialogue:
           'So it\'s not just a rule to memorize. It\'s a shortcut for something we already understand!',
       xyAsset: AppAssets.xyHappy,

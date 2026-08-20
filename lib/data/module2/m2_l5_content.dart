@@ -20,6 +20,7 @@ const m2Lesson5 = LessonContent(
       bodyText:
           'Look at this:\n\n**3x + 5 + 2x + 4**\n\nIt looks busy.\n\nBut you\'ve already learned everything you need to make it simpler!',
       mathExpression: '3x + 5 + 2x + 4',
+      mathAnnotation: 'Let\'s clean this up step-by-step!',
       buttonLabel: 'Start simplifying',
     ),
     LessonStep(
@@ -40,6 +41,7 @@ const m2Lesson5 = LessonContent(
       bodyText:
           'Combine the x terms:\n**3x + 2x = 5x**\n\nCombine the constants:\n**5 + 4 = 9**\n\nTherefore:\n**5x + 9**\n\nThat\'s our simplified expression!',
       mathExpression: '3x + 5 + 2x + 4 = 5x + 9',
+      mathAnnotation: 'Fully combined and simplified!',
       xyDialogue: 'No more terms can combine, so we\'re done!',
       xyAsset: AppAssets.xyExplaining,
     ),
@@ -61,6 +63,7 @@ const m2Lesson5 = LessonContent(
       bodyText:
           'From **2x + 6 + 4x**:\n\nFind the like terms:\n**2x + 4x = 6x**\n\nThe constant stays: **+6**\n\nTherefore:\n**2(x + 3) + 4x = 6x + 6**',
       mathExpression: '2(x + 3) + 4x = 6x + 6',
+      mathAnnotation: 'Combined result: 6x + 6',
       xyDialogue: 'See how our earlier lessons are starting to work together?',
       xyAsset: AppAssets.xyHappy,
     ),
@@ -90,7 +93,8 @@ const m2Lesson5 = LessonContent(
       title: 'What Does "Simplified" Mean?',
       bodyText:
           'Simplifying doesn\'t mean making an expression smaller.\n\nIt means rewriting it in a form that is **easier to understand or work with without changing its value**.\n\nFor example, **3x + 2x + 4** and **5x + 4** represent the exact same quantity.',
-      mathExpression: '3x + 2x + 4 \\equiv 5x + 4',
+      mathExpression: '3x + 2x + 4 = 5x + 4',
+      mathAnnotation: 'Both forms have the exact same value!',
       xyDialogue: 'We changed how it looks—not what it means!',
       xyAsset: AppAssets.xyHappy,
       buttonLabel: 'Finish Lesson',

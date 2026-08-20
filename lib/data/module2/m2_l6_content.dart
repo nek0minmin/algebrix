@@ -18,7 +18,7 @@ const m2Lesson6 = LessonContent(
       xyAsset: AppAssets.xyExplaining,
       bodyText:
           'Until now, we\'ve worked with expressions like **3x + 2** without knowing what x represents.\n\nBut what if I tell you: **x = 4**?\n\nNow we can find the expression\'s actual value!',
-      mathExpression: '3x + 2 \\quad (\\text{when } x = 4)',
+      mathExpression: '3x + 2    (when x = 4)',
       buttonLabel: 'Learn substitution',
     ),
     LessonStep(
@@ -27,7 +27,7 @@ const m2Lesson6 = LessonContent(
       title: 'Step 1: Substitute',
       bodyText:
           'We have **3x + 2** and **x = 4**.\n\nReplace x with 4. This is called **substitution**.\n\nSo **3x + 2** becomes **3(4) + 2**.\n\n(Remember: 3(4) means 3 × 4).',
-      mathExpression: '3x + 2 \\longrightarrow 3(4) + 2',
+      mathExpression: '3x + 2  →  3(4) + 2',
       mathAnnotation: 'Substitute 4 wherever x appears!',
       xyDialogue:
           'Use parentheses around the number to keep multiplication clear!',
@@ -40,6 +40,7 @@ const m2Lesson6 = LessonContent(
       bodyText:
           'Now use the order of operations:\n**3(4) + 2**\n\n1. Multiply first: **12 + 2**\n2. Then add: **14**\n\nSo when x = 4, **3x + 2 = 14**!',
       mathExpression: '3(4) + 2 = 12 + 2 = 14',
+      mathAnnotation: 'Multiply first, then add!',
       xyDialogue:
           'Order of operations ensures everyone gets the same true value!',
       xyAsset: AppAssets.xyExplaining,
@@ -50,7 +51,8 @@ const m2Lesson6 = LessonContent(
       title: 'Why Substitute?',
       bodyText:
           'Remember what you learned about variables?\n\nA variable represents a value.\n\nSo if **x = 4**, every x in the expression represents 4.\n\nThat\'s why: **3x → 3(4)**.',
-      mathExpression: 'x = 4 \\implies 3x = 3 \\cdot 4 = 12',
+      mathExpression: 'If x = 4, then 3x = 3(4) = 12',
+      mathAnnotation: 'Replace the variable with its numeric value.',
       xyDialogue:
           'We\'re not changing x. We\'re replacing the symbol with the value it represents!',
       xyAsset: AppAssets.xyPointing,
@@ -81,6 +83,7 @@ const m2Lesson6 = LessonContent(
       bodyText:
           'Sometimes there\'s more than one variable:\n\nIf **a = 3** and **b = 4**, evaluate:\n**2a + b**\n\n1. Substitute: **2(3) + 4**\n2. Evaluate: **6 + 4 = 10**',
       mathExpression: '2(3) + 4 = 6 + 4 = 10',
+      mathAnnotation: 'Substitute each variable with its own value!',
       xyDialogue:
           'Different variables can represent different values. Keep track of who\'s who!',
       xyAsset: AppAssets.xyPointing,
@@ -91,8 +94,8 @@ const m2Lesson6 = LessonContent(
       title: 'Connect the Dots',
       bodyText:
           'Look how far we\'ve come!\nFor **3x + 2x + 4** when **x = 2**:\n\n1. First, simplify: **5x + 4**\n2. Substitute: **5(2) + 4**\n3. Evaluate: **10 + 4 = 14**',
-      mathExpression:
-          '3x + 2x + 4 \\longrightarrow 5x + 4 \\longrightarrow 5(2) + 4 = 14',
+      mathExpression: '3x + 2x + 4  →  5x + 4  →  5(2) + 4 = 14',
+      mathAnnotation: 'Simplify → Substitute → Evaluate!',
       xyDialogue:
           'You just combined like terms, simplified an expression, substituted a value, AND used order of operations!',
       xyAsset: AppAssets.xyHappy,
