@@ -1,4 +1,5 @@
 import 'package:algebrix/data/module1_content.dart';
+import 'package:algebrix/data/module2_content.dart';
 
 class NoteLessonOption {
   const NoteLessonOption({
@@ -12,15 +13,22 @@ class NoteLessonOption {
   final String label;
 }
 
-final List<NoteLessonOption> noteLessonOptions = List.unmodifiable(
-  module1.lessons.asMap().entries.map(
+final List<NoteLessonOption> noteLessonOptions = List.unmodifiable([
+  ...module1.lessons.asMap().entries.map(
     (entry) => NoteLessonOption(
       moduleId: module1.id,
       lessonId: entry.value.lessonId,
       label: '1.${entry.key + 1} • ${entry.value.title}',
     ),
   ),
-);
+  ...module2.lessons.asMap().entries.map(
+    (entry) => NoteLessonOption(
+      moduleId: module2.id,
+      lessonId: entry.value.lessonId,
+      label: '2.${entry.key + 1} • ${entry.value.title}',
+    ),
+  ),
+]);
 
 NoteLessonOption? noteLessonOptionFor(String lessonId) {
   for (final option in noteLessonOptions) {

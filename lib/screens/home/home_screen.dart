@@ -12,6 +12,7 @@ import 'package:algebrix/models/daily_challenge_model.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/data/module1_content.dart';
+import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/widgets/lesson_card.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/secondary_button.dart';
@@ -96,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _UniversalSearchResults(
                     query: _searchQuery,
                     notes: notesProvider.notes,
-                    lessons: module1.lessons,
+                    lessons: [...module1.lessons, ...module2.lessons],
                     onOpenLesson: (lesson) => _openLesson(context, lessonProvider, lesson),
                     onOpenNote: (note) {
                       notesProvider.selectNote(note.id);

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:algebrix/data/module1_content.dart';
+import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/lesson_progress_model.dart';
 import 'package:algebrix/services/progress_repository.dart';
@@ -80,7 +81,7 @@ class LessonProvider extends ChangeNotifier {
 
     _isHydrating = true;
     notifyListeners();
-    unawaited(_hydrateModule1(accountId, _accountGeneration));
+    unawaited(_hydrateModules(accountId, _accountGeneration));
   }
 
   Future<void> retryHydration() async {
@@ -91,32 +92,33 @@ class LessonProvider extends ChangeNotifier {
     _isHydrating = true;
     _hydrationError = null;
     notifyListeners();
-    await _hydrateModule1(accountId, generation);
+    await _hydrateModules(accountId, generation);
   }
 
-  Future<void> _hydrateModule1(String accountId, int generation) async {
+  Future<void> _hydrateModules(String accountId, int generation) async {
     try {
       final results = await Future.wait<Object>([
         _repository.fetchCurrentProfile(),
         _repository.fetchModuleProgress(module1.id),
+        _repository.fetchModuleProgress(module2.id),
       ]);
       if (!_isCurrentAccount(accountId, generation)) return;
 
       final profile = results[0] as LearningProfileSnapshot;
-      final progress = results[1] as List<LessonProgress>;
+      final m1Progress = results[1] as List<LessonProgress>;
+      final m2Progress = results[2] as List<LessonProgress>;
       if (profile.userId != accountId) {
         throw StateError('Progress was returned for a different account.');
       }
+
+      final combined = [...m1Progress, ...m2Progress];
 
       _profile = profile;
       _persistedProgress
         ..clear()
         ..addEntries(
-          progress
-              .where(
-                (item) =>
-                    item.userId == accountId && item.moduleId == module1.id,
-              )
+          combined
+              .where((item) => item.userId == accountId)
               .map((item) => MapEntry(item.lessonId, item)),
         );
       _completedLessonIds

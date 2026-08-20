@@ -6,6 +6,7 @@ import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
 import 'package:algebrix/data/module1_content.dart';
+import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 
 /// Learning Path screen — replaces the placeholder "Coming Soon" Lessons tab.
@@ -47,24 +48,31 @@ class LessonsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // Module 2 — Solving Equations (Locked)
-                _LockedModuleCard(
-                  title: 'Solving Equations',
-                  description: 'One-step, two-step, and multi-step equations.',
+                // Module 2 — Working with Expressions (Active)
+                _ModuleCard(
+                  module: module2,
                   moduleNumber: 2,
-                  icon: '⚖️',
                   accentColor: AppColors.purple,
+                  isLocked: false,
+                  onTap: () {
+                    final lessonProvider = context.read<LessonProvider>();
+                    lessonProvider.startModule(module2);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ModuleOverviewScreen(),
+                      ),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 16),
 
-                // Module 3 — Algebraic Properties (Locked)
+                // Module 3 — Solving Equations (Locked)
                 _LockedModuleCard(
-                  title: 'Algebraic Properties',
-                  description:
-                      'Combining like terms, distributive property, and equality.',
+                  title: 'Solving Equations',
+                  description: 'One-step, two-step, and multi-step equations.',
                   moduleNumber: 3,
-                  icon: '🧩',
+                  icon: '⚖️',
                   accentColor: AppColors.mint,
                 ),
 
@@ -192,7 +200,7 @@ class _ModuleCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Algebra Foundations',
+                        module.title,
                         style: AppTextStyles.heading3.copyWith(
                           color: AppColors.text,
                           fontWeight: FontWeight.w800,
@@ -212,7 +220,7 @@ class _ModuleCard extends StatelessWidget {
 
             // Description
             Text(
-              '${module.lessons.length} lessons • Variables, Constants, Terms, and more',
+              '${module.lessons.length} lessons • ${module.lessons.take(3).map((l) => l.title).join(", ")}, and more',
               style: AppTextStyles.body2.copyWith(
                 color: AppColors.textSecondary,
               ),
