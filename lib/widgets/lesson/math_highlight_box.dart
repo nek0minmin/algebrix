@@ -11,7 +11,7 @@ class MathHighlightBox extends StatefulWidget {
     super.key,
     required this.expression,
     this.annotation,
-    this.accentColor = AppColors.pink,
+    this.accentColor = AppColors.purple,
   });
 
   @override
@@ -44,7 +44,6 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
 
   @override
   Widget build(BuildContext context) {
-    final accent = widget.accentColor;
     final expr = widget.expression.trim();
 
     // Check expression mode
@@ -53,16 +52,24 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
 
     String badgeLabel = 'EXPRESSION';
     IconData badgeIcon = Icons.functions_rounded;
+    Color badgeColor = AppColors.purple;
+    Color badgeBg = AppColors.lightPurple;
 
     if (isComparison) {
       badgeLabel = 'COMPARISON';
       badgeIcon = Icons.compare_arrows_rounded;
+      badgeColor = AppColors.purple;
+      badgeBg = AppColors.lightPurple;
     } else if (isStepFlow) {
       badgeLabel = 'STEP-BY-STEP';
       badgeIcon = Icons.timeline_rounded;
+      badgeColor = AppColors.mint;
+      badgeBg = AppColors.lightMint;
     } else if (expr.contains('=')) {
       badgeLabel = 'EQUATION';
       badgeIcon = Icons.drag_handle_rounded;
+      badgeColor = AppColors.purple;
+      badgeBg = AppColors.lightPurple;
     }
 
     return ScaleTransition(
@@ -73,14 +80,14 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: accent.withValues(alpha: 0.2),
+            color: AppColors.border,
             width: 1.5,
           ),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
-              color: accent.withValues(alpha: 0.08),
-              blurRadius: 18,
-              offset: const Offset(0, 4),
+              color: AppColors.shadow,
+              blurRadius: 16,
+              offset: Offset(0, 4),
             ),
           ],
         ),
@@ -88,9 +95,9 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Top Header Strip
+            // Top Header Badge
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -100,18 +107,18 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.1),
+                      color: badgeBg,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(badgeIcon, size: 14, color: accent),
+                        Icon(badgeIcon, size: 14, color: badgeColor),
                         const SizedBox(width: 6),
                         Text(
                           badgeLabel,
                           style: AppTextStyles.caption.copyWith(
-                            color: accent,
+                            color: badgeColor,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.2,
                             fontSize: 11,
@@ -124,52 +131,48 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
               ),
             ),
 
-            // Main Math Body
+            // Math Content Area (Clean, no inner pink boxes)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
               child: isComparison
-                  ? _buildComparisonContent(context, expr, accent)
+                  ? _buildComparisonContent(context, expr)
                   : isStepFlow
-                      ? _buildStepFlowContent(context, expr, accent)
-                      : _buildHeroFormulaContent(context, expr, accent),
+                      ? _buildStepFlowContent(context, expr)
+                      : _buildHeroFormulaContent(context, expr),
             ),
 
-            // Integrated Annotation Footer
+            // Vibrant Teal/Mint Footer for Tips with Crisp White Text
             if (widget.annotation != null) ...[
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 11,
+                  vertical: 10,
                 ),
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.04),
-                  borderRadius: const BorderRadius.vertical(
+                decoration: const BoxDecoration(
+                  color: AppColors.mint,
+                  borderRadius: BorderRadius.vertical(
                     bottom: Radius.circular(19),
-                  ),
-                  border: Border(
-                    top: BorderSide(
-                      color: accent.withValues(alpha: 0.1),
-                      width: 1,
-                    ),
                   ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.lightbulb_outline_rounded,
+                    const Icon(
+                      Icons.lightbulb_rounded,
                       size: 15,
-                      color: AppColors.textSecondary,
+                      color: Colors.white,
                     ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         widget.annotation!,
-                        style: AppTextStyles.body2.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
+                        style: const TextStyle(
+                          fontFamily: 'Nunito',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
                           height: 1.3,
                         ),
                         textAlign: TextAlign.center,
@@ -188,120 +191,85 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
   Widget _buildComparisonContent(
     BuildContext context,
     String expr,
-    Color accent,
   ) {
     final parts = expr.split(RegExp(r'\s*•\s*'));
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 340;
-        return Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 12,
-          runSpacing: 10,
+    return Center(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             for (var i = 0; i < parts.length; i++) ...[
-              Container(
-                padding: EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: isNarrow ? 12 : 16,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.extraLightPink.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: accent.withValues(alpha: 0.15),
-                    width: 1,
-                  ),
-                ),
-                child: _buildTokenizedMath(
-                  parts[i].trim(),
-                  fontSize: 18,
-                  accent: accent,
-                ),
+              _buildTokenizedMath(
+                parts[i].trim(),
+                fontSize: 22,
               ),
               if (i < parts.length - 1)
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.4),
-                    shape: BoxShape.circle,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: AppColors.purple,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
             ],
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 
   Widget _buildStepFlowContent(
     BuildContext context,
     String expr,
-    Color accent,
   ) {
     final steps = expr.split(RegExp(r'\s*→\s*'));
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 340;
-        return Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
+    return Center(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             for (var i = 0; i < steps.length; i++) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 10,
-                  horizontal: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: i == steps.length - 1
-                      ? AppColors.lightMint
-                      : AppColors.extraLightPink.withValues(alpha: 0.45),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: i == steps.length - 1
-                        ? AppColors.mint.withValues(alpha: 0.6)
-                        : accent.withValues(alpha: 0.15),
-                    width: 1.2,
-                  ),
-                ),
-                child: _buildTokenizedMath(
-                  steps[i].trim(),
-                  fontSize: isNarrow ? 16 : 18,
-                  accent: accent,
-                ),
+              _buildTokenizedMath(
+                steps[i].trim(),
+                fontSize: 22,
+                highlightResult: i == steps.length - 1 && steps.length > 2,
               ),
               if (i < steps.length - 1)
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 16,
-                  color: accent.withValues(alpha: 0.7),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 20,
+                    color: AppColors.purple,
+                  ),
                 ),
             ],
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 
   Widget _buildHeroFormulaContent(
     BuildContext context,
     String expr,
-    Color accent,
   ) {
     return Center(
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
           child: _buildTokenizedMath(
             expr,
             fontSize: 24,
-            accent: accent,
           ),
         ),
       ),
@@ -311,12 +279,14 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
   Widget _buildTokenizedMath(
     String text, {
     required double fontSize,
-    required Color accent,
+    bool highlightResult = false,
   }) {
     final spans = <InlineSpan>[];
-    // Regular expression to match variables (x, y, a, b, n), operators (+, −, -, ×, ÷, =, ≠), exponents (², ³, etc.)
+
+    // Accurate tokenizer regex: whole words first, then variables, then operators/numbers
     final regex = RegExp(
-      r'([a-zA-Z][²³⁴]?|[0-9]+|[+\−\-\×\*\/\=\≠\(\)\,\:\?]|\band\b|\bwhen\b|\bIf\b|\bthen\b|\bvs\b|\s+)',
+      r'(\band\b|\bwhen\b|\bIf\b|\bthen\b|\bvs\b|[a-zA-Z][²³⁴]?|[0-9]+|[+\−\-\×\*\/\=\≠\(\)\,\:\?]|\s+)',
+      caseSensitive: false,
     );
 
     final matches = regex.allMatches(text);
@@ -327,7 +297,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
           fontFamily: 'Nunito',
           fontSize: fontSize,
           fontWeight: FontWeight.w800,
-          color: AppColors.text,
+          color: AppColors.textSecondary,
         ),
       );
     }
@@ -342,7 +312,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
               fontFamily: 'Nunito',
               fontSize: fontSize,
               fontWeight: FontWeight.w700,
-              color: AppColors.text,
+              color: AppColors.textSecondary,
             ),
           ),
         );
@@ -361,15 +331,15 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
             text: ' $token ',
             style: TextStyle(
               fontFamily: 'Nunito',
-              fontSize: fontSize * 0.78,
+              fontSize: fontSize * 0.85,
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              color: AppColors.subtitle,
               fontStyle: FontStyle.italic,
             ),
           ),
         );
-      } else if (RegExp(r'^[xyzabcnXYZABCN][²³⁴]?$').hasMatch(token)) {
-        // Variable token (vivid pink / brand accent)
+      } else if (RegExp(r'^[a-zA-Z][²³⁴]?$').hasMatch(token)) {
+        // Variable letter (e.g. x, y, a, b, n) with optional exponent
         spans.add(
           TextSpan(
             text: token,
@@ -382,7 +352,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
           ),
         );
       } else if (RegExp(r'^[+\−\-\×\*\/\=\≠]$').hasMatch(token)) {
-        // Operator token
+        // Operators & Relations in purple
         spans.add(
           TextSpan(
             text: ' $token ',
@@ -395,7 +365,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
           ),
         );
       } else {
-        // Numbers and brackets
+        // Numbers, parentheses, etc. in refined dark gray
         spans.add(
           TextSpan(
             text: token,
@@ -403,7 +373,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
               fontFamily: 'Nunito',
               fontSize: fontSize,
               fontWeight: FontWeight.w800,
-              color: AppColors.text,
+              color: highlightResult ? AppColors.darkPink : AppColors.textSecondary,
               letterSpacing: 0.5,
             ),
           ),
@@ -421,7 +391,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
             fontFamily: 'Nunito',
             fontSize: fontSize,
             fontWeight: FontWeight.w700,
-            color: AppColors.text,
+            color: AppColors.textSecondary,
           ),
         ),
       );
