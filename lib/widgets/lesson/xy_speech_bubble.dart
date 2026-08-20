@@ -152,9 +152,10 @@ class _XySpeechBubbleState extends State<XySpeechBubble>
             style: const TextStyle(
               fontFamily: 'Nunito',
               fontSize: 14.5,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               color: AppColors.textSecondary,
-              height: 1.35,
+              letterSpacing: 0.35,
+              height: 1.45,
             ),
           ),
         );
@@ -171,7 +172,8 @@ class _XySpeechBubbleState extends State<XySpeechBubble>
             fontWeight: FontWeight.w800,
             color: AppColors.pink,
             fontStyle: FontStyle.italic,
-            height: 1.35,
+            letterSpacing: 0.35,
+            height: 1.45,
           ),
         ),
       );
@@ -185,9 +187,10 @@ class _XySpeechBubbleState extends State<XySpeechBubble>
           style: const TextStyle(
             fontFamily: 'Nunito',
             fontSize: 14.5,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
             color: AppColors.textSecondary,
-            height: 1.35,
+            letterSpacing: 0.35,
+            height: 1.45,
           ),
         ),
       );
