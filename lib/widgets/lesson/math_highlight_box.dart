@@ -11,7 +11,7 @@ class MathHighlightBox extends StatefulWidget {
     super.key,
     required this.expression,
     this.annotation,
-    this.accentColor = AppColors.purple,
+    this.accentColor = AppColors.pink,
   });
 
   @override
@@ -52,24 +52,24 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
 
     String badgeLabel = 'EXPRESSION';
     IconData badgeIcon = Icons.functions_rounded;
-    Color badgeColor = AppColors.purple;
-    Color badgeBg = AppColors.lightPurple;
+    Color badgeColor = AppColors.pink;
+    Color badgeBg = AppColors.extraLightPink;
 
     if (isComparison) {
       badgeLabel = 'COMPARISON';
       badgeIcon = Icons.compare_arrows_rounded;
-      badgeColor = AppColors.purple;
-      badgeBg = AppColors.lightPurple;
+      badgeColor = AppColors.pink;
+      badgeBg = AppColors.extraLightPink;
     } else if (isStepFlow) {
       badgeLabel = 'STEP-BY-STEP';
       badgeIcon = Icons.timeline_rounded;
-      badgeColor = AppColors.mint;
-      badgeBg = AppColors.lightMint;
+      badgeColor = AppColors.pink;
+      badgeBg = AppColors.extraLightPink;
     } else if (expr.contains('=')) {
       badgeLabel = 'EQUATION';
       badgeIcon = Icons.drag_handle_rounded;
-      badgeColor = AppColors.purple;
-      badgeBg = AppColors.lightPurple;
+      badgeColor = AppColors.pink;
+      badgeBg = AppColors.extraLightPink;
     }
 
     return ScaleTransition(
@@ -131,7 +131,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
               ),
             ),
 
-            // Math Content Area (Clean, no inner pink boxes)
+            // Math Content Area (All soft gray, clean, no inner pink boxes)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
               child: isComparison
@@ -141,7 +141,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
                       : _buildHeroFormulaContent(context, expr),
             ),
 
-            // Vibrant Teal/Mint Footer for Tips with Crisp White Text
+            // Vibrant Pink Footer for Tips with Crisp White Text
             if (widget.annotation != null) ...[
               Container(
                 width: double.infinity,
@@ -150,7 +150,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
                   vertical: 10,
                 ),
                 decoration: const BoxDecoration(
-                  color: AppColors.mint,
+                  color: AppColors.pink,
                   borderRadius: BorderRadius.vertical(
                     bottom: Radius.circular(19),
                   ),
@@ -209,10 +209,10 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   child: Container(
-                    width: 7,
-                    height: 7,
+                    width: 6,
+                    height: 6,
                     decoration: const BoxDecoration(
-                      color: AppColors.purple,
+                      color: AppColors.subtitle,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -240,15 +240,14 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
               _buildTokenizedMath(
                 steps[i].trim(),
                 fontSize: 22,
-                highlightResult: i == steps.length - 1 && steps.length > 2,
               ),
               if (i < steps.length - 1)
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   child: Icon(
                     Icons.arrow_forward_rounded,
-                    size: 20,
-                    color: AppColors.purple,
+                    size: 18,
+                    color: AppColors.subtitle,
                   ),
                 ),
             ],
@@ -279,11 +278,10 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
   Widget _buildTokenizedMath(
     String text, {
     required double fontSize,
-    bool highlightResult = false,
   }) {
     final spans = <InlineSpan>[];
 
-    // Accurate tokenizer regex: whole words first, then variables, then operators/numbers
+    // Accurate tokenizer: match keywords, symbols, variables & numbers
     final regex = RegExp(
       r'(\band\b|\bwhen\b|\bIf\b|\bthen\b|\bvs\b|[a-zA-Z][²³⁴]?|[0-9]+|[+\−\-\×\*\/\=\≠\(\)\,\:\?]|\s+)',
       caseSensitive: false,
@@ -311,7 +309,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
             style: TextStyle(
               fontFamily: 'Nunito',
               fontSize: fontSize,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: AppColors.textSecondary,
             ),
           ),
@@ -338,34 +336,8 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
             ),
           ),
         );
-      } else if (RegExp(r'^[a-zA-Z][²³⁴]?$').hasMatch(token)) {
-        // Variable letter (e.g. x, y, a, b, n) with optional exponent
-        spans.add(
-          TextSpan(
-            text: token,
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: fontSize,
-              fontWeight: FontWeight.w900,
-              color: AppColors.pink,
-            ),
-          ),
-        );
-      } else if (RegExp(r'^[+\−\-\×\*\/\=\≠]$').hasMatch(token)) {
-        // Operators & Relations in purple
-        spans.add(
-          TextSpan(
-            text: ' $token ',
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: fontSize,
-              fontWeight: FontWeight.w800,
-              color: AppColors.purple,
-            ),
-          ),
-        );
       } else {
-        // Numbers, parentheses, etc. in refined dark gray
+        // Everything in uniform soft dark gray
         spans.add(
           TextSpan(
             text: token,
@@ -373,7 +345,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
               fontFamily: 'Nunito',
               fontSize: fontSize,
               fontWeight: FontWeight.w800,
-              color: highlightResult ? AppColors.darkPink : AppColors.textSecondary,
+              color: AppColors.textSecondary,
               letterSpacing: 0.5,
             ),
           ),
@@ -390,7 +362,7 @@ class _MathHighlightBoxState extends State<MathHighlightBox>
           style: TextStyle(
             fontFamily: 'Nunito',
             fontSize: fontSize,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             color: AppColors.textSecondary,
           ),
         ),
