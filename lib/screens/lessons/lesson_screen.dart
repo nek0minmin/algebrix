@@ -389,15 +389,7 @@ class _LessonScreenState extends State<LessonScreen> {
                 ),
               ],
             ),
-            child: Text(
-              step.question!,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.subtitle1.copyWith(
-                color: AppColors.text,
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
-              ),
-            ),
+            child: _buildQuestionText(step.question!, fontSize: 18),
           ),
         const SizedBox(height: 20),
         if (step.choices != null)
@@ -455,14 +447,7 @@ class _LessonScreenState extends State<LessonScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.border),
             ),
-            child: Text(
-              step.question!,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.heading3.copyWith(
-                color: AppColors.text,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            child: _buildQuestionText(step.question!, fontSize: 19),
           ),
         const SizedBox(height: 24),
 
@@ -715,6 +700,114 @@ class _LessonScreenState extends State<LessonScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildQuestionText(String questionText, {double fontSize = 18}) {
+    final spans = <InlineSpan>[];
+    final regex = RegExp(
+      r'([\×\*]|\b[+\−\-\÷\=]\b|[+\−\-\÷\=]|\n+|[^\s\×\*\+\−\-\÷\=]+|\s+)',
+    );
+    final matches = regex.allMatches(questionText);
+
+    if (matches.isEmpty) {
+      return Text(
+        questionText,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: 'Nunito',
+          fontSize: fontSize,
+          fontWeight: FontWeight.w700,
+          color: AppColors.text,
+          height: 1.45,
+        ),
+      );
+    }
+
+    var lastEnd = 0;
+    for (final m in matches) {
+      if (m.start > lastEnd) {
+        spans.add(
+          TextSpan(
+            text: questionText.substring(lastEnd, m.start),
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: fontSize,
+              fontWeight: FontWeight.w700,
+              color: AppColors.text,
+              height: 1.45,
+            ),
+          ),
+        );
+      }
+
+      final token = m.group(0)!;
+      if (token == '×' || token == '*') {
+        // Distinct pink and slightly smaller multiplication symbol so it NEVER gets confused with variable x!
+        spans.add(
+          TextSpan(
+            text: ' × ',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: fontSize * 0.85,
+              fontWeight: FontWeight.w900,
+              color: AppColors.pink,
+              height: 1.45,
+            ),
+          ),
+        );
+      } else if (token == '+' ||
+          token == '−' ||
+          token == '-' ||
+          token == '÷' ||
+          token == '=') {
+        spans.add(
+          TextSpan(
+            text: ' $token ',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: fontSize,
+              fontWeight: FontWeight.w800,
+              color: AppColors.purple,
+              height: 1.45,
+            ),
+          ),
+        );
+      } else {
+        spans.add(
+          TextSpan(
+            text: token,
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: fontSize,
+              fontWeight: FontWeight.w700,
+              color: AppColors.text,
+              height: 1.45,
+            ),
+          ),
+        );
+      }
+      lastEnd = m.end;
+    }
+
+    if (lastEnd < questionText.length) {
+      spans.add(
+        TextSpan(
+          text: questionText.substring(lastEnd),
+          style: TextStyle(
+            fontFamily: 'Nunito',
+            fontSize: fontSize,
+            fontWeight: FontWeight.w700,
+            color: AppColors.text,
+            height: 1.45,
+          ),
+        ),
+      );
+    }
+
+    return Text.rich(
+      TextSpan(children: spans),
+      textAlign: TextAlign.center,
     );
   }
 
