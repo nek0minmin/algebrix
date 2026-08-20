@@ -52,15 +52,15 @@ const m2Lesson6 = LessonContent(
       question:
           'If x = 5, evaluate: 2x + 3\n\n1. Substitute: 2(5) + 3\n2. Multiply: 10 + 3\n3. What is the final value?',
       choices: [
-        ChoiceOption(label: '10', emoji: '❌'),
-        ChoiceOption(label: '13', emoji: '✅', isCorrect: true),
-        ChoiceOption(label: '16', emoji: '❌'),
-        ChoiceOption(label: '28', emoji: '❌'),
+        ChoiceOption(label: '10'),
+        ChoiceOption(label: '13', isCorrect: true),
+        ChoiceOption(label: '16'),
+        ChoiceOption(label: '28'),
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
       xyAsset: AppAssets.xyHappy,
-      explanation: 'Spot on! 2(5) + 3 = 10 + 3 = 13 ✅',
+      explanation: 'Spot on! 2(5) + 3 = 10 + 3 = 13.',
       incorrectExplanation:
           'Multiply 2 by 5 first (which is 10), then add 3.',
     ),

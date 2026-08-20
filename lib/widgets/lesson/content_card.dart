@@ -70,7 +70,7 @@ class _ContentCardState extends State<ContentCard>
               const SizedBox(height: 12),
             ],
             if (widget.body != null) ...[
-              _EmphasizedText(widget.body!),
+              EmphasizedText(widget.body!),
               const SizedBox(height: 16),
             ],
             if (widget.bulletPoints != null &&
@@ -141,26 +141,35 @@ class _ContentCardState extends State<ContentCard>
   }
 }
 
-class _EmphasizedText extends StatelessWidget {
+class EmphasizedText extends StatelessWidget {
   final String text;
+  final TextStyle? baseStyle;
+  final TextStyle? highlightStyle;
 
-  const _EmphasizedText(this.text);
+  const EmphasizedText(
+    this.text, {
+    super.key,
+    this.baseStyle,
+    this.highlightStyle,
+  });
 
   @override
   Widget build(BuildContext context) {
     final spans = <TextSpan>[];
     final parts = text.split('**');
+    final defaultBase = baseStyle ?? AppTextStyles.body1.copyWith(height: 1.6);
+    final defaultHighlight = highlightStyle ??
+        AppTextStyles.body1.copyWith(
+          color: AppColors.pink,
+          fontWeight: FontWeight.w800,
+          height: 1.6,
+        );
+
     for (var index = 0; index < parts.length; index++) {
       spans.add(
         TextSpan(
           text: parts[index],
-          style: index.isOdd
-              ? AppTextStyles.body1.copyWith(
-                  color: AppColors.pink,
-                  fontWeight: FontWeight.w800,
-                  height: 1.6,
-                )
-              : AppTextStyles.body1.copyWith(height: 1.6),
+          style: index.isOdd ? defaultHighlight : defaultBase,
         ),
       );
     }

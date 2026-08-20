@@ -25,8 +25,8 @@ const m2Lesson1 = LessonContent(
       type: LessonStepType.content,
       title: 'Meet Like Terms',
       bodyText:
-          '**Like terms** have the **same variable** raised to the **same exponent**.\n\nFor example:\n• **3x** and **7x** ✅ (both contain **x**)\n• **4y²** and **9y²** ✅ (both have **y²**)\n\nThe numbers in front (coefficients) can be different, but the **variable parts must match!**',
-      mathExpression: '3x  and  7x  ✓   •   4y²  and  9y²  ✓',
+          '**Like terms** have the **same variable** raised to the **same exponent**.\n\nFor example:\n• **3x** and **7x** (both contain **x**)\n• **4y²** and **9y²** (both have **y²**)\n\nThe numbers in front (coefficients) can be different, but the **variable parts must match!**',
+      mathExpression: '3x and 7x   •   4y² and 9y²',
       mathAnnotation: 'Same variable & same exponent = Like Terms!',
     ),
     LessonStep(
@@ -41,8 +41,8 @@ const m2Lesson1 = LessonContent(
       type: LessonStepType.content,
       title: 'Not Everything Matches!',
       bodyText:
-          'Look at:\n\n• **3x** and **3y** ❌ (Same coefficient, but different variables)\n• **5x** and **5x²** ❌ (Same variable, but different exponents)\n\nThese are **unlike terms** because their variable parts do not match.',
-      mathExpression: '3x and 3y  ✗   •   5x and 5x²  ✗',
+          'Look at:\n\n• **3x** and **3y** (Same coefficient, but different variables)\n• **5x** and **5x²** (Same variable, but different exponents)\n\nThese are **unlike terms** because their variable parts do not match.',
+      mathExpression: '3x and 3y   •   5x and 5x²',
       mathAnnotation: 'Different variables or exponents = Unlike Terms.',
     ),
     LessonStep(
@@ -51,10 +51,10 @@ const m2Lesson1 = LessonContent(
       title: 'Find the Pair',
       question: 'Which two are like terms?\n\n3x       5y       8x       2',
       choices: [
-        ChoiceOption(label: '3x and 5y', emoji: '🔍'),
-        ChoiceOption(label: '3x and 8x', emoji: '✅', isCorrect: true),
-        ChoiceOption(label: '5y and 8x', emoji: '🔍'),
-        ChoiceOption(label: '8x and 2', emoji: '🔍'),
+        ChoiceOption(label: '3x and 5y'),
+        ChoiceOption(label: '3x and 8x', isCorrect: true),
+        ChoiceOption(label: '5y and 8x'),
+        ChoiceOption(label: '8x and 2'),
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
@@ -89,7 +89,7 @@ const m2Lesson1 = LessonContent(
       type: LessonStepType.summary,
       title: 'Why Does This Matter?',
       bodyText:
-          'Suppose you have:\n• **3 apples + 2 apples = 5 apples** 🍎\n\nBut:\n• **3 apples + 2 oranges** doesn\'t become **5 apple-oranges** 😭\n\nAlgebra works similarly:\n• **3x + 2x** can be combined into **5x**\n• **3x + 2y** cannot be combined\n\nYou learned:\n• Like terms have identical variable letters and powers\n• Only like terms can be combined\n• Unlike terms represent different quantities and stay separate',
+          'Suppose you have:\n• **3 apples + 2 apples = 5 apples**\n\nBut:\n• **3 apples + 2 oranges** cannot become **5 apple-oranges**\n\nAlgebra works similarly:\n• **3x + 2x** can be combined into **5x**\n• **3x + 2y** cannot be combined\n\nYou learned:\n• Like terms have identical variable letters and powers\n• Only like terms can be combined\n• Unlike terms represent different quantities and stay separate',
       mathExpression: '3x + 2x = 5x',
       mathAnnotation: '3x + 2y cannot combine because they are unlike terms!',
       xyDialogue:

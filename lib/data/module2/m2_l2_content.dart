@@ -41,7 +41,7 @@ const m2Lesson2 = LessonContent(
       type: LessonStepType.content,
       title: 'The Rule for Combining',
       bodyText:
-          'To combine like terms:\n1. 🔍 **Find** terms with matching variable parts\n2. ➕ **Add or subtract** their coefficients\n3. 🔒 **Keep** the variable part exactly the same\n\nExample:\n**7x − 2x**\nSubtract coefficients: **7 − 2 = 5**\nSo: **7x − 2x = 5x**',
+          'To combine like terms:\n1. **Find** terms with matching variable parts\n2. **Add or subtract** their coefficients\n3. **Keep** the variable part exactly the same\n\nExample:\n**7x − 2x**\nSubtract coefficients: **7 − 2 = 5**\nSo: **7x − 2x = 5x**',
       mathExpression: '7x − 2x = (7 − 2)x = 5x',
       mathAnnotation: 'Only the coefficient changes!',
     ),
@@ -51,10 +51,10 @@ const m2Lesson2 = LessonContent(
       title: 'Try It!',
       question: 'Simplify: 4y + 3y',
       choices: [
-        ChoiceOption(label: '7', emoji: '❌'),
-        ChoiceOption(label: '7y', emoji: '✅', isCorrect: true),
-        ChoiceOption(label: '7y²', emoji: '❌'),
-        ChoiceOption(label: '12y', emoji: '❌'),
+        ChoiceOption(label: '7'),
+        ChoiceOption(label: '7y', isCorrect: true),
+        ChoiceOption(label: '7y²'),
+        ChoiceOption(label: '12y'),
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
@@ -78,9 +78,9 @@ const m2Lesson2 = LessonContent(
       type: LessonStepType.summary,
       title: 'Watch Out for Unlike Terms!',
       bodyText:
-          'Can we simplify **3x + 4y** into **7xy**?\n\n**No! ❌**\n**3x** and **4y** are unlike terms.\nThe simplified expression remains:\n**3x + 4y**\n\nYou learned:\n• Add/subtract coefficients of matching variable terms\n• Variables and powers never change during addition\n• Constants and variable terms are combined in separate groups\n• Unlike terms cannot be combined',
+          'Can we simplify **3x + 4y** into **7xy**?\n\n**No!**\n**3x** and **4y** are unlike terms.\nThe simplified expression remains:\n**3x + 4y**\n\nYou learned:\n• Add and subtract coefficients of matching variable terms\n• Variables and exponents never change during addition\n• Constants and variable terms are grouped separately\n• Unlike terms cannot be combined',
       mathExpression: '3x + 4y ≠ 7xy',
-      mathAnnotation: '3x + 4y is already as simple as it can be!',
+      mathAnnotation: '3x + 4y is already fully simplified!',
       xyDialogue:
           'Not everything needs to combine. Sometimes an expression is already as simple as it can be!',
       xyAsset: AppAssets.xyHappy,

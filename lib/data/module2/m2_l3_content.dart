@@ -52,10 +52,10 @@ const m2Lesson3 = LessonContent(
       question:
           'Expand: 4(x + 3)\n\nFirst: 4 × x = 4x\nThen: 4 × 3 = 12\n\nWhat is the expanded expression?',
       choices: [
-        ChoiceOption(label: '4x + 3', emoji: '❌'),
-        ChoiceOption(label: '4x + 12', emoji: '✅', isCorrect: true),
-        ChoiceOption(label: '7x', emoji: '❌'),
-        ChoiceOption(label: 'x + 12', emoji: '❌'),
+        ChoiceOption(label: '4x + 3'),
+        ChoiceOption(label: '4x + 12', isCorrect: true),
+        ChoiceOption(label: '7x'),
+        ChoiceOption(label: 'x + 12'),
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,

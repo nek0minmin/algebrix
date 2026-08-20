@@ -61,16 +61,16 @@ const m2Lesson5 = LessonContent(
       question:
           'Simplify: 5x + 2 + 3x + 4\n\nStep 1: 5x + 3x\nStep 2: 2 + 4\n\nWhat is the simplified expression?',
       choices: [
-        ChoiceOption(label: '8x + 6', emoji: '🎉', isCorrect: true),
-        ChoiceOption(label: '14x', emoji: '❌'),
-        ChoiceOption(label: '8x + 2', emoji: '❌'),
-        ChoiceOption(label: '15x + 8', emoji: '❌'),
+        ChoiceOption(label: '8x + 6', isCorrect: true),
+        ChoiceOption(label: '14x'),
+        ChoiceOption(label: '8x + 2'),
+        ChoiceOption(label: '15x + 8'),
       ],
       correctChoiceIndex: 0,
       isAnswerStep: true,
       xyAsset: AppAssets.xyHappy,
       explanation:
-          'Awesome! 5x + 3x = 8x, and 2 + 4 = 6, giving 8x + 6 🎉',
+          'Awesome! 5x + 3x = 8x, and 2 + 4 = 6, giving 8x + 6.',
       incorrectExplanation:
           'Combine the x terms (5x + 3x) and the constants (2 + 4) separately.',
     ),

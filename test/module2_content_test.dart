@@ -97,7 +97,7 @@ void main() {
       };
 
       // 2.1 Like terms
-      expect(steps['m2_l1_s02']!.mathExpression, contains('3x  and  7x  ✓'));
+      expect(steps['m2_l1_s02']!.mathExpression, contains('3x and 7x'));
       expect(steps['m2_l1_s05']!.choices![1].label, '3x and 8x');
       expect(steps['m2_l1_s06']!.choices![2].label, '4a² and 7a²');
 

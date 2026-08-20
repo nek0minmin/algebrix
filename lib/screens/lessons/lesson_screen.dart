@@ -644,19 +644,74 @@ class _LessonScreenState extends State<LessonScreen> {
         if (step.bodyText != null) ...[
           const SizedBox(height: 20),
           Container(
-            padding: const EdgeInsets.all(20),
+            width: double.infinity,
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
-              color: AppColors.lightMint,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.mint.withValues(alpha: 0.2)),
-            ),
-            child: Text(
-              step.bodyText!,
-              style: AppTextStyles.body1.copyWith(
-                color: AppColors.text,
-                height: 1.7,
+              border: Border.all(
+                color: AppColors.mint.withValues(alpha: 0.35),
+                width: 1.5,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.mint.withValues(alpha: 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: AppColors.lightMint,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.mint,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'KEY TAKEAWAYS',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.mint,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                EmphasizedText(
+                  step.bodyText!,
+                  baseStyle: AppTextStyles.body1.copyWith(
+                    color: AppColors.text,
+                    height: 1.65,
+                  ),
+                  highlightStyle: AppTextStyles.body1.copyWith(
+                    color: AppColors.pink,
+                    fontWeight: FontWeight.w800,
+                    height: 1.65,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        if (step.mathExpression != null) ...[
+          const SizedBox(height: 16),
+          MathHighlightBox(
+            expression: step.mathExpression!,
+            annotation: step.mathAnnotation,
+            accentColor: AppColors.mint,
           ),
         ],
       ],
