@@ -1,23 +1,22 @@
 import 'package:algebrix/data/module2_content.dart';
-import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Module 2 lesson content', () {
     const expectedStepCounts = <String, int>{
-      'm2_l1': 6,
-      'm2_l2': 6,
-      'm2_l3': 6,
-      'm2_l4': 7,
+      'm2_l1': 7,
+      'm2_l2': 7,
+      'm2_l3': 7,
+      'm2_l4': 8,
       'm2_l5': 7,
       'm2_l6': 7,
       'm2_l7': 12,
     };
 
     const expectedAnswerSteps = <String, Set<String>>{
-      'm2_l1': {'m2_l1_s04', 'm2_l1_s05'},
-      'm2_l2': {'m2_l2_s04'},
-      'm2_l3': {'m2_l3_s04'},
+      'm2_l1': {'m2_l1_s05', 'm2_l1_s06'},
+      'm2_l2': {'m2_l2_s05'},
+      'm2_l3': {'m2_l3_s05'},
       'm2_l4': {'m2_l4_s07'},
       'm2_l5': {'m2_l5_s06'},
       'm2_l6': {'m2_l6_s05'},
@@ -91,35 +90,35 @@ void main() {
       }
     });
 
-    test('validates core mathematical content and explanations', () {
+    test('validates core mathematical content and student-friendly formatting', () {
       final steps = {
         for (final lesson in module2.lessons)
           for (final step in lesson.steps) step.id: step,
       };
 
       // 2.1 Like terms
-      expect(steps['m2_l1_s01']!.mathExpression, '3x + 5x');
-      expect(steps['m2_l1_s04']!.choices![1].label, '3x and 8x');
-      expect(steps['m2_l1_s05']!.choices![2].label, '4a² and 7a²');
+      expect(steps['m2_l1_s02']!.mathExpression, contains('3x  and  7x  ✓'));
+      expect(steps['m2_l1_s05']!.choices![1].label, '3x and 8x');
+      expect(steps['m2_l1_s06']!.choices![2].label, '4a² and 7a²');
 
       // 2.2 Combining
-      expect(steps['m2_l2_s03']!.mathExpression, contains('7x − 2x'));
-      expect(steps['m2_l2_s04']!.choices![1].label, '7y');
+      expect(steps['m2_l2_s04']!.mathExpression, contains('7x − 2x'));
+      expect(steps['m2_l2_s05']!.choices![1].label, '7y');
 
       // 2.3 Distributive property
-      expect(steps['m2_l3_s03']!.mathExpression, contains('3x + 6'));
-      expect(steps['m2_l3_s04']!.choices![1].label, '4x + 12');
+      expect(steps['m2_l3_s04']!.mathExpression, contains('3x + 6'));
+      expect(steps['m2_l3_s05']!.choices![1].label, '4x + 12');
 
       // 2.4 Properties
       expect(steps['m2_l4_s02']!.mathExpression, contains('a + b = b + a'));
       expect(steps['m2_l4_s07']!.choices![1].label, 'Commutative Property');
 
       // 2.5 Simplifying
-      expect(steps['m2_l5_s03']!.mathExpression, contains('5x + 9'));
+      expect(steps['m2_l5_s04']!.mathExpression, contains('5x + 9'));
       expect(steps['m2_l5_s06']!.choices![0].label, '8x + 6');
 
       // 2.6 Evaluating
-      expect(steps['m2_l6_s03']!.mathExpression, contains('14'));
+      expect(steps['m2_l6_s04']!.mathExpression, contains('14'));
       expect(steps['m2_l6_s05']!.choices![1].label, '13');
 
       // 2.7 Challenge

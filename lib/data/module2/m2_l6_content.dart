@@ -14,12 +14,11 @@ const m2Lesson6 = LessonContent(
       id: 'm2_l6_s01',
       type: LessonStepType.intro,
       title: 'What If We Know x?',
-      xyDialogue: 'The mystery has been revealed! Let\'s see what happens.',
-      xyAsset: AppAssets.xyExplaining,
-      bodyText:
-          'Until now, we\'ve worked with expressions like **3x + 2** without knowing what x represents.\n\nBut what if I tell you: **x = 4**?\n\nNow we can find the expression\'s actual value!',
-      mathExpression: '3x + 2    (when x = 4)',
-      buttonLabel: 'Learn substitution',
+      bodyText: 'Evaluating algebraic expressions',
+      xyDialogue:
+          'Until now, we didn\'t know what x was. But what if x = 4? Now we can find the expression\'s actual numeric value!',
+      xyAsset: AppAssets.xyWave,
+      buttonLabel: 'Learn substitution →',
     ),
     LessonStep(
       id: 'm2_l6_s02',
@@ -29,33 +28,22 @@ const m2Lesson6 = LessonContent(
           'We have **3x + 2** and **x = 4**.\n\nReplace x with 4. This is called **substitution**.\n\nSo **3x + 2** becomes **3(4) + 2**.\n\n(Remember: 3(4) means 3 × 4).',
       mathExpression: '3x + 2  →  3(4) + 2',
       mathAnnotation: 'Substitute 4 wherever x appears!',
-      xyDialogue:
-          'Use parentheses around the number to keep multiplication clear!',
-      xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
       id: 'm2_l6_s03',
+      type: LessonStepType.xySays,
+      xyDialogue:
+          'Use parentheses around the number when substituting to keep multiplication crystal clear!',
+      xyAsset: AppAssets.xyPointing,
+    ),
+    LessonStep(
+      id: 'm2_l6_s04',
       type: LessonStepType.content,
       title: 'Step 2: Evaluate',
       bodyText:
           'Now use the order of operations:\n**3(4) + 2**\n\n1. Multiply first: **12 + 2**\n2. Then add: **14**\n\nSo when x = 4, **3x + 2 = 14**!',
       mathExpression: '3(4) + 2 = 12 + 2 = 14',
       mathAnnotation: 'Multiply first, then add!',
-      xyDialogue:
-          'Order of operations ensures everyone gets the same true value!',
-      xyAsset: AppAssets.xyExplaining,
-    ),
-    LessonStep(
-      id: 'm2_l6_s04',
-      type: LessonStepType.content,
-      title: 'Why Substitute?',
-      bodyText:
-          'Remember what you learned about variables?\n\nA variable represents a value.\n\nSo if **x = 4**, every x in the expression represents 4.\n\nThat\'s why: **3x → 3(4)**.',
-      mathExpression: 'If x = 4, then 3x = 3(4) = 12',
-      mathAnnotation: 'Replace the variable with its numeric value.',
-      xyDialogue:
-          'We\'re not changing x. We\'re replacing the symbol with the value it represents!',
-      xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
       id: 'm2_l6_s05',
@@ -64,10 +52,10 @@ const m2Lesson6 = LessonContent(
       question:
           'If x = 5, evaluate: 2x + 3\n\n1. Substitute: 2(5) + 3\n2. Multiply: 10 + 3\n3. What is the final value?',
       choices: [
-        ChoiceOption(label: '10'),
-        ChoiceOption(label: '13', isCorrect: true),
-        ChoiceOption(label: '16'),
-        ChoiceOption(label: '28'),
+        ChoiceOption(label: '10', emoji: '❌'),
+        ChoiceOption(label: '13', emoji: '✅', isCorrect: true),
+        ChoiceOption(label: '16', emoji: '❌'),
+        ChoiceOption(label: '28', emoji: '❌'),
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
@@ -83,17 +71,14 @@ const m2Lesson6 = LessonContent(
       bodyText:
           'Sometimes there\'s more than one variable:\n\nIf **a = 3** and **b = 4**, evaluate:\n**2a + b**\n\n1. Substitute: **2(3) + 4**\n2. Evaluate: **6 + 4 = 10**',
       mathExpression: '2(3) + 4 = 6 + 4 = 10',
-      mathAnnotation: 'Substitute each variable with its own value!',
-      xyDialogue:
-          'Different variables can represent different values. Keep track of who\'s who!',
-      xyAsset: AppAssets.xyPointing,
+      mathAnnotation: 'Keep track of which number belongs to which letter!',
     ),
     LessonStep(
       id: 'm2_l6_s07',
       type: LessonStepType.summary,
       title: 'Connect the Dots',
       bodyText:
-          'Look how far we\'ve come!\nFor **3x + 2x + 4** when **x = 2**:\n\n1. First, simplify: **5x + 4**\n2. Substitute: **5(2) + 4**\n3. Evaluate: **10 + 4 = 14**',
+          'Look how far we\'ve come!\nFor **3x + 2x + 4** when **x = 2**:\n\n1. First, simplify: **5x + 4**\n2. Substitute: **5(2) + 4**\n3. Evaluate: **10 + 4 = 14**\n\nYou learned:\n• Substitution replaces variable letters with numbers\n• Always use order of operations to calculate\n• Simplify first before substituting to make calculations easier',
       mathExpression: '3x + 2x + 4  →  5x + 4  →  5(2) + 4 = 14',
       mathAnnotation: 'Simplify → Substitute → Evaluate!',
       xyDialogue:
