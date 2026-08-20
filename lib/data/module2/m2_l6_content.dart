@@ -16,7 +16,7 @@ const m2Lesson6 = LessonContent(
       title: 'What If We Know x?',
       bodyText: 'Evaluating algebraic expressions',
       xyDialogue:
-          'Until now, we didn\'t know what x was. But what if x = 4? Now we can find the expression\'s actual numeric value!',
+          'Until now, we didn\'t know what x was. But what if x = 4? Now we can find the expression\'s *actual numeric value*!',
       xyAsset: AppAssets.xyWave,
       buttonLabel: 'Learn substitution →',
     ),
@@ -33,7 +33,7 @@ const m2Lesson6 = LessonContent(
       id: 'm2_l6_s03',
       type: LessonStepType.xySays,
       xyDialogue:
-          'Use parentheses around the number when substituting to keep multiplication crystal clear!',
+          'Use parentheses around the number when substituting to keep multiplication *crystal clear*!',
       xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
@@ -82,7 +82,7 @@ const m2Lesson6 = LessonContent(
       mathExpression: '3x + 2x + 4  →  5x + 4  →  5(2) + 4 = 14',
       mathAnnotation: 'Simplify → Substitute → Evaluate!',
       xyDialogue:
-          'You just combined like terms, simplified an expression, substituted a value, AND used order of operations!',
+          'You just combined like terms, simplified an expression, substituted a value, AND used *order of operations*!',
       xyAsset: AppAssets.xyHappy,
       buttonLabel: 'Finish Lesson',
     ),

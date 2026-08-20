@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
-import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 
 class XySpeechBubble extends StatefulWidget {
@@ -9,14 +8,16 @@ class XySpeechBubble extends StatefulWidget {
   final Color bubbleColor;
   final double xySize;
   final bool showMascot;
+  final Widget? leadingIcon;
 
   const XySpeechBubble({
     super.key,
     required this.message,
     this.xyAsset = AppAssets.xyExplaining,
-    this.bubbleColor = AppColors.extraLightPink,
-    this.xySize = 80.0,
+    this.bubbleColor = Colors.white,
+    this.xySize = 52.0,
     this.showMascot = true,
+    this.leadingIcon,
   });
 
   @override
@@ -34,14 +35,14 @@ class _XySpeechBubbleState extends State<XySpeechBubble>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 400),
     );
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 0.2),
+      begin: const Offset(0.0, 0.15),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _controller.forward();
@@ -60,38 +61,76 @@ class _XySpeechBubbleState extends State<XySpeechBubble>
       child: SlideTransition(
         position: _slideAnimation,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (widget.showMascot) ...[
-              Image.asset(
-                widget.xyAsset,
+              Container(
                 width: widget.xySize,
                 height: widget.xySize,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF1E2024),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadow,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(4),
+                child: ClipOval(
+                  child: Image.asset(
+                    widget.xyAsset,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
             ],
             Expanded(
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  if (widget.showMascot)
-                    Positioned(
-                      left: -8,
-                      top: 20,
-                      child: CustomPaint(
-                        painter: _BubbleTailPainter(color: widget.bubbleColor),
-                        size: const Size(8, 12),
-                      ),
-                    ),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: widget.bubbleColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(widget.message, style: AppTextStyles.body1),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: widget.bubbleColor,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: AppColors.border,
+                    width: 1.2,
                   ),
-                ],
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.shadow,
+                      blurRadius: 10,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    widget.leadingIcon ??
+                        Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: const BoxDecoration(
+                            color: AppColors.lightYellow,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.bolt_rounded,
+                            color: AppColors.yellow,
+                            size: 18,
+                          ),
+                        ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildFormattedDialogue(widget.message),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -99,27 +138,61 @@ class _XySpeechBubbleState extends State<XySpeechBubble>
       ),
     );
   }
-}
 
-class _BubbleTailPainter extends CustomPainter {
-  final Color color;
+  Widget _buildFormattedDialogue(String text) {
+    final spans = <TextSpan>[];
+    final regex = RegExp(r'(\*\*.*?\*\*|\*.*?\*)');
+    var lastEnd = 0;
 
-  _BubbleTailPainter({required this.color});
+    for (final match in regex.allMatches(text)) {
+      if (match.start > lastEnd) {
+        spans.add(
+          TextSpan(
+            text: text.substring(lastEnd, match.start),
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 14.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+              height: 1.35,
+            ),
+          ),
+        );
+      }
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-    final path = Path()
-      ..moveTo(size.width, 0)
-      ..lineTo(0, size.height / 2)
-      ..lineTo(size.width, size.height)
-      ..close();
-    canvas.drawPath(path, paint);
+      final raw = match.group(0)!;
+      final clean = raw.replaceAll('*', '');
+      spans.add(
+        TextSpan(
+          text: clean,
+          style: const TextStyle(
+            fontFamily: 'Nunito',
+            fontSize: 14.5,
+            fontWeight: FontWeight.w800,
+            color: AppColors.pink,
+            fontStyle: FontStyle.italic,
+            height: 1.35,
+          ),
+        ),
+      );
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < text.length) {
+      spans.add(
+        TextSpan(
+          text: text.substring(lastEnd),
+          style: const TextStyle(
+            fontFamily: 'Nunito',
+            fontSize: 14.5,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+            height: 1.35,
+          ),
+        ),
+      );
+    }
+
+    return Text.rich(TextSpan(children: spans));
   }
-
-  @override
-  bool shouldRepaint(covariant _BubbleTailPainter oldDelegate) =>
-      color != oldDelegate.color;
 }

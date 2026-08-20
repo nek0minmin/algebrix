@@ -16,7 +16,7 @@ const m2Lesson4 = LessonContent(
       title: 'Algebra Has Patterns',
       bodyText: 'Properties of Operations',
       xyDialogue:
-          'Compare 3 + 5 = 8 and 5 + 3 = 8. We changed the order, but the answer stayed the same! Let\'s discover the patterns math lets us rely on.',
+          'Compare 3 + 5 = 8 and 5 + 3 = 8. We changed the order, but the answer stayed the same! Let\'s discover the *patterns* math lets us rely on.',
       xyAsset: AppAssets.xyWave,
       buttonLabel: 'Discover patterns →',
     ),
@@ -33,7 +33,7 @@ const m2Lesson4 = LessonContent(
       id: 'm2_l4_s03',
       type: LessonStepType.xySays,
       xyDialogue:
-          'Think: commute = move around! Numbers can switch seats in addition and multiplication.',
+          'Think: *commute = move around*! Numbers can switch seats in addition and multiplication.',
       xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
@@ -89,7 +89,7 @@ const m2Lesson4 = LessonContent(
       bodyText:
           'You learned:\n• Commutative Property: a + b = b + a (change order)\n• Associative Property: (a + b) + c = a + (b + c) (change grouping)\n• Identity Elements: x + 0 = x and x × 1 = x\n• Zero Property: x × 0 = 0\n• Subtraction and division are NOT commutative',
       xyDialogue:
-          'These patterns are the golden rules that make algebra trustworthy!',
+          'These patterns are the *golden rules* that make algebra trustworthy!',
       xyAsset: AppAssets.xyHappy,
       buttonLabel: 'Finish Lesson',
     ),

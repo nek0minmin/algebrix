@@ -16,7 +16,7 @@ const m2Lesson3 = LessonContent(
       title: 'Share With Everyone!',
       bodyText: 'The Distributive Property',
       xyDialogue:
-          'Look at 3(x + 2). What does the 3 outside really mean? Let\'s open those parentheses and see what\'s inside!',
+          'Look at 3(x + 2). What does the 3 outside really mean? Let\'s open those parentheses and see *what\'s inside*!',
       xyAsset: AppAssets.xyWave,
       buttonLabel: 'Explore distribution →',
     ),
@@ -33,7 +33,7 @@ const m2Lesson3 = LessonContent(
       id: 'm2_l3_s03',
       type: LessonStepType.xySays,
       xyDialogue:
-          'The number outside doesn\'t choose favorites. Everyone inside gets multiplied!',
+          'The number outside doesn\'t choose favorites. *Everyone inside gets multiplied*!',
       xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
@@ -83,7 +83,7 @@ const m2Lesson3 = LessonContent(
       mathExpression: 'a(b + c) = ab + ac',
       mathAnnotation: 'The Distributive Property Shortcut',
       xyDialogue:
-          'So it\'s not just a rule to memorize. It\'s a shortcut for something we already understand!',
+          'So it\'s not just a rule to memorize. It\'s a *shortcut* for something we already understand!',
       xyAsset: AppAssets.xyHappy,
       buttonLabel: 'Finish Lesson',
     ),

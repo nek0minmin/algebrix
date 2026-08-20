@@ -16,7 +16,7 @@ const m2Lesson5 = LessonContent(
       title: 'Clean It Up!',
       bodyText: 'Simplifying algebraic expressions',
       xyDialogue:
-          'Look at 3x + 5 + 2x + 4. It looks busy, but you already have all the tools to clean it up! Let\'s organize it step-by-step.',
+          'Look at 3x + 5 + 2x + 4. It looks busy, but you already have all the tools to *clean it up*! Let\'s organize it step-by-step.',
       xyAsset: AppAssets.xyWave,
       buttonLabel: 'Start simplifying →',
     ),
@@ -24,7 +24,7 @@ const m2Lesson5 = LessonContent(
       id: 'm2_l5_s02',
       type: LessonStepType.xySays,
       xyDialogue:
-          'Think of simplifying like organizing a messy desk. We aren\'t changing what\'s there—we\'re arranging it better!',
+          'Think of simplifying like *organizing a messy desk*. We aren\'t changing what\'s there—we\'re arranging it better!',
       xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
@@ -82,7 +82,7 @@ const m2Lesson5 = LessonContent(
           'Simplifying doesn\'t mean making an expression smaller.\n\nIt means rewriting it in a form that is **easier to understand or work with without changing its value**.\n\nFor example, **3x + 2x + 4** and **5x + 4** represent the exact same quantity.\n\nYou learned:\n• Step 1: Distribute to clear parentheses\n• Step 2: Group like variable terms and constants\n• Step 3: Combine coefficients\n• Simplified expressions retain their exact same value',
       mathExpression: '3x + 2x + 4 = 5x + 4',
       mathAnnotation: 'Both forms have the exact same value!',
-      xyDialogue: 'We changed how it looks—not what it means!',
+      xyDialogue: 'We changed *how it looks*—not *what it means*!',
       xyAsset: AppAssets.xyHappy,
       buttonLabel: 'Finish Lesson',
     ),

@@ -16,7 +16,7 @@ const m2Lesson2 = LessonContent(
       title: 'Let\'s Put Them Together!',
       bodyText: 'Adding and subtracting like terms',
       xyDialogue:
-          'You already know how to spot like terms. Now let\'s find out what happens when we combine them!',
+          'You already know how to spot like terms. Now let\'s find out what happens when we *combine them*!',
       xyAsset: AppAssets.xyWave,
       buttonLabel: 'Combine terms →',
     ),
@@ -33,7 +33,7 @@ const m2Lesson2 = LessonContent(
       id: 'm2_l2_s03',
       type: LessonStepType.xySays,
       xyDialogue:
-          'We\'re adding how many x\'s we have—not changing what x is!',
+          'We\'re adding *how many* x\'s we have—not changing what *x* is!',
       xyAsset: AppAssets.xyExplaining,
     ),
     LessonStep(
@@ -82,7 +82,7 @@ const m2Lesson2 = LessonContent(
       mathExpression: '3x + 4y ≠ 7xy',
       mathAnnotation: '3x + 4y is already fully simplified!',
       xyDialogue:
-          'Not everything needs to combine. Sometimes an expression is already as simple as it can be!',
+          'Not everything needs to combine. Sometimes an expression is already as *simple as it can be*!',
       xyAsset: AppAssets.xyHappy,
       buttonLabel: 'Finish Lesson',
     ),

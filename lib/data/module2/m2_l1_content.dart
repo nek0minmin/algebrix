@@ -16,7 +16,7 @@ const m2Lesson1 = LessonContent(
       title: 'Which Ones Belong Together?',
       bodyText: 'Make sense of the pieces',
       xyDialogue:
-          'Remember terms? Some of them have more in common than you might think! Let\'s see which ones fit together.',
+          'Remember terms? Some of them have more in common than you might think! Let\'s see which ones *fit together*.',
       xyAsset: AppAssets.xyWave,
       buttonLabel: 'Explore like terms →',
     ),
@@ -33,7 +33,7 @@ const m2Lesson1 = LessonContent(
       id: 'm2_l1_s03',
       type: LessonStepType.xySays,
       xyDialogue:
-          'The numbers in front can be completely different. What matters is that the variable parts match exactly!',
+          'The numbers in front can be completely different. What matters is that the *variable parts match exactly*!',
       xyAsset: AppAssets.xyExplaining,
     ),
     LessonStep(
@@ -68,7 +68,7 @@ const m2Lesson1 = LessonContent(
       type: LessonStepType.interactive,
       title: 'A Little Trickier',
       xyDialogue:
-          'Watch those exponents! Let\'s see if you can spot the matching power.',
+          'Watch those exponents! Let\'s see if you can spot the *matching power*.',
       xyAsset: AppAssets.xyPointing,
       question: 'Which terms are like terms in 4a² + 3a + 7a²?',
       choices: [
@@ -93,7 +93,7 @@ const m2Lesson1 = LessonContent(
       mathExpression: '3x + 2x = 5x',
       mathAnnotation: '3x + 2y cannot combine because they are unlike terms!',
       xyDialogue:
-          'Like terms represent the same kind of quantity. That\'s why we can combine them!',
+          '*Like terms* represent the same kind of quantity. That\'s why we can *combine them*!',
       xyAsset: AppAssets.xyHappy,
       buttonLabel: 'Finish Lesson',
     ),
