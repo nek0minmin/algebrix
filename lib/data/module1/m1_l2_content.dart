@@ -15,7 +15,7 @@ const m1Lesson2 = LessonContent(
       title: 'Constants',
       bodyText: 'Numbers that stay fixed',
       xyDialogue:
-          'Variables can change, but some values stay fixed. Those steady values are called constants.',
+          'Variables can change, but some values stay fixed. Those steady values are called *constants*.',
       xyAsset: AppAssets.xyExplaining,
       buttonLabel: 'Meet constants',
     ),
@@ -24,25 +24,31 @@ const m1Lesson2 = LessonContent(
       type: LessonStepType.content,
       title: 'What Is a Constant?',
       bodyText:
-          'A **constant** is a number whose value stays the same. Examples include **5**, **12**, **100**, **−3**, and **½**.',
+          'A **constant** is a number whose value stays completely the same.\n\nExamples include: **5**, **12**, **100**, **−3**, and **½**.',
       mathExpression: 'x + 5',
       mathAnnotation: 'x may change, but 5 always has the value 5.',
+      xyDialogue:
+          'No matter what happens to x, the *constant 5* never changes!',
+      xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
       id: 'm1_l2_s03',
       type: LessonStepType.content,
       title: 'Change One Part',
       bodyText:
-          'Try different values for x and watch what happens:\n\nx = 1  →  1 + 5\nx = 4  →  4 + 5\nx = 10 → 10 + 5',
-      mathExpression: 'x + 5',
+          'Watch what happens when **x** changes:\n\n• `x = 1`  →  `1 + 5 = 6`\n• `x = 4`  →  `4 + 5 = 9`\n• `x = 10` →  `10 + 5 = 15`',
+      mathExpression: 'x = 1 → 6   •   x = 4 → 9   •   x = 10 → 15',
       mathAnnotation:
           'The x-value changes in every row. The constant 5 stays put.',
+      xyDialogue:
+          'The variable x shifts, but the *constant stays steady*!',
+      xyAsset: AppAssets.xyExplaining,
     ),
     LessonStep(
       id: 'm1_l2_s04',
       type: LessonStepType.xySays,
       xyDialogue:
-          'A constant is the dependable part of an expression—it keeps the same value even when a variable changes.',
+          'A constant is the *dependable part* of an expression—it keeps the same value even when a variable changes.',
       xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
@@ -60,33 +66,17 @@ const m1Lesson2 = LessonContent(
         ],
         items: [
           ClassificationItem(id: 'x', label: 'x', categoryId: 'change'),
-          ClassificationItem(id: 'seven', label: '7', categoryId: 'stay'),
+          ClassificationItem(id: '7', label: '7', categoryId: 'stay'),
           ClassificationItem(id: 'y', label: 'y', categoryId: 'change'),
-          ClassificationItem(id: 'fifteen', label: '15', categoryId: 'stay'),
-          ClassificationItem(id: 'a', label: 'a', categoryId: 'change'),
-          ClassificationItem(
-            id: 'negative-four',
-            label: '−4',
-            categoryId: 'stay',
-          ),
+          ClassificationItem(id: '12', label: '12', categoryId: 'stay'),
         ],
       ),
-      explanation:
-          'Letters such as x, y, and a can represent changing values. The numbers 7, 15, and −4 are constants.',
+      explanation: 'Variables change; numbers alone are constants.',
       incorrectExplanation:
-          'Ask whether the symbol can take different values. A number written by itself stays fixed.',
+          'Letters are variables that can take different values. Numbers alone stay fixed.',
     ),
     LessonStep(
       id: 'm1_l2_s06',
-      type: LessonStepType.content,
-      title: 'The Sign Belongs to the Number',
-      bodyText:
-          'A negative sign written with a constant is part of that constant.',
-      mathExpression: 'x - 4 = x + (-4)',
-      mathAnnotation: 'The constant is −4, not just 4.',
-    ),
-    LessonStep(
-      id: 'm1_l2_s07',
       type: LessonStepType.quiz,
       title: 'Quick Check',
       question: 'Which number is the constant in 4x + 9?',
@@ -98,36 +88,40 @@ const m1Lesson2 = LessonContent(
       ],
       correctChoiceIndex: 2,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyPointing,
-      explanation: 'Correct! 9 is written by itself, so its value stays fixed.',
+      xyAsset: AppAssets.xyHappy,
+      explanation:
+          'Correct! 9 is the standalone constant. 4 is the coefficient attached to x.',
       incorrectExplanation:
-          'Look for the number written by itself rather than the number multiplying x.',
+          'Look for the number standing by itself without a variable.',
     ),
     LessonStep(
-      id: 'm1_l2_s08',
-      type: LessonStepType.interactive,
-      title: 'Why Is It Constant?',
+      id: 'm1_l2_s07',
+      type: LessonStepType.quiz,
+      title: 'Think About It',
       question: 'If x changes from 2 to 10 in x + 7, what happens to 7?',
       choices: [
-        ChoiceOption(label: 'It changes to 10'),
+        ChoiceOption(label: 'It increases'),
         ChoiceOption(label: 'It stays 7', isCorrect: true),
-        ChoiceOption(label: 'It changes to 2'),
-        ChoiceOption(label: 'It disappears'),
+        ChoiceOption(label: 'It becomes 10'),
+        ChoiceOption(label: 'It changes to 17'),
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyPointing,
-      explanation: 'Exactly. x can change from 2 to 10, while 7 remains 7.',
-      incorrectExplanation: 'A constant is defined by keeping the same value.',
+      xyAsset: AppAssets.xyHappy,
+      explanation:
+          'Exactly! A constant never changes its value—that is why it is called constant.',
+      incorrectExplanation:
+          'Remember: constants stay fixed regardless of how the variable changes.',
     ),
     LessonStep(
-      id: 'm1_l2_s09',
+      id: 'm1_l2_s08',
       type: LessonStepType.summary,
-      title: 'Constants Complete!',
-      xyDialogue: 'Great work! You can now spot the values that stay fixed.',
+      title: 'Constants Summary',
+      xyDialogue:
+          'Great job! You can now tell the difference between what *shifts* and what *stays fixed*.',
       xyAsset: AppAssets.xyHappy,
       bodyText:
-          'You learned:\n• Constants keep the same value\n• A standalone number is a constant\n• A negative sign belongs to its constant\n• Constants differ from variables, which can change',
+          'You learned:\n• A constant is a fixed number with a definite value\n• Constants do not change when variables change\n• In x + 5, x is the variable and 5 is the constant\n• A number standing alone without a variable is always a constant',
     ),
   ],
 );

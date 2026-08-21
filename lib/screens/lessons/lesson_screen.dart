@@ -279,7 +279,7 @@ class _LessonScreenState extends State<LessonScreen> {
     return _ModuleLessonIntro(step: step);
   }
 
-  /// Content step — educational explanation with optional math highlight.
+  /// Content step — educational explanation with optional math highlight and mascot tip.
   Widget _buildContentStep(LessonStep step) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -289,12 +289,20 @@ class _LessonScreenState extends State<LessonScreen> {
             title: step.title,
             body: step.bodyText,
             bulletPoints: step.bulletPoints,
+            xyAsset: step.xyDialogue == null ? step.xyAsset : null,
           ),
         if (step.mathExpression != null) ...[
           const SizedBox(height: 16),
           MathHighlightBox(
             expression: step.mathExpression!,
             annotation: step.mathAnnotation,
+          ),
+        ],
+        if (step.xyDialogue != null) ...[
+          const SizedBox(height: 16),
+          XySpeechBubble(
+            message: step.xyDialogue!,
+            xyAsset: step.xyAsset ?? AppAssets.xyExplaining,
           ),
         ],
       ],

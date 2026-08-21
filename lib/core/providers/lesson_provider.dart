@@ -154,7 +154,10 @@ class LessonProvider extends ChangeNotifier {
     _currentLesson = lesson;
     _sessionXp = 0;
     _currentStepAnswered = false;
-    final storedIndex = _persistedProgress[lesson.lessonId]?.lastStepIndex ?? 0;
+    final isCompleted = isLessonCompleted(lesson.lessonId);
+    final storedIndex = isCompleted
+        ? 0
+        : (_persistedProgress[lesson.lessonId]?.lastStepIndex ?? 0);
     _currentStepIndex = lesson.steps.isEmpty
         ? 0
         : storedIndex.clamp(0, lesson.steps.length - 1);
@@ -224,6 +227,14 @@ class LessonProvider extends ChangeNotifier {
     final lesson = _currentLesson;
     final step = currentStep;
     if (lesson == null || step == null || _isRecording) return null;
+
+    final isCompleted = isLessonCompleted(lesson.lessonId);
+    if (isCompleted) {
+      _currentStepAnswered = true;
+      _errorMessage = null;
+      notifyListeners();
+      return 0; // Already completed, no repeat XP
+    }
 
     _currentStepAnswered = true;
     _errorMessage = null;

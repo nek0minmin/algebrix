@@ -24,10 +24,13 @@ const m1Lesson6 = LessonContent(
       type: LessonStepType.content,
       title: 'Why Order Matters',
       bodyText:
-          'Doing operations in different orders can produce different results. The order of operations removes that confusion.',
+          'Doing operations in different orders can produce **completely different results**.\n\nThe agreed **Order of Operations** removes all confusion and guarantees one true answer!',
       mathExpression: '2 + 3 × 4',
       mathAnnotation:
           'Adding first gives 20, but multiplying first gives the agreed answer: 14.',
+      xyDialogue:
+          'Without standard rules, one math problem could have *multiple conflicting answers*!',
+      xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
       id: 'm1_l6_s03',
@@ -42,6 +45,7 @@ const m1Lesson6 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
+      xyAsset: AppAssets.xyHappy,
       explanation: 'Correct! Multiplication comes before addition.',
       incorrectExplanation:
           'Use the order of operations: multiplication is completed before addition.',
@@ -49,29 +53,40 @@ const m1Lesson6 = LessonContent(
     LessonStep(
       id: 'm1_l6_s04',
       type: LessonStepType.content,
-      title: 'PEMDAS',
+      title: 'The PEMDAS Rule',
       bodyText:
-          'Work in this order: Parentheses; Exponents; Multiplication and Division from left to right; Addition and Subtraction from left to right.',
-      mathExpression: 'P → E → M/D → A/S',
+          'Remember the order of operations using **PEMDAS**:\n\n• 🟣 **P** — **Parentheses** `( )` first\n• 🌸 **E** — **Exponents** `x²` next\n• 🩵 **M / D** — **Multiply & Divide** (left to right)\n• 🟡 **A / S** — **Add & Subtract** (left to right)',
+      mathExpression: 'P  →  E  →  M/D  →  A/S',
       mathAnnotation:
-          'Multiplication and division have equal priority. Addition and subtraction do too—work left to right within each pair.',
+          'Multiplication & division share equal rank—work left to right!',
+      xyDialogue:
+          'Think: *Please Excuse My Dear Aunt Sally*!',
+      xyAsset: AppAssets.xyExplaining,
     ),
     LessonStep(
       id: 'm1_l6_s05',
       type: LessonStepType.content,
       title: 'Work It Step by Step',
-      bodyText: 'First multiply 2 × 5 to get 10. Then add 8.',
-      mathExpression: '8 + 2 × 5 = 8 + 10 = 18',
-      mathAnnotation: 'Following the order gives 18.',
+      bodyText:
+          'Let\'s follow the rule for **8 + 2 × 5**:\n\n1. ⚡ **Multiply first**: `2 × 5 = 10`\n2. ➕ **Then add**: `8 + 10 = 18`',
+      mathExpression: '8 + 2 × 5  →  8 + 10  →  18',
+      mathAnnotation: 'Multiplication takes priority before addition!',
+      xyDialogue:
+          'Always scan for the *highest-priority operation* first before adding!',
+      xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
       id: 'm1_l6_s06',
       type: LessonStepType.content,
-      title: 'Parentheses Change the Priority',
-      bodyText: 'Parentheses tell us to complete the grouped operation first.',
-      mathExpression: '2 + 3 × 4 = 14     (2 + 3) × 4 = 20',
+      title: 'Parentheses Change Everything!',
+      bodyText:
+          'Parentheses **( )** tell us to jump ahead and complete the grouped operation first!\n\n• Without: `2 + 3 × 4 = 14`\n• With `( )`: `(2 + 3) × 4 = 20`',
+      mathExpression: '2 + 3 × 4 = 14   •   (2 + 3) × 4 = 20',
       mathAnnotation:
-          'The same numbers and operations can give different results when parentheses change the order.',
+          'The same numbers and operations give different results when parentheses change the order.',
+      xyDialogue:
+          'Parentheses are like a *VIP fast pass* in the operation line!',
+      xyAsset: AppAssets.xyHappy,
     ),
     LessonStep(
       id: 'm1_l6_s07',
@@ -104,6 +119,7 @@ const m1Lesson6 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
+      xyAsset: AppAssets.xyHappy,
       explanation: 'Correct! Multiply 3 × 2 = 6, then add 5 to get 11.',
       incorrectExplanation: 'Complete multiplication before addition.',
     ),
@@ -120,6 +136,7 @@ const m1Lesson6 = LessonContent(
       ],
       correctChoiceIndex: 0,
       isAnswerStep: true,
+      xyAsset: AppAssets.xyHappy,
       explanation:
           'Exactly! Parentheses first: 4 + 2 = 6. Then 6 × 3 = 18, and 18 − 5 = 13.',
       incorrectExplanation:
@@ -130,7 +147,7 @@ const m1Lesson6 = LessonContent(
       type: LessonStepType.summary,
       title: 'Order of Operations Complete!',
       xyDialogue:
-          'Amazing! You now have a reliable path through calculations with several operations.',
+          'Amazing! You now have a *reliable path* through calculations with several operations.',
       xyAsset: AppAssets.xyHappy,
       bodyText:
           'You learned:\n• Parentheses come first\n• Exponents follow\n• Multiply and divide left to right\n• Add and subtract left to right\n• A shared order keeps answers consistent',

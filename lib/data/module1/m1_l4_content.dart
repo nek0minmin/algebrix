@@ -15,7 +15,7 @@ const m1Lesson4 = LessonContent(
       title: 'Expressions',
       bodyText: 'Mathematical phrases without an equals sign',
       xyDialogue:
-          'Variables, constants, and operations can join to make an algebraic expression.',
+          'Variables, constants, and operations join together to create *algebraic expressions*.',
       xyAsset: AppAssets.xyExplaining,
       buttonLabel: 'Build expressions',
     ),
@@ -24,24 +24,30 @@ const m1Lesson4 = LessonContent(
       type: LessonStepType.content,
       title: 'What Is an Expression?',
       bodyText:
-          'An **expression** is a mathematical phrase made from numbers, variables, and operations. It does not have an equals sign.',
+          'An **expression** is a mathematical phrase made from numbers, variables, and operations.\n\n✨ It **never** has an equals sign `=`.',
       mathExpression: '4x + 7',
       mathAnnotation: 'Other expressions include 3y, a − 2, and 5 + n.',
+      xyDialogue:
+          'Think of an expression like a *sentence fragment*—it describes a value!',
+      xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
       id: 'm1_l4_s03',
       type: LessonStepType.content,
       title: 'Connect the Parts',
       bodyText:
-          'In 4x + 7, x is a variable, 4 is its coefficient, + is an operation, and 7 is a constant.',
+          'Let\'s dissect `4x + 7`:\n\n• 🌸 **x** is the **variable**\n• 🟣 **4** is its **coefficient**\n• ➕ **+** is the **operation**\n• 🟡 **7** is the **constant**',
       mathExpression: '4x + 7',
       mathAnnotation: 'All four parts work together to form one expression.',
+      xyDialogue:
+          'Every algebraic expression is built from these core ingredients!',
+      xyAsset: AppAssets.xyExplaining,
     ),
     LessonStep(
       id: 'm1_l4_s04',
       type: LessonStepType.xySays,
       xyDialogue:
-          'Think of an expression as a math phrase. It represents a value, but it does not make an equality claim.',
+          'Think of an expression as a math phrase. It represents a value, but it does *not make an equality claim*.',
       xyAsset: AppAssets.xyPointing,
     ),
     LessonStep(
@@ -49,10 +55,13 @@ const m1Lesson4 = LessonContent(
       type: LessonStepType.content,
       title: 'Expression or Equation?',
       bodyText:
-          'An expression has no equals sign. An equation says two quantities are equal.',
-      mathExpression: 'Expression: 4x + 7     Equation: 4x + 7 = 19',
+          '• 📝 **Expression**: No equals sign (`4x + 7`)\n• ⚖️ **Equation**: States two sides are equal (`4x + 7 = 19`)',
+      mathExpression: '4x + 7   •   4x + 7 = 19',
       mathAnnotation:
-          'The equals sign turns a mathematical phrase into an equation.',
+          'The equals sign = turns a phrase into a balanced equation!',
+      xyDialogue:
+          'An equation is like a *complete sentence* with a balance scale in the middle!',
+      xyAsset: AppAssets.xyHappy,
     ),
     LessonStep(
       id: 'm1_l4_s06',
@@ -66,72 +75,61 @@ const m1Lesson4 = LessonContent(
           ActivityCategory(id: 'equation', label: 'Equation'),
         ],
         items: [
-          ClassificationItem(
-            id: '3x+2',
-            label: '3x + 2',
-            categoryId: 'expression',
-          ),
-          ClassificationItem(id: 'y=8', label: 'y = 8', categoryId: 'equation'),
-          ClassificationItem(
-            id: '5-a',
-            label: '5 − a',
-            categoryId: 'expression',
-          ),
-          ClassificationItem(
-            id: '2n=10',
-            label: '2n = 10',
-            categoryId: 'equation',
-          ),
+          ClassificationItem(id: '3x_plus_2', label: '3x + 2', categoryId: 'expression'),
+          ClassificationItem(id: '3x_eq_11', label: '3x + 2 = 11', categoryId: 'equation'),
+          ClassificationItem(id: 'y_minus_5', label: 'y − 5', categoryId: 'expression'),
+          ClassificationItem(id: '2a_eq_8', label: '2a = 8', categoryId: 'equation'),
         ],
       ),
-      explanation: 'Expressions have no equals sign; equations do.',
+      explanation: 'No equals sign = expression. An equals sign = equation.',
       incorrectExplanation:
-          'Look for =. Its presence is what separates an equation from an expression.',
+          'Look for the = sign. Items with = are equations; items without are expressions.',
     ),
     LessonStep(
       id: 'm1_l4_s07',
       type: LessonStepType.quiz,
-      title: 'Spot the Expression',
+      title: 'Quick Check',
       question: 'Which of these is an expression?',
       choices: [
-        ChoiceOption(label: 'x + 4 = 10'),
-        ChoiceOption(label: 'x + 5', isCorrect: true),
-        ChoiceOption(label: '7 = 7'),
-        ChoiceOption(label: 'a = 5'),
+        ChoiceOption(label: '2x + 5 = 15'),
+        ChoiceOption(label: '2x + 5', isCorrect: true),
+        ChoiceOption(label: 'x = 5'),
+        ChoiceOption(label: '2x + 5 = y'),
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      explanation:
-          'Correct! x + 5 has a variable, a number, and an operation—but no equals sign.',
-      incorrectExplanation: 'An expression never contains an equals sign.',
+      xyAsset: AppAssets.xyHappy,
+      explanation: 'Correct! 2x + 5 has no equals sign, so it is an expression.',
+      incorrectExplanation: 'Choose the option that does not contain an equals sign.',
     ),
     LessonStep(
       id: 'm1_l4_s08',
-      type: LessonStepType.interactive,
-      title: 'Why the Equals Sign Matters',
+      type: LessonStepType.quiz,
+      title: 'Spot the Difference',
       question: 'Why is 3x + 5 = 20 an equation instead of an expression?',
       choices: [
-        ChoiceOption(label: 'It contains x'),
-        ChoiceOption(label: 'It contains 3'),
+        ChoiceOption(label: 'It has a variable'),
         ChoiceOption(label: 'It has an equals sign', isCorrect: true),
-        ChoiceOption(label: 'It has two terms'),
+        ChoiceOption(label: 'It has two numbers'),
+        ChoiceOption(label: 'It uses addition'),
       ],
-      correctChoiceIndex: 2,
+      correctChoiceIndex: 1,
       isAnswerStep: true,
+      xyAsset: AppAssets.xyHappy,
       explanation:
-          'Exactly. The equals sign states that two quantities have the same value.',
+          'Spot on! The equals sign = is what makes it an equation.',
       incorrectExplanation:
-          'Focus on the symbol that connects the left and right sides.',
+          'The defining feature of an equation is the equals sign connecting two sides.',
     ),
     LessonStep(
       id: 'm1_l4_s09',
       type: LessonStepType.summary,
-      title: 'Expressions Complete!',
+      title: 'Expressions Summary',
       xyDialogue:
-          'Excellent! You can recognize a mathematical phrase and tell it apart from an equation.',
+          'Great work! You now know how to tell *expressions* apart from *equations*.',
       xyAsset: AppAssets.xyHappy,
       bodyText:
-          'You learned:\n• Expressions combine numbers, variables, and operations\n• Expressions do not contain an equals sign\n• Equations state that two quantities are equal\n• Variables, coefficients, operations, and constants form expressions',
+          'You learned:\n• Expressions are math phrases without an equals sign\n• Equations claim that two expressions are equal\n• Expressions can be evaluated, simplified, and transformed\n• Equations can be solved to find missing values',
     ),
   ],
 );

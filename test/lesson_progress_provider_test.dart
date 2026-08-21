@@ -269,6 +269,35 @@ void main() {
       expect(provider.profile?.xp, 25);
     },
   );
+
+  test(
+    'revisiting a completed lesson starts at step 0 and does not award repeat XP',
+    () async {
+      final repository = _ScriptedRepository(
+        fetchProfile: () async => _profile('user_1', xp: 50),
+        fetchProgress: (_) async => [
+          _progress('user_1', stepIndex: 6, completed: true),
+        ],
+        record: _defaultRecord,
+      );
+      final provider = LessonProvider(repository: repository);
+      provider.bindAccount('user_1');
+      await _waitForHydration(provider);
+      provider.startModule(module1);
+
+      expect(provider.isLessonCompleted('m1_l1'), isTrue);
+
+      // Starting the completed lesson must start at step 0 (first page)
+      expect(await provider.startLesson(module1.lessons.first), isTrue);
+      expect(provider.currentStepIndex, 0);
+
+      // Answering questions within completed lesson awards 0 XP
+      final xpAwarded = await provider.answerQuestion(true);
+      expect(xpAwarded, 0);
+      expect(provider.sessionXp, 0);
+      expect(provider.profile?.xp, 50);
+    },
+  );
 }
 
 class _RecordCall {
