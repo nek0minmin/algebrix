@@ -35,28 +35,32 @@ class SupabaseProgressRepository implements ProgressRepository {
   Future<LearningProfileSnapshot> fetchCurrentProfile() async {
     final userId = _requireAuthenticatedUser();
 
-    final row = await _client
-        .from('profiles')
-        .select('id, xp, level, level_title, streak')
-        .eq('id', userId)
-        .single();
+    return _withRetry(() async {
+      final row = await _client
+          .from('profiles')
+          .select('id, xp, level, level_title, streak')
+          .eq('id', userId)
+          .single();
 
-    return LearningProfileSnapshot.fromJson(row);
+      return LearningProfileSnapshot.fromJson(row);
+    });
   }
 
   @override
   Future<List<LessonProgress>> fetchModuleProgress(String moduleId) async {
     _requireAuthenticatedUser();
 
-    final rows = await _client
-        .from('lesson_progress')
-        .select()
-        .eq('module_id', moduleId)
-        .order('updated_at');
+    return _withRetry(() async {
+      final rows = await _client
+          .from('lesson_progress')
+          .select()
+          .eq('module_id', moduleId)
+          .order('updated_at');
 
-    return rows
-        .map((row) => LessonProgress.fromJson(row))
-        .toList(growable: false);
+      return rows
+          .map((row) => LessonProgress.fromJson(row))
+          .toList(growable: false);
+    });
   }
 
   @override
@@ -70,25 +74,67 @@ class SupabaseProgressRepository implements ProgressRepository {
   }) async {
     _requireAuthenticatedUser();
 
-    final response = await _client.rpc(
-      'record_lesson_step',
-      params: {
-        'p_module_id': moduleId,
-        'p_lesson_id': lessonId,
-        'p_step_id': stepId,
-        'p_step_index': stepIndex,
-        'p_answer_correct': answerCorrect,
-        'p_content_version': contentVersion,
-      },
-    );
-
-    if (response is! Map) {
-      throw const FormatException(
-        'record_lesson_step returned an unexpected response.',
+    return _withRetry(() async {
+      final response = await _client.rpc(
+        'record_lesson_step',
+        params: {
+          'p_module_id': moduleId,
+          'p_lesson_id': lessonId,
+          'p_step_id': stepId,
+          'p_step_index': stepIndex,
+          'p_answer_correct': answerCorrect,
+          'p_content_version': contentVersion,
+        },
       );
-    }
 
-    return RecordLessonStepResult.fromJson(Map<String, dynamic>.from(response));
+      if (response is! Map) {
+        throw const FormatException(
+          'record_lesson_step returned an unexpected response.',
+        );
+      }
+
+      return RecordLessonStepResult.fromJson(
+        Map<String, dynamic>.from(response),
+      );
+    });
+  }
+
+  Future<T> _withRetry<T>(
+    Future<T> Function() action, {
+    int maxAttempts = 3,
+  }) async {
+    int attempt = 0;
+    while (true) {
+      attempt++;
+      try {
+        return await action();
+      } catch (error) {
+        final isJwtSkew = _isClockSkewError(error);
+        if (attempt < maxAttempts &&
+            (isJwtSkew || _isTransientNetworkError(error))) {
+          // Clock skew or network glitch: wait briefly for the server clock to catch up
+          final delayMs = isJwtSkew ? 750 * attempt : 400 * attempt;
+          await Future<void>.delayed(Duration(milliseconds: delayMs));
+          continue;
+        }
+        rethrow;
+      }
+    }
+  }
+
+  bool _isClockSkewError(Object error) {
+    final str = error.toString().toLowerCase();
+    return str.contains('jwt issued at future') ||
+        str.contains('pgrst303') ||
+        (error is PostgrestException && error.code == 'PGRST303');
+  }
+
+  bool _isTransientNetworkError(Object error) {
+    final str = error.toString().toLowerCase();
+    return str.contains('socketexception') ||
+        str.contains('connection closed') ||
+        str.contains('clientexception') ||
+        str.contains('timeout');
   }
 
   String _requireAuthenticatedUser() {

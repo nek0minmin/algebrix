@@ -435,9 +435,17 @@ class LessonProvider extends ChangeNotifier {
   }
 
   String _friendlyError(Object error) {
-    final message = error.toString().replaceFirst('Exception: ', '').trim();
+    final str = error.toString();
+    if (str.contains('JWT issued at future') || str.contains('PGRST303')) {
+      return 'Syncing cloud connection... please tap Try again.';
+    }
+    final message = str
+        .replaceFirst('Exception: ', '')
+        .replaceFirst(RegExp(r'^PostgrestException\(message:\s*'), '')
+        .replaceAll(RegExp(r',\s*code:.*$'), '')
+        .trim();
     return message.isEmpty
-        ? 'Progress could not be saved. Please try again.'
+        ? 'Progress could not be loaded. Please try again.'
         : message;
   }
 }
