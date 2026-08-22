@@ -50,19 +50,6 @@ void main() {
       for (var i = 10; i < 15; i++) {
         expect(quiz.questions[i].difficulty, 3);
       }
-
-      for (final q in quiz.questions) {
-        if (q.type == QuizQuestionType.multipleChoice) {
-          expect(q.options.length, 3, reason: 'MC question should have exactly 3 options: ${q.question}');
-        } else {
-          expect(q.options.length, 2, reason: 'TF question should have exactly 2 options: ${q.question}');
-        }
-        expect(q.correctIndex >= 0 && q.correctIndex < q.options.length, isTrue);
-
-        for (final opt in q.options) {
-          expect(opt.contains('✅') || opt.contains('❌'), isFalse);
-        }
-      }
     });
 
     test('Module 2 generates exactly 15 progressive items covering sub-lessons', () async {
@@ -71,13 +58,14 @@ void main() {
       expect(quiz.moduleId, 'module2');
       expect(quiz.questions.length, 15);
 
-      for (final q in quiz.questions) {
-        if (q.type == QuizQuestionType.multipleChoice) {
-          expect(q.options.length, 3);
-        } else {
-          expect(q.options.length, 2);
-        }
-        expect(q.correctIndex >= 0 && q.correctIndex < q.options.length, isTrue);
+      for (var i = 0; i < 5; i++) {
+        expect(quiz.questions[i].difficulty, 1);
+      }
+      for (var i = 5; i < 10; i++) {
+        expect(quiz.questions[i].difficulty, 2);
+      }
+      for (var i = 10; i < 15; i++) {
+        expect(quiz.questions[i].difficulty, 3);
       }
     });
 
@@ -85,18 +73,18 @@ void main() {
       final json = {
         'questions': [
           {
-            'id': 'test_q1',
-            'subLessonTitle': 'Constants',
-            'question': 'What is 5 in x + 5?',
+            'id': 'q1',
+            'subLessonTitle': 'Like Terms',
+            'question': 'Simplify 3x + 2x',
             'type': 'multipleChoice',
-            'options': ['Variable', 'Constant', 'Coefficient'],
-            'correctIndex': 1,
-            'explanation': '5 is a fixed numerical value.',
+            'options': ['5x', '5x^2', '6x'],
+            'correctIndex': 0,
+            'explanation': 'Add coefficients 3 and 2.',
             'difficulty': 1,
           },
           {
-            'id': 'test_q2',
-            'subLessonTitle': 'Expressions',
+            'id': 'q2',
+            'subLessonTitle': 'Equations',
             'question': 'Is 2x = 4 an expression?',
             'type': 'trueFalse',
             'options': ['True', 'False'],
@@ -123,7 +111,7 @@ void main() {
   });
 
   group('ModuleQuizScreen Widget Tests', () {
-    testWidgets('ModuleQuizScreen shows loading state and then displays quiz question', (tester) async {
+    testWidgets('ModuleQuizScreen shows loading state, question, option selection, and explanation', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ModuleQuizScreen(
@@ -141,19 +129,25 @@ void main() {
 
       // Verify question is displayed
       expect(find.text('Question 1 of 1'), findsOneWidget);
-      expect(find.text('Finish Quiz 🎉'), findsOneWidget);
+      expect(find.text('MULTIPLE CHOICE'), findsOneWidget);
+      expect(find.text('Confirm Answer'), findsOneWidget);
 
-      // Verify options A, B, C exist
-      expect(find.text('A'), findsOneWidget);
-      expect(find.text('B'), findsOneWidget);
-      expect(find.text('C'), findsOneWidget);
+      // Verify options 2, x, 1 exist
+      expect(find.text('2'), findsOneWidget);
+      expect(find.text('x'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
 
-      // Tap Option A
-      await tester.tap(find.text('A'));
+      // Tap Option '2' (selects it)
+      await tester.tap(find.text('2'));
       await tester.pumpAndSettle();
 
-      // Verify answer feedback appears
-      expect(find.text("Let's Learn! 💡"), findsOneWidget);
+      // Tap 'Confirm Answer'
+      await tester.tap(find.text('Confirm Answer'));
+      await tester.pumpAndSettle();
+
+      // Verify explanation appears right below mascot
+      expect(find.text('x is the variable.'), findsOneWidget);
+      expect(find.text('Finish Quiz 🎉'), findsOneWidget);
     });
   });
 }

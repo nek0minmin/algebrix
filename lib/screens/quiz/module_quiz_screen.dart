@@ -139,12 +139,18 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
 
   void _handleSelectOption(int index) {
     if (_isAnswered || _quiz == null) return;
-
-    final currentQ = _quiz!.questions[_currentIndex];
-    final isCorrect = index == currentQ.correctIndex;
-
     setState(() {
       _selectedChoiceIndex = index;
+    });
+  }
+
+  void _handleConfirmAnswer() {
+    if (_isAnswered || _selectedChoiceIndex == null || _quiz == null) return;
+
+    final currentQ = _quiz!.questions[_currentIndex];
+    final isCorrect = _selectedChoiceIndex == currentQ.correctIndex;
+
+    setState(() {
       _isAnswered = true;
       if (isCorrect) {
         _correctCount++;
@@ -386,18 +392,22 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
     final total = quiz.questions.length;
     final progressFraction = (_currentIndex + 1) / total;
 
-    final difficultyLabel = question.difficulty == 1
-        ? 'FOUNDATIONS'
-        : (question.difficulty == 2 ? 'PROCEDURAL' : 'MASTERY CHALLENGE');
-    final difficultyColor = question.difficulty == 1
-        ? AppColors.mint
-        : (question.difficulty == 2 ? AppColors.purple : AppColors.pink);
+    final typeLabel = question.type == QuizQuestionType.multipleChoice
+        ? 'MULTIPLE CHOICE'
+        : 'TRUE OR FALSE';
+
+    // Pick dynamic reaction mascot for Xy (Only ONE mascot per page)
+    final isCorrect =
+        _isAnswered && _selectedChoiceIndex == question.correctIndex;
+    final mascotAsset = !_isAnswered
+        ? AppAssets.xyQuestion
+        : (isCorrect ? AppAssets.xyHappy : AppAssets.xyExplaining);
 
     return Column(
       children: [
-        // Top Progress Row
+        // ── Top Progress Row ──
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+          padding: const EdgeInsets.fromLTRB(20, 6, 20, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -418,15 +428,15 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: difficultyColor.withValues(alpha: 0.12),
+                      color: AppColors.extraLightPink,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      difficultyLabel,
+                      question.subLessonTitle.toUpperCase(),
                       style: GoogleFonts.nunito(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: difficultyColor,
+                        color: AppColors.pink,
                         letterSpacing: 0.6,
                       ),
                     ),
@@ -438,77 +448,90 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
                 borderRadius: BorderRadius.circular(8),
                 child: LinearProgressIndicator(
                   value: progressFraction,
-                  minHeight: 8,
+                  minHeight: 6,
                   backgroundColor: AppColors.border,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.pink),
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(AppColors.pink),
                 ),
               ),
             ],
           ),
         ),
 
-        // Scrollable Question & Options
+        // ── Scrollable Body: Type Badge → Question Prompt → Big Mascot → Explanation → Choices ──
         Expanded(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Sub-lesson Tag & Mascot Reaction Header
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.extraLightPink,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        question.subLessonTitle.toUpperCase(),
-                        style: GoogleFonts.nunito(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.pink,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 4),
 
-                // Dynamic Mascot Interaction Header
-                _buildQuestionMascotHeader(
-                  isAnswered: _isAnswered,
-                  isCorrect: _isAnswered && _selectedChoiceIndex == question.correctIndex,
+                // 1. Question Type Badge (Centered)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3E8FF), // Soft purple badge
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    typeLabel,
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF7C3AED),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
 
-                // Question Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.border, width: 1.2),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: AppColors.shadow,
-                        blurRadius: 12,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
+                // 2. Question Prompt (Centered, Bold, Clear)
+                _buildRichQuestionPrompt(question.question),
+                const SizedBox(height: 16),
+
+                // 3. ONE SINGLE BIG Mascot Picture (Centered, 140x140)
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) => ScaleTransition(
+                    scale: CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOutBack,
+                    ),
+                    child: child,
                   ),
-                  child: _buildRichQuestionPrompt(question.question),
+                  child: Image.asset(
+                    mascotAsset,
+                    key: ValueKey('mascot-$mascotAsset'),
+                    width: 140,
+                    height: 140,
+                    fit: BoxFit.contain,
+                  ),
                 ),
+
+                // 4. Insight / Mini Explanation (Centered directly below mascot when answered)
+                if (_isAnswered) ...[
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      question.explanation,
+                      style: GoogleFonts.nunito(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.text,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 20),
 
-                // Choices
+                // 5. Answer Choices (Rounded Pills)
                 for (var i = 0; i < question.options.length; i++) ...[
                   _buildOptionTile(
                     optionIndex: i,
@@ -517,101 +540,31 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
                   ),
                   const SizedBox(height: 12),
                 ],
-
-                // Answer Feedback Banner
-                if (_isAnswered) ...[
-                  const SizedBox(height: 8),
-                  _buildAnswerFeedback(question),
-                ],
+                const SizedBox(height: 8),
               ],
             ),
           ),
         ),
 
-        // Bottom Action Button
+        // ── 6. Bottom Action Button (Confirm Answer / Next Question) ──
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-          child: PrimaryButton(
-            label: _currentIndex + 1 == total
-                ? 'Finish Quiz 🎉'
-                : 'Next Question →',
-            onPressed: _isAnswered ? _handleNextQuestion : null,
-          ),
+          child: !_isAnswered
+              ? PrimaryButton(
+                  label: 'Confirm Answer',
+                  backgroundColor: AppColors.mint,
+                  onPressed:
+                      _selectedChoiceIndex != null ? _handleConfirmAnswer : null,
+                )
+              : PrimaryButton(
+                  label: _currentIndex + 1 == total
+                      ? 'Finish Quiz 🎉'
+                      : 'Next Question →',
+                  backgroundColor: AppColors.pink,
+                  onPressed: _handleNextQuestion,
+                ),
         ),
       ],
-    );
-  }
-
-  Widget _buildQuestionMascotHeader({
-    required bool isAnswered,
-    required bool isCorrect,
-  }) {
-    String mascot;
-    String moodMessage;
-    Color bubbleBg;
-    Color bubbleBorder;
-    Color textColor;
-
-    if (!isAnswered) {
-      mascot = AppAssets.xyQuestion;
-      moodMessage = 'What do you think is the answer?';
-      bubbleBg = Colors.white;
-      bubbleBorder = AppColors.border;
-      textColor = AppColors.textSecondary;
-    } else if (isCorrect) {
-      mascot = AppAssets.xyHappy;
-      moodMessage = 'Spot on! You got it right! 🎉';
-      bubbleBg = AppColors.lightMint;
-      bubbleBorder = AppColors.mint;
-      textColor = const Color(0xFF0F7263);
-    } else {
-      mascot = AppAssets.xyExplaining;
-      moodMessage = 'Nice try! Let’s learn why together 💡';
-      bubbleBg = AppColors.extraLightPink;
-      bubbleBorder = AppColors.pink;
-      textColor = AppColors.darkPink;
-    }
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: bubbleBg,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: bubbleBorder, width: 1.3),
-        boxShadow: [
-          BoxShadow(
-            color: bubbleBorder.withValues(alpha: 0.12),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: Image.asset(
-              mascot,
-              key: ValueKey('quiz-mascot-$mascot'),
-              width: 48,
-              height: 48,
-              fit: BoxFit.contain,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              moodMessage,
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: textColor,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -624,18 +577,26 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
 
     Color borderColor = AppColors.border;
     Color bgColor = Colors.white;
+    Color textColor = AppColors.text;
 
     if (_isAnswered) {
       if (isCorrectChoice) {
         borderColor = AppColors.mint;
-        bgColor = AppColors.lightMint;
+        bgColor = AppColors.lightMint.withValues(alpha: 0.6);
+        textColor = const Color(0xFF0F7263);
       } else if (isSelected && !isCorrectChoice) {
         borderColor = AppColors.pink;
         bgColor = AppColors.extraLightPink;
+        textColor = AppColors.darkPink;
+      } else {
+        borderColor = AppColors.border.withValues(alpha: 0.5);
+        bgColor = Colors.white;
+        textColor = AppColors.textSecondary.withValues(alpha: 0.6);
       }
     } else if (isSelected) {
-      borderColor = AppColors.purple;
-      bgColor = AppColors.lightPurple.withValues(alpha: 0.25);
+      borderColor = AppColors.mint;
+      bgColor = AppColors.lightMint.withValues(alpha: 0.4);
+      textColor = const Color(0xFF0F7263);
     }
 
     return Material(
@@ -652,56 +613,25 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
               color: borderColor,
-              width: (isSelected || (_isAnswered && isCorrectChoice)) ? 2 : 1.4,
+              width: (isSelected || (_isAnswered && isCorrectChoice)) ? 2 : 1.3,
             ),
             boxShadow: [
               BoxShadow(
                 color: (isSelected || (_isAnswered && isCorrectChoice))
                     ? borderColor.withValues(alpha: 0.15)
-                    : AppColors.shadow.withValues(alpha: 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
+                    : AppColors.shadow.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: (isSelected || (_isAnswered && isCorrectChoice))
-                      ? borderColor
-                      : const Color(0xFFF3F4F6),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: borderColor,
-                    width: 1.5,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    String.fromCharCode(65 + optionIndex),
-                    style: GoogleFonts.nunito(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w900,
-                      color: (isSelected || (_isAnswered && isCorrectChoice))
-                          ? Colors.white
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: _buildOptionLabel(
-                  label: label,
-                  isAnswered: _isAnswered,
-                  isCorrectChoice: isCorrectChoice,
-                  isSelected: isSelected,
-                ),
-              ),
-            ],
+          alignment: Alignment.center,
+          child: _buildOptionLabel(
+            label: label,
+            isAnswered: _isAnswered,
+            isCorrectChoice: isCorrectChoice,
+            isSelected: isSelected,
+            textColor: textColor,
           ),
         ),
       ),
@@ -713,94 +643,36 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
     required bool isAnswered,
     required bool isCorrectChoice,
     required bool isSelected,
+    required Color textColor,
   }) {
-    if (isAnswered) {
-      if (isCorrectChoice) {
-        return Text(
-          label,
-          style: GoogleFonts.nunito(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: const Color(0xFF0F7263),
-          ),
-        );
-      } else if (isSelected && !isCorrectChoice) {
-        return Text(
-          label,
-          style: GoogleFonts.nunito(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: AppColors.darkPink,
-          ),
-        );
-      }
+    if (isAnswered && (isCorrectChoice || (isSelected && !isCorrectChoice))) {
+      return Text(
+        label,
+        textAlign: TextAlign.center,
+        style: GoogleFonts.nunito(
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+          color: textColor,
+        ),
+      );
+    }
+
+    if (!_isAnswered && isSelected) {
+      return Text(
+        label,
+        textAlign: TextAlign.center,
+        style: GoogleFonts.nunito(
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+          color: textColor,
+        ),
+      );
     }
 
     final spans = _parseMathSpans(label, fontSize: 16);
     return Text.rich(
       TextSpan(children: spans),
-      textAlign: TextAlign.start,
-    );
-  }
-
-  Widget _buildAnswerFeedback(ModuleQuizQuestion question) {
-    final isCorrect = _selectedChoiceIndex == question.correctIndex;
-    final accent = isCorrect ? AppColors.mint : AppColors.pink;
-    final surface = isCorrect ? AppColors.lightMint : AppColors.extraLightPink;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accent, width: 1.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1E2024),
-                  shape: BoxShape.circle,
-                ),
-                padding: const EdgeInsets.all(2),
-                child: ClipOval(
-                  child: Image.asset(
-                    isCorrect ? AppAssets.xyHappy : AppAssets.xyExplaining,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  isCorrect ? 'Spot On! 🎉' : 'Let\'s Learn! 💡',
-                  style: GoogleFonts.nunito(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                    color: isCorrect ? const Color(0xFF0F7263) : AppColors.darkPink,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            question.explanation,
-            style: GoogleFonts.nunito(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w600,
-              color: AppColors.text,
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
+      textAlign: TextAlign.center,
     );
   }
 
