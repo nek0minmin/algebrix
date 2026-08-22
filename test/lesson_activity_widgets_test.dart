@@ -28,10 +28,10 @@ void main() {
       ),
     );
 
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Can change').first);
-    await tester.pump();
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Stays fixed').last);
-    await tester.pump();
+    await tester.tap(find.text('Can change').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Stays fixed').last);
+    await tester.pumpAndSettle();
     expect(answers, [true]);
   });
 

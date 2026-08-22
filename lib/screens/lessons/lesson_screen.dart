@@ -540,33 +540,44 @@ class _LessonScreenState extends State<LessonScreen> {
             xySize: 64,
           ),
           const SizedBox(height: 16),
+        ] else ...[
+          Center(
+            child: XyMascot(
+              asset: AppAssets.xyQuestion,
+              size: 120,
+              shadowBlur: 5.0,
+              shadowOpacity: 0.22,
+            ),
+          ),
+          const SizedBox(height: 14),
         ],
         if (step.title != null) ...[
           Text(
             step.title!,
+            textAlign: TextAlign.center,
             style: AppTextStyles.heading3.copyWith(
               color: AppColors.text,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
         ],
         if (step.question != null) ...[
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadow.withValues(alpha: 0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: Text(
-              step.question!,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.subtitle1.copyWith(
-                color: AppColors.text,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            child: _buildQuestionText(step.question!, fontSize: 17),
           ),
           const SizedBox(height: 20),
         ],
