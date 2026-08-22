@@ -128,34 +128,50 @@ Return ONLY a JSON object with this EXACT structure:
     required String systemPrompt,
     required String userPrompt,
   }) async {
-    final url = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$_geminiApiKey',
-    );
+    final models = [
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+      'gemini-flash-latest',
+      'gemini-2.5-pro',
+    ];
 
-    final response = await _client.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'contents': [
-          {
-            'parts': [
-              {'text': '$systemPrompt\n\n$userPrompt'}
-            ]
-          }
-        ],
-        'generationConfig': {
-          'temperature': 0.4,
-          'responseMimeType': 'application/json',
+    Object? lastError;
+    for (final model in models) {
+      try {
+        final url = Uri.parse(
+          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
+        );
+
+        final response = await _client.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'contents': [
+              {
+                'parts': [
+                  {'text': '$systemPrompt\n\n$userPrompt'}
+                ]
+              }
+            ],
+            'generationConfig': {
+              'temperature': 0.3,
+              'responseMimeType': 'application/json',
+            }
+          }),
+        ).timeout(const Duration(seconds: 14));
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          return data['candidates'][0]['content']['parts'][0]['text'] as String;
+        } else {
+          lastError = Exception('Gemini $model status ${response.statusCode}: ${response.body}');
         }
-      }),
-    ).timeout(const Duration(seconds: 12));
-
-    if (response.statusCode != 200) {
-      throw Exception('Gemini status ${response.statusCode}: ${response.body}');
+      } catch (e) {
+        lastError = e;
+      }
     }
 
-    final data = jsonDecode(response.body);
-    return data['candidates'][0]['content']['parts'][0]['text'] as String;
+    throw lastError ?? Exception('All Gemini models failed.');
   }
 
   Future<String> _callGroq({
