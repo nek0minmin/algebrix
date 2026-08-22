@@ -97,13 +97,59 @@ String _labelForOp(String op, num value) {
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
-class BalanceScaleScreen extends StatelessWidget {
+class BalanceScaleScreen extends StatefulWidget {
   const BalanceScaleScreen({super.key});
+
+  @override
+  State<BalanceScaleScreen> createState() => _BalanceScaleScreenState();
+}
+
+class _BalanceScaleScreenState extends State<BalanceScaleScreen> {
+  String? _lastPresentedProblemId;
+  bool _dialogOpen = false;
+
+  void _checkAndShowModal(BalanceScaleProvider provider) {
+    final problem = provider.currentProblem;
+    if (problem == null) return;
+
+    if (provider.isSolved &&
+        _lastPresentedProblemId != problem.id &&
+        !_dialogOpen) {
+      _lastPresentedProblemId = problem.id;
+      _dialogOpen = true;
+
+      // Small satisfying delay for the physical scale to level out
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogCtx) => ChangeNotifierProvider.value(
+            value: provider,
+            child: _ReasoningAndCelebrationDialog(
+              problem: problem,
+              onDismissAndNext: () {
+                _dialogOpen = false;
+                Navigator.of(dialogCtx).pop();
+                provider.initNewProblem();
+              },
+            ),
+          ),
+        ).then((_) {
+          _dialogOpen = false;
+        });
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<BalanceScaleProvider>();
     final problem = provider.currentProblem;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowModal(provider);
+    });
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -124,7 +170,10 @@ class BalanceScaleScreen extends StatelessWidget {
                   moveCount: provider.moveCount,
                   optimalMoves: provider.optimalMoves,
                   isSolved: provider.isSolved,
-                  onReset: provider.resetCurrentProblem,
+                  onReset: () {
+                    _lastPresentedProblemId = null;
+                    provider.resetCurrentProblem();
+                  },
                 ),
                 const SizedBox(height: 16),
               ],
@@ -144,7 +193,7 @@ class BalanceScaleScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Tactile Colored Number Block Chips
+              // Tactile Colored Number Block Chips (Consistently 8 tiles in 2x4 Grid)
               _NumberBlockPalette(
                 isLoading: provider.isLoading,
                 isSolved: provider.isSolved,
@@ -171,22 +220,15 @@ class BalanceScaleScreen extends StatelessWidget {
                 ),
               ],
 
-              // Reasoning Check (appears after solving)
-              if (provider.showReasoningCheck && problem != null) ...[
+              // Fallback action button if solved and dialog was closed
+              if (provider.isSolved && !_dialogOpen) ...[
                 const SizedBox(height: 24),
-                _ReasoningCheckCard(problem: problem),
-              ],
-
-              // Celebration (appears after reasoning passed or skipped)
-              if (provider.isSolved && !provider.showReasoningCheck) ...[
-                const SizedBox(height: 24),
-                _CelebrationCard(
-                  xp: provider.xpEarned,
-                  starRating: provider.starRating,
-                  moveCount: provider.moveCount,
-                  optimalMoves: provider.optimalMoves,
-                  reasoningPassed: provider.reasoningPassed,
-                  onNext: provider.initNewProblem,
+                PrimaryButton(
+                  label: 'Next Equation →',
+                  onPressed: () {
+                    _lastPresentedProblemId = null;
+                    provider.initNewProblem();
+                  },
                 ),
               ],
               const SizedBox(height: 32),
@@ -258,46 +300,88 @@ class _EquationAndMascotHeader extends StatelessWidget {
               // Prominent Xy Mascot
               XyMascot(
                 asset: _resolveMascotAsset(),
-                size: 92,
+                size: 88,
                 shadowBlur: 5.0,
                 shadowOpacity: 0.2,
               ),
               const SizedBox(width: 14),
 
-              // Target Equation Details
+              // Target Equation Details & Top Actions
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Top Row: "Solve for x" Badge (Left) + Retry Button (Right)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.extraLightPink,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              'Solve for x',
-                              style: GoogleFonts.nunito(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.darkPink,
-                                letterSpacing: 0.3,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        // Moves Counter Badge
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.extraLightPink,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            'Solve for x',
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.darkPink,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                        // Reset/Retry Button on Top Right
+                        BouncyPressable(
+                          shrinkFactor: 0.88,
+                          enableHaptics: true,
+                          onTap: onReset,
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: AppColors.extraLightPink,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.pink.withValues(alpha: 0.35),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.refresh_rounded,
+                              color: AppColors.pink,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Equation + Moves Counter Badge
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            problem.equation,
+                            style: GoogleFonts.nunito(
+                              fontSize: 25,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.text,
+                              letterSpacing: 0.3,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Moves Counter Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
@@ -306,12 +390,12 @@ class _EquationAndMascotHeader extends StatelessWidget {
                                 : (moveCount <= optimalMoves + 2
                                     ? AppColors.lightYellow
                                     : AppColors.extraLightPink),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             '$moveCount/$optimalMoves moves',
                             style: GoogleFonts.nunito(
-                              fontSize: 12,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w900,
                               color: moveCount <= optimalMoves
                                   ? AppColors.mint
@@ -323,39 +407,7 @@ class _EquationAndMascotHeader extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      problem.equation,
-                      style: GoogleFonts.nunito(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.text,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
                   ],
-                ),
-              ),
-
-              // Reset Button
-              BouncyPressable(
-                shrinkFactor: 0.9,
-                onTap: onReset,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.extraLightPink,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.pink.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.refresh_rounded,
-                    color: AppColors.pink,
-                    size: 22,
-                  ),
                 ),
               ),
             ],
@@ -682,7 +734,6 @@ class _PhysicalScaleStructure extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Upper Beam with rotation & suspension connecting to pans
         Transform.rotate(
           angle: tiltAngle,
           alignment: Alignment.center,
@@ -713,7 +764,6 @@ class _PhysicalScaleStructure extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Column(
                   children: [
-                    // Center Pivot Joint Hub
                     Container(
                       width: 24,
                       height: 24,
@@ -739,16 +789,12 @@ class _PhysicalScaleStructure extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-
-                    // Sturdy Triangular Fulcrum
                     CustomPaint(
                       size: const Size(44, 38),
                       painter: _FulcrumPainter(
                         color: isSolved ? AppColors.mint : AppColors.pink,
                       ),
                     ),
-
-                    // Heavy Stand Base
                     Container(
                       height: 10,
                       width: 68,
@@ -817,7 +863,6 @@ class _ScalePanDish extends StatelessWidget {
 
     return Column(
       children: [
-        // Suspension Lines (Hanging Cords)
         CustomPaint(
           size: const Size(80, 24),
           painter: _SuspensionChainsPainter(
@@ -826,8 +871,6 @@ class _ScalePanDish extends StatelessWidget {
                 : (isHovered ? AppColors.pink : const Color(0xFF9E9E9E)),
           ),
         ),
-
-        // Weighing Dish Container
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           width: double.infinity,
@@ -863,7 +906,6 @@ class _ScalePanDish extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Dish Label Tag
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -892,8 +934,6 @@ class _ScalePanDish extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-
-              // Algebraic Expression Term sitting in the Dish
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -951,21 +991,18 @@ class _SuspensionChainsPainter extends CustomPainter {
 
     final centerX = size.width / 2;
 
-    // Left cord
     canvas.drawLine(
       Offset(centerX, 0),
       Offset(size.width * 0.15, size.height),
       paint,
     );
 
-    // Right cord
     canvas.drawLine(
       Offset(centerX, 0),
       Offset(size.width * 0.85, size.height),
       paint,
     );
 
-    // Center ring hook
     final hookPaint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
@@ -997,7 +1034,6 @@ class _FulcrumPainter extends CustomPainter {
 
     canvas.drawPath(path, paint);
 
-    // Level indicator center point
     final dotPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.fill;
@@ -1086,7 +1122,6 @@ class _NumberBlockPalette extends StatelessWidget {
             builder: (context, constraints) {
               const spacing = 10.0;
               final availableWidth = constraints.maxWidth;
-              // Consistently 4 items per row with 3 gaps
               final tileWidth =
                   ((availableWidth - (3 * spacing)) / 4).floorToDouble();
               final tileHeight = (tileWidth * 1.06).clamp(64.0, 86.0);
@@ -1326,14 +1361,12 @@ class _NumberBlockWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Operation icon
           Icon(
             scaleOp.icon,
             size: iconSize,
             color: scaleOp.color,
           ),
           const SizedBox(height: 1),
-          // Value
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
@@ -1346,7 +1379,6 @@ class _NumberBlockWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          // Tactile Grip Dots
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -1397,7 +1429,6 @@ class _StepHistoryCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Step number circle
           Container(
             width: 28,
             height: 28,
@@ -1416,7 +1447,6 @@ class _StepHistoryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // Operation badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
@@ -1448,23 +1478,32 @@ class _StepHistoryCard extends StatelessWidget {
   }
 }
 
-// ─── Reasoning Check Card ────────────────────────────────────────────────────
+// ─── Combined Reasoning & Celebration Pop-up Dialog ──────────────────────────
 
-class _ReasoningCheckCard extends StatefulWidget {
-  const _ReasoningCheckCard({required this.problem});
+class _ReasoningAndCelebrationDialog extends StatefulWidget {
+  const _ReasoningAndCelebrationDialog({
+    required this.problem,
+    required this.onDismissAndNext,
+  });
 
   final BalanceScaleProblem problem;
+  final VoidCallback onDismissAndNext;
 
   @override
-  State<_ReasoningCheckCard> createState() => _ReasoningCheckCardState();
+  State<_ReasoningAndCelebrationDialog> createState() =>
+      _ReasoningAndCelebrationDialogState();
 }
 
-class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
-    with SingleTickerProviderStateMixin {
+class _ReasoningAndCelebrationDialogState
+    extends State<_ReasoningAndCelebrationDialog>
+    with TickerProviderStateMixin {
   int? _selectedIndex;
   bool _showError = false;
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
+
+  late List<AnimationController> _starControllers;
+  late List<Animation<double>> _starAnimations;
 
   @override
   void initState() {
@@ -1476,11 +1515,35 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
     _shakeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _shakeController, curve: Curves.elasticIn),
     );
+
+    _starControllers = List.generate(
+      3,
+      (i) => AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 500),
+      ),
+    );
+    _starAnimations = _starControllers.map((c) {
+      return Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(parent: c, curve: Curves.elasticOut),
+      );
+    }).toList();
+  }
+
+  void _triggerStars(int starRating) {
+    for (int i = 0; i < starRating; i++) {
+      Future.delayed(Duration(milliseconds: 150 + (i * 180)), () {
+        if (mounted) _starControllers[i].forward();
+      });
+    }
   }
 
   @override
   void dispose() {
     _shakeController.dispose();
+    for (final c in _starControllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -1500,11 +1563,34 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
         message: 'Not quite! Think about what keeps the equation balanced. 🤔',
         isError: true,
       );
+    } else {
+      _triggerStars(provider.starRating);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<BalanceScaleProvider>();
+    final isCelebration = !provider.showReasoningCheck;
+
+    if (isCelebration && !_starControllers[0].isAnimating && !_starControllers[0].isCompleted) {
+      _triggerStars(provider.starRating);
+    }
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        child: isCelebration
+            ? _buildCelebrationView(provider)
+            : _buildReasoningView(provider),
+      ),
+    );
+  }
+
+  Widget _buildReasoningView(BalanceScaleProvider provider) {
     return AnimatedBuilder(
       animation: _shakeAnimation,
       builder: (context, child) {
@@ -1522,30 +1608,31 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
         padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(28),
           border: Border.all(
             color: AppColors.purple.withValues(alpha: 0.4),
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.purple.withValues(alpha: 0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Xy mascot + question header
+            // Mascot + Header
             Row(
               children: [
                 XyMascot(
                   asset: _showError
                       ? AppAssets.xyExplaining
                       : AppAssets.xyQuestion,
-                  size: 64,
+                  size: 68,
                   shadowBlur: 4.0,
                   shadowOpacity: 0.2,
                 ),
@@ -1557,7 +1644,7 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
                       Text(
                         'Reasoning Check 🧠',
                         style: GoogleFonts.nunito(
-                          fontSize: 18,
+                          fontSize: 19,
                           fontWeight: FontWeight.w900,
                           color: AppColors.purple,
                         ),
@@ -1576,9 +1663,9 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
-            // Options
+            // Reasoning options
             ...widget.problem.reasoningOptions.asMap().entries.map((entry) {
               final idx = entry.key;
               final text = entry.value;
@@ -1665,71 +1752,10 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
       ),
     );
   }
-}
 
-// ─── Celebration Card ────────────────────────────────────────────────────────
-
-class _CelebrationCard extends StatefulWidget {
-  const _CelebrationCard({
-    required this.xp,
-    required this.starRating,
-    required this.moveCount,
-    required this.optimalMoves,
-    required this.reasoningPassed,
-    required this.onNext,
-  });
-
-  final int xp;
-  final int starRating;
-  final int moveCount;
-  final int optimalMoves;
-  final bool reasoningPassed;
-  final VoidCallback onNext;
-
-  @override
-  State<_CelebrationCard> createState() => _CelebrationCardState();
-}
-
-class _CelebrationCardState extends State<_CelebrationCard>
-    with TickerProviderStateMixin {
-  late List<AnimationController> _starControllers;
-  late List<Animation<double>> _starAnimations;
-
-  @override
-  void initState() {
-    super.initState();
-    _starControllers = List.generate(
-      3,
-      (i) => AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 500),
-      ),
-    );
-    _starAnimations = _starControllers.map((c) {
-      return Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(parent: c, curve: Curves.elasticOut),
-      );
-    }).toList();
-
-    for (int i = 0; i < widget.starRating; i++) {
-      Future.delayed(Duration(milliseconds: 200 + (i * 200)), () {
-        if (mounted) _starControllers[i].forward();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    for (final c in _starControllers) {
-      c.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildCelebrationView(BalanceScaleProvider provider) {
     final starLabels = ['Completed!', 'Great Job!', 'Great Job!', 'Perfect! ⭐'];
-    final label = starLabels[widget.starRating.clamp(0, 3)];
+    final label = starLabels[provider.starRating.clamp(0, 3)];
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -1746,18 +1772,19 @@ class _CelebrationCardState extends State<_CelebrationCard>
         border: Border.all(color: AppColors.pink, width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.pink.withValues(alpha: 0.15),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 28,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Large Xy mascot
           XyMascot(
             asset: AppAssets.xyHappy,
-            size: 100,
+            size: 96,
             shadowBlur: 6.0,
             shadowOpacity: 0.25,
           ),
@@ -1767,7 +1794,7 @@ class _CelebrationCardState extends State<_CelebrationCard>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(3, (i) {
-              final earned = i < widget.starRating;
+              final earned = i < provider.starRating;
               return AnimatedBuilder(
                 animation: _starAnimations[i],
                 builder: (ctx, child) {
@@ -1798,7 +1825,7 @@ class _CelebrationCardState extends State<_CelebrationCard>
           ),
           const SizedBox(height: 4),
           Text(
-            'Solved in ${widget.moveCount} move${widget.moveCount == 1 ? '' : 's'} (${widget.optimalMoves} optimal)',
+            'Solved in ${provider.moveCount} move${provider.moveCount == 1 ? '' : 's'} (${provider.optimalMoves} optimal)',
             style: GoogleFonts.nunito(
               fontSize: 14.5,
               fontWeight: FontWeight.w700,
@@ -1810,17 +1837,20 @@ class _CelebrationCardState extends State<_CelebrationCard>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                '+${widget.xp} XP',
+                '+${provider.xpEarned} XP',
                 style: GoogleFonts.nunito(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
                   color: AppColors.mint,
                 ),
               ),
-              if (widget.reasoningPassed) ...[
+              if (provider.reasoningPassed) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.lightMint,
                     borderRadius: BorderRadius.circular(10),
@@ -1837,10 +1867,10 @@ class _CelebrationCardState extends State<_CelebrationCard>
               ],
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
           PrimaryButton(
             label: 'Next Equation →',
-            onPressed: widget.onNext,
+            onPressed: widget.onDismissAndNext,
           ),
         ],
       ),
