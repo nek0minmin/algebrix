@@ -1754,113 +1754,175 @@ class _ReasoningAndCelebrationDialogState
   }
 
   Widget _buildCelebrationView(BalanceScaleProvider provider) {
-    final starLabels = ['Completed!', 'Great Job!', 'Great Job!', 'Perfect! ⭐'];
+    final starLabels = ['Completed!', 'Great Job! 🎉', 'Great Job! 🎉', 'Perfect! ⭐'];
     final label = starLabels[provider.starRating.clamp(0, 3)];
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.extraLightPink,
-            AppColors.lightPurple.withValues(alpha: 0.5),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: AppColors.pink, width: 2),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: AppColors.pink, width: 2.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 28,
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 30,
             offset: const Offset(0, 12),
+          ),
+          BoxShadow(
+            color: AppColors.pink.withValues(alpha: 0.12),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Large Xy mascot
-          XyMascot(
-            asset: AppAssets.xyHappy,
-            size: 96,
-            shadowBlur: 6.0,
-            shadowOpacity: 0.25,
+          // Mascot with celebration aura
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.extraLightPink,
+              shape: BoxShape.circle,
+            ),
+            child: XyMascot(
+              asset: AppAssets.xyHappy,
+              size: 96,
+              shadowBlur: 5.0,
+              shadowOpacity: 0.2,
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Star Capsule Banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF9E6),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: const Color(0xFFFFE082),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(3, (i) {
+                final earned = i < provider.starRating;
+                return AnimatedBuilder(
+                  animation: _starAnimations[i],
+                  builder: (ctx, child) {
+                    return Transform.scale(
+                      scale: earned ? _starAnimations[i].value : 0.65,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Icon(
+                          earned
+                              ? Icons.star_rounded
+                              : Icons.star_outline_rounded,
+                          size: 38,
+                          color: earned
+                              ? const Color(0xFFFFB300)
+                              : const Color(0xFFBDBDBD),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }),
+            ),
           ),
           const SizedBox(height: 12),
 
-          // Stars row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(3, (i) {
-              final earned = i < provider.starRating;
-              return AnimatedBuilder(
-                animation: _starAnimations[i],
-                builder: (ctx, child) {
-                  return Transform.scale(
-                    scale: earned ? _starAnimations[i].value : 0.6,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Icon(
-                        earned ? Icons.star_rounded : Icons.star_outline_rounded,
-                        size: 44,
-                        color: earned ? AppColors.yellow : AppColors.border,
-                      ),
-                    ),
-                  );
-                },
-              );
-            }),
-          ),
-          const SizedBox(height: 8),
-
+          // Title & Subtitle
           Text(
             label,
             style: GoogleFonts.nunito(
-              fontSize: 24,
+              fontSize: 25,
               fontWeight: FontWeight.w900,
               color: AppColors.pink,
+              letterSpacing: 0.3,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
           Text(
-            'Solved in ${provider.moveCount} move${provider.moveCount == 1 ? '' : 's'} (${provider.optimalMoves} optimal)',
+            'Solved in ${provider.moveCount} moves • ${provider.optimalMoves} optimal',
             style: GoogleFonts.nunito(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w700,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w800,
               color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 16),
+
+          // Rewards Pods
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                '+${provider.xpEarned} XP',
-                style: GoogleFonts.nunito(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.mint,
+              // XP Pod
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightMint,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.mint.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.bolt_rounded,
+                        color: AppColors.mint,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '+${provider.xpEarned} XP',
+                        style: GoogleFonts.nunito(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF0F7263),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               if (provider.reasoningPassed) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.lightMint,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '🧠 Reasoning ✓',
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.mint,
+                const SizedBox(width: 10),
+                // Reasoning Pod
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightPurple,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.purple.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('🧠', style: TextStyle(fontSize: 14)),
+                        const SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            'Reasoning ✓',
+                            style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.purple,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -1868,6 +1930,8 @@ class _ReasoningAndCelebrationDialogState
             ],
           ),
           const SizedBox(height: 20),
+
+          // Next Equation Button
           PrimaryButton(
             label: 'Next Equation →',
             onPressed: widget.onDismissAndNext,
