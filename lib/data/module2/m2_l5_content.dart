@@ -17,7 +17,7 @@ const m2Lesson5 = LessonContent(
       bodyText: 'Simplifying algebraic expressions',
       xyDialogue:
           'Look at 3x + 5 + 2x + 4. It looks busy, but you already have all the tools to *clean it up*! Let\'s organize it step-by-step.',
-      xyAsset: AppAssets.xyWave,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'Start simplifying →',
     ),
     LessonStep(
@@ -25,7 +25,7 @@ const m2Lesson5 = LessonContent(
       type: LessonStepType.xySays,
       xyDialogue:
           'Think of simplifying like *organizing a messy desk*. We aren\'t changing what\'s there—we\'re arranging it better!',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm2_l5_s03',
@@ -68,7 +68,7 @@ const m2Lesson5 = LessonContent(
       ],
       correctChoiceIndex: 0,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation:
           'Awesome! 5x + 3x = 8x, and 2 + 4 = 6, giving 8x + 6.',
       incorrectExplanation:

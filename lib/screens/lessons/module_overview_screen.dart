@@ -175,7 +175,7 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
                   child: Row(
                     children: [
                       Image.asset(
-                        module.xyAsset ?? AppAssets.xyWave,
+                        AppAssets.xyLessons,
                         width: 64,
                         height: 64,
                         fit: BoxFit.contain,
@@ -426,7 +426,7 @@ class _ModuleIntroCard extends StatelessWidget {
       child: Column(
         children: [
           Image.asset(
-            module.xyAsset ?? AppAssets.xyWave,
+            module.xyAsset ?? AppAssets.xyLessons,
             width: 104,
             height: 104,
             fit: BoxFit.contain,
@@ -447,7 +447,7 @@ class _ModuleIntroCard extends StatelessWidget {
           if (module.xyDialogue != null)
             XySpeechBubble(
               message: module.xyDialogue!,
-              xyAsset: module.xyAsset ?? AppAssets.xyWave,
+              xyAsset: module.xyAsset ?? AppAssets.xyLessons,
               xySize: 60,
               showMascot: false,
             ),

@@ -16,7 +16,7 @@ const m1Lesson2 = LessonContent(
       bodyText: 'Numbers that stay fixed',
       xyDialogue:
           'Variables can change, but some values stay fixed. Those steady values are called *constants*.',
-      xyAsset: AppAssets.xyExplaining,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'Meet constants',
     ),
     LessonStep(
@@ -29,7 +29,7 @@ const m1Lesson2 = LessonContent(
       mathAnnotation: 'x may change, but 5 always has the value 5.',
       xyDialogue:
           'No matter what happens to x, the *constant 5* never changes!',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm1_l2_s03',
@@ -49,7 +49,7 @@ const m1Lesson2 = LessonContent(
       type: LessonStepType.xySays,
       xyDialogue:
           'A constant is the *dependable part* of an expression—it keeps the same value even when a variable changes.',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm1_l2_s05',
@@ -58,7 +58,7 @@ const m1Lesson2 = LessonContent(
       question:
           'Sort each part by whether its value can change or must stay fixed.',
       isAnswerStep: true,
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
       activity: ClassificationActivityData(
         categories: [
           ActivityCategory(id: 'change', label: 'Can change'),
@@ -88,7 +88,7 @@ const m1Lesson2 = LessonContent(
       ],
       correctChoiceIndex: 2,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation:
           'Correct! 9 is the standalone constant. 4 is the coefficient attached to x.',
       incorrectExplanation:
@@ -107,7 +107,7 @@ const m1Lesson2 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation:
           'Exactly! A constant never changes its value—that is why it is called constant.',
       incorrectExplanation:

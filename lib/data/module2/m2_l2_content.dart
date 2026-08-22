@@ -17,7 +17,7 @@ const m2Lesson2 = LessonContent(
       bodyText: 'Adding and subtracting like terms',
       xyDialogue:
           'You already know how to spot like terms. Now let\'s find out what happens when we *combine them*!',
-      xyAsset: AppAssets.xyWave,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'Combine terms →',
     ),
     LessonStep(
@@ -34,7 +34,7 @@ const m2Lesson2 = LessonContent(
       type: LessonStepType.xySays,
       xyDialogue:
           'We\'re adding *how many* x\'s we have—not changing what *x* is!',
-      xyAsset: AppAssets.xyExplaining,
+      xyAsset: AppAssets.xyIdea,
     ),
     LessonStep(
       id: 'm2_l2_s04',
@@ -58,7 +58,7 @@ const m2Lesson2 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation:
           'Exactly! 4 groups of y plus 3 groups of y gives us 7 groups of y (7y).',
       incorrectExplanation:

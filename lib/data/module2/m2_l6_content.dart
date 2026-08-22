@@ -17,7 +17,7 @@ const m2Lesson6 = LessonContent(
       bodyText: 'Evaluating algebraic expressions',
       xyDialogue:
           'Until now, we didn\'t know what x was. But what if x = 4? Now we can find the expression\'s *actual numeric value*!',
-      xyAsset: AppAssets.xyWave,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'Learn substitution →',
     ),
     LessonStep(
@@ -34,7 +34,7 @@ const m2Lesson6 = LessonContent(
       type: LessonStepType.xySays,
       xyDialogue:
           'Use parentheses around the number when substituting to keep multiplication *crystal clear*!',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm2_l6_s04',
@@ -59,7 +59,7 @@ const m2Lesson6 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation: 'Spot on! 2(5) + 3 = 10 + 3 = 13.',
       incorrectExplanation:
           'Multiply 2 by 5 first (which is 10), then add 3.',

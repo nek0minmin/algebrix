@@ -16,7 +16,7 @@ const m2Lesson7 = LessonContent(
       bodyText: 'Mastery Challenge',
       xyDialogue:
           'You\'ve learned how to recognize patterns, combine terms, distribute, simplify, and evaluate expressions.\n\nNow let\'s see if you understand the why behind them!',
-      xyAsset: AppAssets.xyWave,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'START CHALLENGE →',
     ),
     LessonStep(
@@ -32,7 +32,7 @@ const m2Lesson7 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
       explanation:
           'Correct! Both 5x and 2x share the exact same variable x raised to the power 1.',
       incorrectExplanation:
@@ -51,7 +51,7 @@ const m2Lesson7 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
       explanation: 'Correct! 6 + 3 = 9, so 6x + 3x = 9x.',
       incorrectExplanation: 'Add the coefficients (6 + 3) and keep the variable x.',
     ),
@@ -90,7 +90,7 @@ const m2Lesson7 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
       explanation: 'Great! 3 × x = 3x and 3 × 4 = 12, giving 3x + 12.',
       incorrectExplanation:
           'Remember the distributive property: multiply 3 by both x and 4.',
@@ -108,7 +108,7 @@ const m2Lesson7 = LessonContent(
       ],
       correctChoiceIndex: 0,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
       explanation: 'Spot on! (4x + 2x) + (3 + 5) = 6x + 8.',
       incorrectExplanation:
           'Combine the x terms (4x + 2x) and the constants (3 + 5) separately.',
@@ -126,7 +126,7 @@ const m2Lesson7 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation:
           'Right! Switching the order of addition demonstrates the Commutative Property.',
       incorrectExplanation:
@@ -145,7 +145,7 @@ const m2Lesson7 = LessonContent(
       ],
       correctChoiceIndex: 0,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
       explanation: '4(3) + 2 = 12 + 2 = 14.',
       incorrectExplanation: 'Substitute 3 for x: 4(3) = 12, then add 2.',
     ),
@@ -184,7 +184,7 @@ const m2Lesson7 = LessonContent(
       ],
       correctChoiceIndex: 0,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
       explanation:
           'First distribute: 3x + 6 + 2x. Then combine like terms: (3x + 2x) + 6 = 5x + 6!',
       incorrectExplanation:
@@ -203,7 +203,7 @@ const m2Lesson7 = LessonContent(
       ],
       correctChoiceIndex: 0,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation:
           'Awesome! Simplify: 7x + 1. Substitute x = 2: 7(2) + 1 = 14 + 1 = 15.',
       incorrectExplanation:

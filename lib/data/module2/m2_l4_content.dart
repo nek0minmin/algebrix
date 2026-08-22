@@ -17,7 +17,7 @@ const m2Lesson4 = LessonContent(
       bodyText: 'Properties of Operations',
       xyDialogue:
           'Compare 3 + 5 = 8 and 5 + 3 = 8. We changed the order, but the answer stayed the same! Let\'s discover the *patterns* math lets us rely on.',
-      xyAsset: AppAssets.xyWave,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'Discover patterns →',
     ),
     LessonStep(
@@ -34,7 +34,7 @@ const m2Lesson4 = LessonContent(
       type: LessonStepType.xySays,
       xyDialogue:
           'Think: *commute = move around*! Numbers can switch seats in addition and multiplication.',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm2_l4_s04',
@@ -76,7 +76,7 @@ const m2Lesson4 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation:
           'Right! The numbers switched places, but the result stayed the same. That is the Commutative Property.',
       incorrectExplanation:

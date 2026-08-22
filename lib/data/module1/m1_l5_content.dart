@@ -16,7 +16,7 @@ const m1Lesson5 = LessonContent(
       bodyText: 'Numbers that tell how many variables',
       xyDialogue:
           'A number next to a variable has a special job: it tells *how many* of that variable we have.',
-      xyAsset: AppAssets.xyExplaining,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'Meet coefficients',
     ),
     LessonStep(
@@ -29,7 +29,7 @@ const m1Lesson5 = LessonContent(
       mathAnnotation: '7 is the multiplier (coefficient) in front of x.',
       xyDialogue:
           'The coefficient acts like a *multiplier tag* attached to the variable!',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm1_l5_s03',
@@ -53,7 +53,7 @@ const m1Lesson5 = LessonContent(
       mathAnnotation: 'The negative sign stays with the number!',
       xyDialogue:
           'The negative sign is *welded* to the coefficient!',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm1_l5_s05',
@@ -80,7 +80,7 @@ const m1Lesson5 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation: 'Correct! 7 is the multiplier in front of x.',
       incorrectExplanation:
           'The coefficient is the number multiplying the variable.',
@@ -98,7 +98,7 @@ const m1Lesson5 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation: 'Right! The negative sign stays with the 4, making it −4.',
       incorrectExplanation: 'Include the negative sign with the numerical coefficient.',
     ),
@@ -115,7 +115,7 @@ const m1Lesson5 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation: 'Exactly! A single variable always has an implicit coefficient of 1.',
       incorrectExplanation: 'A variable with no number in front has a coefficient of 1 (1x = x).',
     ),

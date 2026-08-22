@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/models/equation_model.dart';
@@ -141,6 +142,7 @@ class _QuizScreenState extends State<QuizScreen> {
           const RootPageHeader(
             title: 'Practice',
             subtitle: 'Solve one step at a time.',
+            mascotAsset: AppAssets.xyQuestion,
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),

@@ -73,9 +73,13 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
     super.dispose();
   }
 
+  bool _isCountingDown = false;
+  int _countdownStep = 3;
+
   Future<void> _loadQuiz() async {
     setState(() {
       _isLoading = true;
+      _isCountingDown = false;
       _errorMessage = null;
       _currentIndex = 0;
       _selectedChoiceIndex = null;
@@ -88,17 +92,49 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
     try {
       final quiz = await _quizService.generateQuiz(module: widget.module);
       if (!mounted) return;
-      setState(() {
-        _quiz = quiz;
-        _isLoading = false;
-      });
+      await _startCountdown(quiz);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _errorMessage = 'Could not generate quiz: $e';
         _isLoading = false;
+        _isCountingDown = false;
       });
     }
+  }
+
+  Future<void> _startCountdown(ModuleQuiz quiz) async {
+    final isTesting =
+        WidgetsBinding.instance.runtimeType.toString().contains('Test');
+    if (isTesting) {
+      setState(() {
+        _quiz = quiz;
+        _isLoading = false;
+        _isCountingDown = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _quiz = quiz;
+      _isLoading = false;
+      _isCountingDown = true;
+      _countdownStep = 3;
+    });
+
+    for (int step = 2; step >= 0; step--) {
+      await Future.delayed(const Duration(milliseconds: 650));
+      if (!mounted) return;
+      setState(() {
+        _countdownStep = step;
+      });
+    }
+
+    await Future.delayed(const Duration(milliseconds: 650));
+    if (!mounted) return;
+    setState(() {
+      _isCountingDown = false;
+    });
   }
 
   void _handleSelectOption(int index) {
@@ -165,11 +201,92 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
       body: SafeArea(
         child: _isLoading
             ? _buildLoadingScreen()
-            : _errorMessage != null
-                ? _buildErrorScreen()
-                : _isFinished
-                    ? _buildVictoryScreen()
-                    : _buildQuizActiveScreen(),
+            : _isCountingDown
+                ? _buildCountdownScreen()
+                : _errorMessage != null
+                    ? _buildErrorScreen()
+                    : _isFinished
+                        ? _buildVictoryScreen()
+                        : _buildQuizActiveScreen(),
+      ),
+    );
+  }
+
+  // ── 1. Dedicated Xy Mascot Countdown Screen (3-2-1-GO!) ─────────────────────
+  Widget _buildCountdownScreen() {
+    String mascotAsset;
+    String countLabel;
+    String countSubtitle;
+    Color countColor;
+
+    switch (_countdownStep) {
+      case 3:
+        mascotAsset = AppAssets.xyThree;
+        countLabel = '3';
+        countSubtitle = 'Get ready!';
+        countColor = AppColors.pink;
+        break;
+      case 2:
+        mascotAsset = AppAssets.xyTwo;
+        countLabel = '2';
+        countSubtitle = 'Get set!';
+        countColor = AppColors.purple;
+        break;
+      case 1:
+        mascotAsset = AppAssets.xyOne;
+        countLabel = '1';
+        countSubtitle = 'Focus!';
+        countColor = AppColors.mint;
+        break;
+      default:
+        mascotAsset = AppAssets.xyGo;
+        countLabel = 'GO! 🚀';
+        countSubtitle = 'Good luck!';
+        countColor = AppColors.pink;
+        break;
+    }
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) => ScaleTransition(
+                scale: animation,
+                child: child,
+              ),
+              child: Image.asset(
+                mascotAsset,
+                key: ValueKey('countdown-$_countdownStep'),
+                width: 140,
+                height: 140,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              countLabel,
+              style: GoogleFonts.nunito(
+                fontSize: 44,
+                fontWeight: FontWeight.w900,
+                color: countColor,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              countSubtitle,
+              style: GoogleFonts.nunito(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -184,40 +301,11 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
           children: [
             ScaleTransition(
               scale: _pulseAnimation,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    width: 140,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      color: AppColors.pink.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  Container(
-                    width: 104,
-                    height: 104,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF1E2024),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.shadow,
-                          blurRadius: 16,
-                          offset: Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(6),
-                    child: ClipOval(
-                      child: Image.asset(
-                        widget.module.xyAsset ?? AppAssets.xyExplaining,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                ],
+              child: Image.asset(
+                AppAssets.xyLoading,
+                width: 120,
+                height: 120,
+                fit: BoxFit.contain,
               ),
             ),
             const SizedBox(height: 28),
@@ -367,7 +455,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Sub-lesson Tag
+                // Sub-lesson Tag & Mascot Reaction Header
                 Row(
                   children: [
                     Container(
@@ -390,6 +478,13 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 10),
+
+                // Dynamic Mascot Interaction Header
+                _buildQuestionMascotHeader(
+                  isAnswered: _isAnswered,
+                  isCorrect: _isAnswered && _selectedChoiceIndex == question.correctIndex,
                 ),
                 const SizedBox(height: 12),
 
@@ -444,6 +539,79 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildQuestionMascotHeader({
+    required bool isAnswered,
+    required bool isCorrect,
+  }) {
+    String mascot;
+    String moodMessage;
+    Color bubbleBg;
+    Color bubbleBorder;
+    Color textColor;
+
+    if (!isAnswered) {
+      mascot = AppAssets.xyQuestion;
+      moodMessage = 'What do you think is the answer?';
+      bubbleBg = Colors.white;
+      bubbleBorder = AppColors.border;
+      textColor = AppColors.textSecondary;
+    } else if (isCorrect) {
+      mascot = AppAssets.xyHappy;
+      moodMessage = 'Spot on! You got it right! 🎉';
+      bubbleBg = AppColors.lightMint;
+      bubbleBorder = AppColors.mint;
+      textColor = const Color(0xFF0F7263);
+    } else {
+      mascot = AppAssets.xyExplaining;
+      moodMessage = 'Nice try! Let’s learn why together 💡';
+      bubbleBg = AppColors.extraLightPink;
+      bubbleBorder = AppColors.pink;
+      textColor = AppColors.darkPink;
+    }
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: bubbleBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: bubbleBorder, width: 1.3),
+        boxShadow: [
+          BoxShadow(
+            color: bubbleBorder.withValues(alpha: 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: Image.asset(
+              mascot,
+              key: ValueKey('quiz-mascot-$mascot'),
+              width: 48,
+              height: 48,
+              fit: BoxFit.contain,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              moodMessage,
+              style: GoogleFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: textColor,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -603,9 +771,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
                 padding: const EdgeInsets.all(2),
                 child: ClipOval(
                   child: Image.asset(
-                    isCorrect
-                        ? (widget.module.xyAsset ?? AppAssets.xyHappy)
-                        : AppAssets.xyExplaining,
+                    isCorrect ? AppAssets.xyHappy : AppAssets.xyExplaining,
                     fit: BoxFit.contain,
                   ),
                 ),

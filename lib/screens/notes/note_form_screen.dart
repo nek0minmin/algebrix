@@ -139,7 +139,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                   ),
                   child: Center(
                     child: Image.asset(
-                      AppAssets.xyDefault,
+                      AppAssets.xyNotes,
                       width: 44,
                       height: 44,
                       fit: BoxFit.contain,
@@ -442,7 +442,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                                       )
                                     else
                                       Image.asset(
-                                        AppAssets.xyDefault,
+                                        AppAssets.xyNotes,
                                         width: 24,
                                         height: 24,
                                         fit: BoxFit.contain,

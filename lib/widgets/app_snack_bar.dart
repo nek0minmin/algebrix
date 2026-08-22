@@ -50,7 +50,7 @@ void showAlgebrixSnackBar(
               )
             else
               Image.asset(
-                AppAssets.xyDefault,
+                isError ? AppAssets.xyExplaining : AppAssets.xyDefault,
                 width: 28,
                 height: 28,
                 fit: BoxFit.contain,

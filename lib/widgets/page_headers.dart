@@ -9,6 +9,7 @@ class RootPageHeader extends StatelessWidget {
     super.key,
     required this.title,
     required this.subtitle,
+    this.mascotAsset,
     this.trailing,
     this.compactTrailing,
     this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -16,6 +17,7 @@ class RootPageHeader extends StatelessWidget {
 
   final String title;
   final String subtitle;
+  final String? mascotAsset;
   final Widget? trailing;
   final Widget? compactTrailing;
   final EdgeInsetsGeometry padding;
@@ -38,6 +40,7 @@ class RootPageHeader extends StatelessWidget {
                 child: _PageHeaderIdentity(
                   title: title,
                   supportingText: subtitle,
+                  mascotAsset: mascotAsset,
                   mascotSize: mascotSize,
                   titleSize: 24,
                   supportingTextSize: 14,
@@ -150,6 +153,7 @@ class _PageHeaderIdentity extends StatelessWidget {
     required this.mascotSize,
     required this.titleSize,
     required this.supportingTextSize,
+    this.mascotAsset,
   });
 
   final String title;
@@ -157,13 +161,14 @@ class _PageHeaderIdentity extends StatelessWidget {
   final double mascotSize;
   final double titleSize;
   final double supportingTextSize;
+  final String? mascotAsset;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Image.asset(
-          AppAssets.xyDefault,
+          mascotAsset ?? AppAssets.xyDefault,
           key: const Key('page-header-xy'),
           width: mascotSize,
           height: mascotSize,
@@ -205,3 +210,4 @@ class _PageHeaderIdentity extends StatelessWidget {
     );
   }
 }
+

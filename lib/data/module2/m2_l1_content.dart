@@ -17,7 +17,7 @@ const m2Lesson1 = LessonContent(
       bodyText: 'Make sense of the pieces',
       xyDialogue:
           'Remember terms? Some of them have more in common than you might think! Let\'s see which ones *fit together*.',
-      xyAsset: AppAssets.xyWave,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'Explore like terms →',
     ),
     LessonStep(
@@ -34,7 +34,7 @@ const m2Lesson1 = LessonContent(
       type: LessonStepType.xySays,
       xyDialogue:
           'The numbers in front can be completely different. What matters is that the *variable parts match exactly*!',
-      xyAsset: AppAssets.xyExplaining,
+      xyAsset: AppAssets.xyIdea,
     ),
     LessonStep(
       id: 'm2_l1_s04',
@@ -58,7 +58,7 @@ const m2Lesson1 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation: 'You got it! Both 3x and 8x have the same variable, x.',
       incorrectExplanation:
           'Look at the variable letters. Which two terms share the same variable?',
@@ -69,7 +69,7 @@ const m2Lesson1 = LessonContent(
       title: 'A Little Trickier',
       xyDialogue:
           'Watch those exponents! Let\'s see if you can spot the *matching power*.',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
       question: 'Which terms are like terms in 4a² + 3a + 7a²?',
       choices: [
         ChoiceOption(label: '4a² and 3a'),

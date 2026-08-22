@@ -317,7 +317,7 @@ class _LessonScreenState extends State<LessonScreen> {
         const SizedBox(height: 32),
         Center(
           child: Image.asset(
-            step.xyAsset ?? AppAssets.xyPointing,
+            step.xyAsset ?? AppAssets.xyIdea,
             width: 120,
             height: 120,
           ),
@@ -631,7 +631,7 @@ class _LessonScreenState extends State<LessonScreen> {
         if (step.xyDialogue != null)
           XySpeechBubble(
             message: step.xyDialogue!,
-            xyAsset: step.xyAsset ?? AppAssets.xyHappy,
+            xyAsset: step.xyAsset ?? AppAssets.xyQuestion,
             xySize: 48,
           ),
         if (step.bodyText != null) ...[
@@ -1106,7 +1106,7 @@ class _LessonIntroEntranceState extends State<_LessonIntroEntrance>
                   ),
                   alignment: Alignment.center,
                   child: Image.asset(
-                    AppAssets.xyExplaining,
+                    AppAssets.xyLessons,
                     key: const ValueKey('variables-intro-xy'),
                     width: mascotSize,
                     height: mascotSize,

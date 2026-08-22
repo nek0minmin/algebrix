@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
@@ -24,6 +25,7 @@ class LessonsScreen extends StatelessWidget {
           const RootPageHeader(
             title: 'Lessons',
             subtitle: 'Let’s learn together!',
+            mascotAsset: AppAssets.xyLessons,
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),

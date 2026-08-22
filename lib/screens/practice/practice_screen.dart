@@ -1,3 +1,4 @@
+import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/data/module1_content.dart';
@@ -24,6 +25,7 @@ class PracticeScreen extends StatelessWidget {
             const RootPageHeader(
               title: 'Practice Arena',
               subtitle: 'Master algebra concepts through interactive challenges.',
+              mascotAsset: AppAssets.xyPractice,
             ),
             Expanded(
               child: SingleChildScrollView(

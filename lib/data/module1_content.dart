@@ -14,7 +14,7 @@ final module1 = ModuleContent(
   icon: '✨',
   xyDialogue:
       "Hey there! I'm Xy!\nBefore we solve equations, let's explore the small ideas that make algebra work.",
-  xyAsset: AppAssets.xyWave,
+  xyAsset: AppAssets.xyLessons,
   buttonLabel: 'Explore Module 1',
   lessons: [
     LessonContent(
@@ -31,7 +31,7 @@ final module1 = ModuleContent(
           type: LessonStepType.intro,
           xyDialogue:
               'A variable is like a **mystery box**. It holds a value, and that **value can change**.',
-          xyAsset: AppAssets.xyExplaining,
+          xyAsset: AppAssets.xyLessons,
           buttonLabel: 'Explore variables',
         ),
         LessonStep(
@@ -49,7 +49,7 @@ final module1 = ModuleContent(
           type: LessonStepType.xySays,
           xyDialogue:
               "Think of a variable like a mystery box. 📦\nWe don't always know what's inside — but we can still work with it!",
-          xyAsset: AppAssets.xyPointing,
+          xyAsset: AppAssets.xyPointUp,
         ),
         LessonStep(
           id: 'step4',

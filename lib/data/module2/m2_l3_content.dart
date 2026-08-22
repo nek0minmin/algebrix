@@ -17,7 +17,7 @@ const m2Lesson3 = LessonContent(
       bodyText: 'The Distributive Property',
       xyDialogue:
           'Look at 3(x + 2). What does the 3 outside really mean? Let\'s open those parentheses and see *what\'s inside*!',
-      xyAsset: AppAssets.xyWave,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'Explore distribution →',
     ),
     LessonStep(
@@ -34,7 +34,7 @@ const m2Lesson3 = LessonContent(
       type: LessonStepType.xySays,
       xyDialogue:
           'The number outside doesn\'t choose favorites. *Everyone inside gets multiplied*!',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm2_l3_s04',
@@ -59,7 +59,7 @@ const m2Lesson3 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation:
           'Spot on! 4 × x is 4x and 4 × 3 is 12, giving 4x + 12.',
       incorrectExplanation:

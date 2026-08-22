@@ -49,7 +49,7 @@ class AppHeader extends StatelessWidget {
                 ),
                 child: Center(
                   child: Image.asset(
-                    AppAssets.xyDefault,
+                    AppAssets.xyWave,
                     width: 44,
                     height: 44,
                     fit: BoxFit.contain,

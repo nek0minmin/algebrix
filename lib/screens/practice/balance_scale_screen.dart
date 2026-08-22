@@ -277,7 +277,7 @@ class _EquationBanner extends StatelessWidget {
       child: Row(
         children: [
           Image.asset(
-            AppAssets.xyDefault,
+            AppAssets.xyPractice,
             width: 44,
             height: 44,
             fit: BoxFit.contain,
@@ -1206,7 +1206,7 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
             Row(
               children: [
                 Image.asset(
-                  AppAssets.xyExplaining,
+                  _showError ? AppAssets.xyExplaining : AppAssets.xyQuestion,
                   width: 48,
                   height: 48,
                   fit: BoxFit.contain,

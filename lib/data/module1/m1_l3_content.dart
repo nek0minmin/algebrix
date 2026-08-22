@@ -16,7 +16,7 @@ const m1Lesson3 = LessonContent(
       bodyText: 'The chunks that build an expression',
       xyDialogue:
           'Expressions are built from smaller chunks called *terms*. Let’s learn how to see each chunk.',
-      xyAsset: AppAssets.xyExplaining,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'Find the terms',
     ),
     LessonStep(
@@ -29,7 +29,7 @@ const m1Lesson3 = LessonContent(
       mathAnnotation: 'This expression contains four separate terms.',
       xyDialogue:
           'Think of terms like *train cars* connected by plus and minus signs!',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm1_l3_s03',
@@ -53,7 +53,7 @@ const m1Lesson3 = LessonContent(
       mathAnnotation: 'Each separated chunk is one complete term.',
       xyDialogue:
           'Every term is either a *variable term* or a *constant term*!',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm1_l3_s05',
@@ -88,7 +88,7 @@ const m1Lesson3 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation: 'Correct! The 3 terms are 3x, 5, and −y.',
       incorrectExplanation:
           'Count each chunk separated by + or − (remember −y is one complete term).',

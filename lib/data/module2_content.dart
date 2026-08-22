@@ -16,7 +16,7 @@ final module2 = ModuleContent(
   icon: '🧩',
   xyDialogue:
       "Ready to make sense of the pieces? Let's master how algebraic expressions work and fit together!",
-  xyAsset: AppAssets.xyWave,
+  xyAsset: AppAssets.xyLessons,
   buttonLabel: 'Explore Module 2',
   lessons: [
     m2Lesson1,

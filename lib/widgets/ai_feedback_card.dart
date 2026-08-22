@@ -48,7 +48,7 @@ class AiFeedbackCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Image.asset(
-                AppAssets.xyDefault,
+                AppAssets.xyInsight,
                 width: 44,
                 height: 44,
                 fit: BoxFit.contain,

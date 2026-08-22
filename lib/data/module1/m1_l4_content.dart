@@ -16,7 +16,7 @@ const m1Lesson4 = LessonContent(
       bodyText: 'Mathematical phrases without an equals sign',
       xyDialogue:
           'Variables, constants, and operations join together to create *algebraic expressions*.',
-      xyAsset: AppAssets.xyExplaining,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'Build expressions',
     ),
     LessonStep(
@@ -29,7 +29,7 @@ const m1Lesson4 = LessonContent(
       mathAnnotation: 'Other expressions include 3y, a − 2, and 5 + n.',
       xyDialogue:
           'Think of an expression like a *sentence fragment*—it describes a value!',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm1_l4_s03',
@@ -48,7 +48,7 @@ const m1Lesson4 = LessonContent(
       type: LessonStepType.xySays,
       xyDialogue:
           'Think of an expression as a math phrase. It represents a value, but it does *not make an equality claim*.',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm1_l4_s05',
@@ -98,7 +98,7 @@ const m1Lesson4 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation: 'Correct! 2x + 5 has no equals sign, so it is an expression.',
       incorrectExplanation: 'Choose the option that does not contain an equals sign.',
     ),
@@ -115,7 +115,7 @@ const m1Lesson4 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation:
           'Spot on! The equals sign = is what makes it an equation.',
       incorrectExplanation:

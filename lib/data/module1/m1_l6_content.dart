@@ -16,7 +16,7 @@ const m1Lesson6 = LessonContent(
       bodyText: 'A shared path to one clear answer',
       xyDialogue:
           'When a calculation has several operations, mathematicians follow one shared order so everyone gets the same answer.',
-      xyAsset: AppAssets.xyExplaining,
+      xyAsset: AppAssets.xyLessons,
       buttonLabel: 'Learn the order',
     ),
     LessonStep(
@@ -30,7 +30,7 @@ const m1Lesson6 = LessonContent(
           'Adding first gives 20, but multiplying first gives the agreed answer: 14.',
       xyDialogue:
           'Without standard rules, one math problem could have *multiple conflicting answers*!',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm1_l6_s03',
@@ -45,7 +45,7 @@ const m1Lesson6 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation: 'Correct! Multiplication comes before addition.',
       incorrectExplanation:
           'Use the order of operations: multiplication is completed before addition.',
@@ -73,7 +73,7 @@ const m1Lesson6 = LessonContent(
       mathAnnotation: 'Multiplication takes priority before addition!',
       xyDialogue:
           'Always scan for the *highest-priority operation* first before adding!',
-      xyAsset: AppAssets.xyPointing,
+      xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
       id: 'm1_l6_s06',
@@ -119,7 +119,7 @@ const m1Lesson6 = LessonContent(
       ],
       correctChoiceIndex: 1,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation: 'Correct! Multiply 3 × 2 = 6, then add 5 to get 11.',
       incorrectExplanation: 'Complete multiplication before addition.',
     ),
@@ -136,7 +136,7 @@ const m1Lesson6 = LessonContent(
       ],
       correctChoiceIndex: 0,
       isAnswerStep: true,
-      xyAsset: AppAssets.xyHappy,
+      xyAsset: AppAssets.xyQuestion,
       explanation:
           'Exactly! Parentheses first: 4 + 2 = 6. Then 6 × 3 = 18, and 18 − 5 = 13.',
       incorrectExplanation:
