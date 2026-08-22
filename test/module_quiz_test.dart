@@ -2,9 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
+import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_model.dart';
 import 'package:algebrix/services/module_quiz_service.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
+
+class _StubQuizService extends ModuleQuizService {
+  @override
+  Future<ModuleQuiz> generateQuiz({required ModuleContent module}) async {
+    return ModuleQuiz(
+      moduleId: module.id,
+      moduleTitle: module.title,
+      questions: const [
+        ModuleQuizQuestion(
+          id: 'q1',
+          subLessonTitle: 'Variables',
+          question: 'What is x in 2x + 1?',
+          type: QuizQuestionType.multipleChoice,
+          options: ['2', 'x', '1'],
+          correctIndex: 1,
+          explanation: 'x is the variable.',
+          difficulty: 1,
+        ),
+      ],
+      generatedAt: DateTime.now(),
+      providerUsed: 'Test Stub',
+    );
+  }
+}
 
 void main() {
   group('ModuleQuiz Models and Generation', () {
@@ -16,7 +41,6 @@ void main() {
       expect(quiz.moduleId, 'module1');
       expect(quiz.questions.length, 15);
 
-      // Check progressive difficulty: Q1-Q5 are diff 1, Q6-Q10 are diff 2, Q11-Q15 are diff 3
       for (var i = 0; i < 5; i++) {
         expect(quiz.questions[i].difficulty, 1);
       }
@@ -27,7 +51,6 @@ void main() {
         expect(quiz.questions[i].difficulty, 3);
       }
 
-      // Check options counts: MC has 3 options, TF has 2 options
       for (final q in quiz.questions) {
         if (q.type == QuizQuestionType.multipleChoice) {
           expect(q.options.length, 3, reason: 'MC question should have exactly 3 options: ${q.question}');
@@ -36,7 +59,6 @@ void main() {
         }
         expect(q.correctIndex >= 0 && q.correctIndex < q.options.length, isTrue);
 
-        // Check zero spoiler emojis in options
         for (final opt in q.options) {
           expect(opt.contains('✅') || opt.contains('❌'), isFalse);
         }
@@ -104,7 +126,10 @@ void main() {
     testWidgets('ModuleQuizScreen shows loading state and then displays quiz question', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ModuleQuizScreen(module: module1),
+          home: ModuleQuizScreen(
+            module: module1,
+            quizService: _StubQuizService(),
+          ),
         ),
       );
 
@@ -114,20 +139,21 @@ void main() {
       // Pump to settle async generation
       await tester.pumpAndSettle();
 
-      // Verify question 1 is displayed
-      expect(find.text('Question 1 of 15'), findsOneWidget);
-      expect(find.text('Next Question →'), findsOneWidget);
+      // Verify question is displayed
+      expect(find.text('Question 1 of 1'), findsOneWidget);
+      expect(find.text('Finish Quiz 🎉'), findsOneWidget);
 
-      // Verify options A, B, C or A, B exist
+      // Verify options A, B, C exist
       expect(find.text('A'), findsOneWidget);
       expect(find.text('B'), findsOneWidget);
+      expect(find.text('C'), findsOneWidget);
 
       // Tap Option A
       await tester.tap(find.text('A'));
       await tester.pumpAndSettle();
 
       // Verify answer feedback appears
-      expect(find.byType(InkWell), findsWidgets);
+      expect(find.text("Let's Learn! 💡"), findsOneWidget);
     });
   });
 }

@@ -12,9 +12,29 @@ class ModuleQuizService {
 
   ModuleQuizService({http.Client? client}) : _client = client ?? http.Client();
 
-  String get _geminiApiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
-  String get _groqApiKey => dotenv.env['GROQ_API_KEY'] ?? '';
-  String get _nvidiaApiKey => dotenv.env['NVIDIA_API_KEY'] ?? '';
+  String get _geminiApiKey {
+    try {
+      return dotenv.isInitialized ? (dotenv.env['GEMINI_API_KEY'] ?? '') : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  String get _groqApiKey {
+    try {
+      return dotenv.isInitialized ? (dotenv.env['GROQ_API_KEY'] ?? '') : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  String get _nvidiaApiKey {
+    try {
+      return dotenv.isInitialized ? (dotenv.env['NVIDIA_API_KEY'] ?? '') : '';
+    } catch (_) {
+      return '';
+    }
+  }
 
   /// Generates a 15-item progressive module quiz tailored to the specified module's sub-lessons.
   Future<ModuleQuiz> generateQuiz({
