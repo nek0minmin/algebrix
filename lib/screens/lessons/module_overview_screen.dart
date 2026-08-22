@@ -8,7 +8,7 @@ import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/lesson/xy_speech_bubble.dart';
 import 'package:algebrix/screens/lessons/lesson_screen.dart';
-
+import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/widgets/search_bar_widget.dart';
 
 /// Module Overview screen showing the module intro and lesson list with progressive unlocking.
@@ -203,6 +203,21 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
                       ),
                     ],
                   ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ⚡ AI Module Quiz Challenge Card
+                _ModuleQuizPromoCard(
+                  module: module,
+                  onStartQuiz: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ModuleQuizScreen(module: module),
+                      ),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 16),
@@ -649,6 +664,118 @@ class _LessonListItem extends StatelessWidget {
                   : const SizedBox.shrink(),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ModuleQuizPromoCard extends StatelessWidget {
+  final ModuleContent module;
+  final VoidCallback onStartQuiz;
+
+  const _ModuleQuizPromoCard({
+    required this.module,
+    required this.onStartQuiz,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onStartQuiz,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: AppColors.purple.withValues(alpha: 0.4),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.purple.withValues(alpha: 0.08),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  color: AppColors.lightPurple,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.psychology_rounded,
+                  color: AppColors.purple,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'AI Module Quiz',
+                            style: GoogleFonts.nunito(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.text,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.lightMint,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '+150 XP',
+                            style: GoogleFonts.nunito(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF0F7263),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '15 Dynamic Questions • Progressive Difficulty',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: AppColors.purple,
+              ),
+            ],
+          ),
         ),
       ),
     );

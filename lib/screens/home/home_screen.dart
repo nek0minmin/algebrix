@@ -26,6 +26,7 @@ import 'package:algebrix/screens/lessons/lesson_screen.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
 import 'package:algebrix/screens/practice/balance_scale_screen.dart';
 import 'package:algebrix/screens/practice/quiz_screen.dart';
+import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/screens/notes/note_detail_screen.dart';
 
 /// Upgraded Dashboard screen displaying universal search, progress stats,
@@ -184,8 +185,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: '🧠',
                           accentColor: AppColors.purple,
                           onTap: () {
+                            final targetModule =
+                                lessonProvider.currentModule ?? module1;
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const QuizScreen()),
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    ModuleQuizScreen(module: targetModule),
+                              ),
                             );
                           },
                         ),
