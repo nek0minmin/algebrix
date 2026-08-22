@@ -1,37 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
+import 'package:algebrix/screens/lessons/lesson_screen.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 
 /// Learning Path screen — replaces the placeholder "Coming Soon" Lessons tab.
 /// Shows available modules with progress indicators and lock states.
-class LessonsScreen extends StatelessWidget {
+class LessonsScreen extends StatefulWidget {
   const LessonsScreen({super.key});
 
   @override
+  State<LessonsScreen> createState() => _LessonsScreenState();
+}
+
+class _LessonsScreenState extends State<LessonsScreen> {
+  String _searchQuery = '';
+
+  @override
   Widget build(BuildContext context) {
+    final allLessons = [...module1.lessons, ...module2.lessons];
+    final filteredLessons = _searchQuery.isEmpty
+        ? <LessonContent>[]
+        : allLessons.where((l) {
+            return l.title.toLowerCase().contains(_searchQuery) ||
+                l.objective.toLowerCase().contains(_searchQuery);
+          }).toList();
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const RootPageHeader(
-            title: 'Lessons',
+          RootPageHeader(
+            title: 'Your Lessons',
             subtitle: 'Let’s learn together!',
-            mascotAsset: AppAssets.xyLessons,
+            searchPlaceholder: 'Search Lessons',
+            onSearchChanged: (q) => setState(() => _searchQuery = q.trim().toLowerCase()),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
             child: Column(
               children: [
-                // Module 1 — Algebra Foundations (Active)
+                if (_searchQuery.isNotEmpty) ...[
+                  if (filteredLessons.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'No lessons found matching "$_searchQuery"',
+                          style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+                        ),
+                      ),
+                    )
+                  else
+                    for (final lesson in filteredLessons) ...[
+                      _FilteredLessonCard(lesson: lesson),
+                      const SizedBox(height: 12),
+                    ],
+                ] else ...[
+                  // Module 1 — Algebra Foundations (Active)
                 _ModuleCard(
                   module: module1,
                   moduleNumber: 1,
@@ -115,12 +154,13 @@ class LessonsScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
               ],
-            ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }
 
 /// Active module card with progress and tap-to-open.
@@ -323,6 +363,91 @@ class _LockedModuleCard extends StatelessWidget {
               ),
             ),
             const Icon(Icons.lock_rounded, size: 22, color: AppColors.subtitle),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FilteredLessonCard extends StatelessWidget {
+  final LessonContent lesson;
+
+  const _FilteredLessonCard({required this.lesson});
+
+  @override
+  Widget build(BuildContext context) {
+    final lessonProvider = context.watch<LessonProvider>();
+    final isCompleted = lessonProvider.isLessonCompleted(lesson.lessonId);
+
+    return InkWell(
+      onTap: () {
+        final parentModule = module1.lessons.any((l) => l.lessonId == lesson.lessonId)
+            ? module1
+            : module2;
+        lessonProvider.startModule(parentModule);
+        lessonProvider.startLesson(lesson);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const LessonScreen(),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isCompleted ? AppColors.lightMint : AppColors.extraLightPink,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isCompleted ? Icons.check_circle_rounded : Icons.menu_book_rounded,
+                color: isCompleted ? AppColors.mint : AppColors.pink,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    lesson.title,
+                    style: AppTextStyles.subtitle1.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    lesson.objective,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
           ],
         ),
       ),

@@ -1,15 +1,22 @@
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
-import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-/// Shared mascot-led title treatment for the four primary destinations.
+/// Shared mascot-led title treatment for the primary navigation destinations.
+///
+/// Features a prominent, legible mascot illustration on the left and a structured
+/// column on the right containing the Title, Subtitle, and an integrated pill Search Bar.
 class RootPageHeader extends StatelessWidget {
   const RootPageHeader({
     super.key,
     required this.title,
     required this.subtitle,
     this.mascotAsset,
+    this.searchPlaceholder,
+    this.onSearchChanged,
+    this.searchController,
+    this.searchBar,
     this.trailing,
     this.compactTrailing,
     this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -18,15 +25,45 @@ class RootPageHeader extends StatelessWidget {
   final String title;
   final String subtitle;
   final String? mascotAsset;
+  final String? searchPlaceholder;
+  final ValueChanged<String>? onSearchChanged;
+  final TextEditingController? searchController;
+  final Widget? searchBar;
   final Widget? trailing;
   final Widget? compactTrailing;
   final EdgeInsetsGeometry padding;
+
+  String _resolveMascotAsset() {
+    if (mascotAsset != null) return mascotAsset!;
+    final lower = title.toLowerCase();
+    if (lower.contains('welcome') || lower.contains('home')) {
+      return AppAssets.xyWelcome;
+    }
+    if (lower.contains('lesson')) {
+      return AppAssets.xyLessons;
+    }
+    if (lower.contains('practice')) {
+      return AppAssets.xyPractice;
+    }
+    if (lower.contains('note')) {
+      return AppAssets.xyNotes;
+    }
+    if (lower.contains('quiz')) {
+      return AppAssets.xyQuestion;
+    }
+    return AppAssets.xyDefault;
+  }
 
   @override
   Widget build(BuildContext context) {
     final viewportWidth = MediaQuery.sizeOf(context).width;
     final useCompactAction = viewportWidth < 560;
-    final mascotSize = viewportWidth < 340 ? 56.0 : 72.0;
+    final hasSearch = searchBar != null || searchPlaceholder != null;
+
+    // Generous, legible mascot sizing matching user UI design
+    final mascotSize = hasSearch
+        ? (viewportWidth < 360 ? 84.0 : 100.0)
+        : (viewportWidth < 340 ? 64.0 : 80.0);
 
     return Center(
       child: ConstrainedBox(
@@ -40,10 +77,14 @@ class RootPageHeader extends StatelessWidget {
                 child: _PageHeaderIdentity(
                   title: title,
                   supportingText: subtitle,
-                  mascotAsset: mascotAsset,
+                  mascotAsset: _resolveMascotAsset(),
                   mascotSize: mascotSize,
-                  titleSize: 24,
+                  titleSize: viewportWidth < 360 ? 22 : 24,
                   supportingTextSize: 14,
+                  searchBar: searchBar,
+                  searchPlaceholder: searchPlaceholder,
+                  onSearchChanged: onSearchChanged,
+                  searchController: searchController,
                 ),
               ),
               if (trailing != null) ...[
@@ -68,11 +109,13 @@ class SecondaryPageAppBar extends StatelessWidget
     super.key,
     required this.title,
     this.supportingText,
+    this.mascotAsset,
     this.actions,
   });
 
   final String title;
   final String? supportingText;
+  final String? mascotAsset;
   final List<Widget>? actions;
 
   @override
@@ -80,7 +123,7 @@ class SecondaryPageAppBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    final mascotSize = MediaQuery.sizeOf(context).width < 340 ? 48.0 : 56.0;
+    final mascotSize = MediaQuery.sizeOf(context).width < 340 ? 52.0 : 64.0;
     void goBack() => Navigator.of(context).maybePop();
 
     return AppBar(
@@ -128,6 +171,7 @@ class SecondaryPageAppBar extends StatelessWidget
                   child: _PageHeaderIdentity(
                     title: title,
                     supportingText: supportingText,
+                    mascotAsset: mascotAsset ?? AppAssets.xyNotes,
                     mascotSize: mascotSize,
                     titleSize: 22,
                     supportingTextSize: 13,
@@ -154,6 +198,10 @@ class _PageHeaderIdentity extends StatelessWidget {
     required this.titleSize,
     required this.supportingTextSize,
     this.mascotAsset,
+    this.searchBar,
+    this.searchPlaceholder,
+    this.onSearchChanged,
+    this.searchController,
   });
 
   final String title;
@@ -162,10 +210,15 @@ class _PageHeaderIdentity extends StatelessWidget {
   final double titleSize;
   final double supportingTextSize;
   final String? mascotAsset;
+  final Widget? searchBar;
+  final String? searchPlaceholder;
+  final ValueChanged<String>? onSearchChanged;
+  final TextEditingController? searchController;
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Image.asset(
           mascotAsset ?? AppAssets.xyDefault,
@@ -175,7 +228,7 @@ class _PageHeaderIdentity extends StatelessWidget {
           fit: BoxFit.contain,
           excludeFromSemantics: true,
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -185,22 +238,36 @@ class _PageHeaderIdentity extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.heading2.copyWith(
+                style: GoogleFonts.nunito(
                   fontSize: titleSize,
                   fontWeight: FontWeight.w900,
+                  color: AppColors.text,
+                  height: 1.15,
                 ),
               ),
               if (supportingText != null) ...[
-                const SizedBox(height: 1),
+                const SizedBox(height: 2),
                 Text(
                   supportingText!,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.body2.copyWith(
+                  style: GoogleFonts.nunito(
                     color: AppColors.textSecondary,
                     fontSize: supportingTextSize,
                     fontWeight: FontWeight.w600,
+                    height: 1.25,
                   ),
+                ),
+              ],
+              if (searchBar != null) ...[
+                const SizedBox(height: 8),
+                searchBar!,
+              ] else if (searchPlaceholder != null) ...[
+                const SizedBox(height: 8),
+                _HeaderPillSearchBar(
+                  placeholder: searchPlaceholder!,
+                  onChanged: onSearchChanged,
+                  controller: searchController,
                 ),
               ],
             ],
@@ -211,3 +278,66 @@ class _PageHeaderIdentity extends StatelessWidget {
   }
 }
 
+/// Pill-shaped search bar with pink search magnifying glass icon
+class _HeaderPillSearchBar extends StatelessWidget {
+  const _HeaderPillSearchBar({
+    required this.placeholder,
+    this.onChanged,
+    this.controller,
+  });
+
+  final String placeholder;
+  final ValueChanged<String>? onChanged;
+  final TextEditingController? controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 38,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.only(left: 14, right: 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              onChanged: onChanged,
+              style: GoogleFonts.nunito(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.text,
+              ),
+              decoration: InputDecoration(
+                hintText: placeholder,
+                hintStyle: GoogleFonts.nunito(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF9CA3AF),
+                ),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 8),
+              ),
+            ),
+          ),
+          const Icon(
+            Icons.search_rounded,
+            color: AppColors.pink,
+            size: 20,
+          ),
+        ],
+      ),
+    );
+  }
+}

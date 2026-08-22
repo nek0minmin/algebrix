@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/constants/app_strings.dart';
@@ -21,7 +20,6 @@ import 'package:algebrix/widgets/daily_challenge_card.dart';
 import 'package:algebrix/widgets/progress_card.dart';
 import 'package:algebrix/widgets/streak_badge.dart';
 import 'package:algebrix/widgets/page_headers.dart';
-import 'package:algebrix/widgets/search_bar_widget.dart';
 import 'package:algebrix/screens/auth/login_screen.dart';
 import 'package:algebrix/screens/lessons/lesson_screen.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
@@ -83,19 +81,14 @@ class _HomeScreenState extends State<HomeScreen> {
           RootPageHeader(
             title: 'Welcome Back!',
             subtitle: 'Ready to solve and level up, ${user.name}?',
-            mascotAsset: AppAssets.xyWelcome,
+            searchPlaceholder: 'Search lessons or topics',
+            onSearchChanged: (q) => setState(() => _searchQuery = q),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Universal System Search Bar
-                SearchBarWidget(
-                  onChanged: (q) => setState(() => _searchQuery = q),
-                ),
-                const SizedBox(height: 16),
-
                 if (isSearching) ...[
                   _UniversalSearchResults(
                     query: _searchQuery,

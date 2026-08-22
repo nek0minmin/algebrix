@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,13 +9,14 @@ void main() {
     (widget) =>
         widget is Image &&
         widget.image is AssetImage &&
-        (widget.image as AssetImage).assetName == AppAssets.xyDefault,
+        (widget.image as AssetImage).assetName.contains('assets/mascot/xy'),
   );
 
   Future<void> pumpRootHeader(
     WidgetTester tester, {
     required double width,
     double textScale = 1,
+    String? searchPlaceholder,
   }) async {
     await tester.binding.setSurfaceSize(Size(width, 400));
     await tester.pumpWidget(
@@ -24,13 +24,17 @@ void main() {
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(
             context,
-          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          ).copyWith(
+            size: Size(width, 400),
+            textScaler: TextScaler.linear(textScale),
+          ),
           child: child!,
         ),
         home: Scaffold(
           body: RootPageHeader(
             title: 'Notes',
             subtitle: 'Keep your algebra ideas close.',
+            searchPlaceholder: searchPlaceholder,
             trailing: FilledButton(
               key: const Key('wide-action'),
               onPressed: () {},
@@ -56,7 +60,7 @@ void main() {
     await pumpRootHeader(tester, width: 720);
 
     expect(xyImages(), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(72));
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(80));
     final title = tester.widget<Text>(find.text('Notes'));
     final subtitle = tester.widget<Text>(
       find.text('Keep your algebra ideas close.'),
@@ -68,8 +72,21 @@ void main() {
 
     await pumpRootHeader(tester, width: 320, textScale: 1.3);
     expect(xyImages(), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(56));
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(64));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('root header with search bar displays bigger mascot and search input', (
+    tester,
+  ) async {
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await pumpRootHeader(tester, width: 720, searchPlaceholder: 'Search Lessons');
+
+    expect(xyImages(), findsOneWidget);
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(100));
+    expect(find.text('Search Lessons'), findsOneWidget);
+    expect(find.byIcon(Icons.search_rounded), findsOneWidget);
   });
 
   testWidgets('root header changes Notes action at 560px', (tester) async {
@@ -88,10 +105,7 @@ void main() {
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
-    addTearDown(() {
-      semantics.dispose();
-      tester.binding.setSurfaceSize(null);
-    });
+    addTearDown(() => tester.binding.setSurfaceSize(null));
 
     Future<void> pumpSecondary(double width, {double textScale = 1}) async {
       await tester.binding.setSurfaceSize(Size(width, 400));
@@ -100,7 +114,10 @@ void main() {
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(
               context,
-            ).copyWith(textScaler: TextScaler.linear(textScale)),
+            ).copyWith(
+              size: Size(width, 400),
+              textScaler: TextScaler.linear(textScale),
+            ),
             child: child!,
           ),
           home: const Scaffold(
@@ -118,7 +135,7 @@ void main() {
     expect(xyImages(), findsOneWidget);
     expect(tester.getSize(find.byType(AppBar)), const Size(390, 96));
     expect(tester.getSize(find.byKey(const Key('secondary-page-back-button'))), const Size.square(44));
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(56));
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(64));
     expect(find.bySemanticsLabel('Back to Notes'), findsWidgets);
 
     final title = tester.widget<Text>(find.text('New note'));
@@ -132,9 +149,11 @@ void main() {
 
     await pumpSecondary(320, textScale: 1.3);
     expect(xyImages(), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(48));
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(52));
     expect(find.text('Explain one idea in your own words.'), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    semantics.dispose();
   });
 
   test('scoped root bodies leave Xy artwork to their shared header', () {

@@ -1,4 +1,3 @@
-import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/notes_provider.dart';
@@ -58,7 +57,6 @@ class NotesScreen extends StatelessWidget {
               RootPageHeader(
                 title: 'Notes',
                 subtitle: 'Keep your algebra ideas close.',
-                mascotAsset: AppAssets.xyNotes,
                 trailing: FilledButton.icon(
                   key: const Key('new-note-button'),
                   onPressed: () => _createNote(context),
