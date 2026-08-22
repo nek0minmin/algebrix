@@ -4,7 +4,9 @@ import 'package:algebrix/main.dart';
 void main() {
   testWidgets('AlgebrixApp smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(const AlgebrixApp());
-    // Basic smoke test - app should start without errors
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 3000));
+    await tester.pumpAndSettle();
     expect(find.byType(AlgebrixApp), findsOneWidget);
   });
 }
