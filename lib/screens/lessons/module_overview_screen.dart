@@ -12,6 +12,7 @@ import 'package:algebrix/screens/lessons/lesson_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/widgets/search_bar_widget.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
+import 'package:algebrix/core/animations/app_page_route.dart';
 
 /// Module Overview screen showing the module intro and lesson list with progressive unlocking.
 class ModuleOverviewScreen extends StatefulWidget {
@@ -215,8 +216,8 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
                   onStartQuiz: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => ModuleQuizScreen(module: module),
+                      AppPageRoute(
+                        child: ModuleQuizScreen(module: module),
                       ),
                     );
                   },
@@ -345,8 +346,8 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
                                 return;
                               }
                               Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const LessonScreen(),
+                                AppPageRoute(
+                                  child: const LessonScreen(),
                                 ),
                               );
                             }

@@ -8,6 +8,7 @@ import 'package:algebrix/models/module_quiz_model.dart';
 import 'package:algebrix/services/module_quiz_service.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
+import 'package:algebrix/widgets/bouncy_pressable.dart';
 
 /// Interactive AI-Powered 15-Question Module Quiz with progressive difficulty and mascot feedback.
 class ModuleQuizScreen extends StatefulWidget {
@@ -600,40 +601,38 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
       textColor = const Color(0xFF0F7263);
     }
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: _isAnswered ? null : () => _handleSelectOption(optionIndex),
-        borderRadius: BorderRadius.circular(32),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(
-              color: borderColor,
-              width: (isSelected || (_isAnswered && isCorrectChoice)) ? 2 : 1.3,
+    return BouncyPressable(
+      shrinkFactor: 0.97,
+      enableHaptics: true,
+      onTap: _isAnswered ? null : () => _handleSelectOption(optionIndex),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(
+            color: borderColor,
+            width: (isSelected || (_isAnswered && isCorrectChoice)) ? 2 : 1.3,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: (isSelected || (_isAnswered && isCorrectChoice))
+                  ? borderColor.withValues(alpha: 0.15)
+                  : AppColors.shadow.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: (isSelected || (_isAnswered && isCorrectChoice))
-                    ? borderColor.withValues(alpha: 0.15)
-                    : AppColors.shadow.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: _buildOptionLabel(
-            label: label,
-            isAnswered: _isAnswered,
-            isCorrectChoice: isCorrectChoice,
-            isSelected: isSelected,
-            textColor: textColor,
-          ),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: _buildOptionLabel(
+          label: label,
+          isAnswered: _isAnswered,
+          isCorrectChoice: isCorrectChoice,
+          isSelected: isSelected,
+          textColor: textColor,
         ),
       ),
     );

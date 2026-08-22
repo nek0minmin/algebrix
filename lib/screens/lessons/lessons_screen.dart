@@ -9,6 +9,8 @@ import 'package:algebrix/screens/lessons/lesson_screen.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/widgets/page_headers.dart';
+import 'package:algebrix/core/animations/app_page_route.dart';
+import 'package:algebrix/widgets/bouncy_pressable.dart';
 
 /// Learning Path screen — replaces the placeholder "Coming Soon" Lessons tab.
 /// Shows available modules with progress indicators and lock states.
@@ -80,8 +82,8 @@ class _LessonsScreenState extends State<LessonsScreen> {
                     final lessonProvider = context.read<LessonProvider>();
                     lessonProvider.startModule(module1);
                     Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ModuleOverviewScreen(),
+                      AppPageRoute(
+                        child: const ModuleOverviewScreen(),
                       ),
                     );
                   },
@@ -99,8 +101,8 @@ class _LessonsScreenState extends State<LessonsScreen> {
                     final lessonProvider = context.read<LessonProvider>();
                     lessonProvider.startModule(module2);
                     Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ModuleOverviewScreen(),
+                      AppPageRoute(
+                        child: const ModuleOverviewScreen(),
                       ),
                     );
                   },
@@ -188,7 +190,9 @@ class _ModuleCard extends StatelessWidget {
     final totalCount = module.lessons.length;
     final progress = totalCount > 0 ? completedCount / totalCount : 0.0;
 
-    return GestureDetector(
+    return BouncyPressable(
+      shrinkFactor: 0.97,
+      enableHaptics: true,
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -380,7 +384,9 @@ class _FilteredLessonCard extends StatelessWidget {
     final lessonProvider = context.watch<LessonProvider>();
     final isCompleted = lessonProvider.isLessonCompleted(lesson.lessonId);
 
-    return InkWell(
+    return BouncyPressable(
+      shrinkFactor: 0.97,
+      enableHaptics: true,
       onTap: () {
         final parentModule = module1.lessons.any((l) => l.lessonId == lesson.lessonId)
             ? module1
@@ -388,12 +394,11 @@ class _FilteredLessonCard extends StatelessWidget {
         lessonProvider.startModule(parentModule);
         lessonProvider.startLesson(lesson);
         Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const LessonScreen(),
+          AppPageRoute(
+            child: const LessonScreen(),
           ),
         );
       },
-      borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(

@@ -11,7 +11,8 @@ import 'package:algebrix/screens/practice/practice_screen.dart';
 import 'package:algebrix/screens/auth/login_screen.dart';
 import 'package:algebrix/models/user_model.dart';
 
-/// The root navigation scaffold that manages bottom navigation state and enforces auth locks.
+/// The root navigation scaffold that manages bottom navigation state,
+/// fluid horizontal swipe gestures, and enforces auth locks.
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -21,10 +22,29 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
+  late final PageController _pageController;
   final UserModel _fallbackUser = UserModel.placeholder();
 
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   void _onTabTapped(int index) {
+    if (_currentIndex == index) return;
     setState(() => _currentIndex = index);
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   final List<Widget> _screens = const [
@@ -59,6 +79,7 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
             AppHeader(
@@ -74,7 +95,14 @@ class _MainShellState extends State<MainShell> {
               },
             ),
             Expanded(
-              child: IndexedStack(index: _currentIndex, children: _screens),
+              child: PageView(
+                controller: _pageController,
+                physics: const BouncingScrollPhysics(),
+                onPageChanged: (index) {
+                  setState(() => _currentIndex = index);
+                },
+                children: _screens,
+              ),
             ),
           ],
         ),

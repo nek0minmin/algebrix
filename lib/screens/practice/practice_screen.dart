@@ -7,6 +7,8 @@ import 'package:algebrix/screens/practice/balance_scale_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
+import 'package:algebrix/core/animations/app_page_route.dart';
+import 'package:algebrix/widgets/bouncy_pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -44,8 +46,8 @@ class PracticeScreen extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => const BalanceScaleScreen(),
+                          AppPageRoute(
+                            child: const BalanceScaleScreen(),
                           ),
                         );
                       },
@@ -173,79 +175,77 @@ class PracticeScreen extends StatelessWidget {
     required Color accentColor,
     required Color surfaceColor,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          Navigator.of(context).pop();
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ModuleQuizScreen(module: module),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: accentColor.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: accentColor.withValues(alpha: 0.06),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
+    return BouncyPressable(
+      shrinkFactor: 0.96,
+      enableHaptics: true,
+      onTap: () {
+        Navigator.of(context).pop();
+        Navigator.push(
+          context,
+          AppPageRoute(
+            child: ModuleQuizScreen(module: module),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: surfaceColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: accentColor, size: 24),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      module.title,
-                      style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.text,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${module.lessons.length} Sub-lessons • 15 Questions',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.play_circle_fill_rounded,
-                color: accentColor,
-                size: 28,
-              ),
-            ],
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: accentColor.withValues(alpha: 0.3),
+            width: 1.5,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withValues(alpha: 0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: accentColor, size: 24),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    module.title,
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${module.lessons.length} Sub-lessons • 15 Questions',
+                    style: GoogleFonts.nunito(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.play_circle_fill_rounded,
+              color: accentColor,
+              size: 28,
+            ),
+          ],
         ),
       ),
     );
@@ -274,14 +274,13 @@ class _PracticeModeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
+    return BouncyPressable(
+      shrinkFactor: 0.97,
+      enableHaptics: true,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
@@ -389,7 +388,6 @@ class _PracticeModeCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
+      );
+    }
 }

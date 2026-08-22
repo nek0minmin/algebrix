@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
@@ -115,7 +116,10 @@ class _ChoiceItemState extends State<_ChoiceItem>
   }
 
   void _handleTapDown(TapDownDetails details) {
-    if (widget.isEnabled && !widget.isAnswered) _controller.forward();
+    if (widget.isEnabled && !widget.isAnswered) {
+      HapticFeedback.selectionClick();
+      _controller.forward();
+    }
   }
 
   void _handleTapUp(TapUpDetails details) {

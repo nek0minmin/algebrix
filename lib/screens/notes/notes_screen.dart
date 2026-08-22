@@ -8,6 +8,8 @@ import 'package:algebrix/screens/notes/note_lesson_options.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/page_headers.dart';
+import 'package:algebrix/core/animations/app_page_route.dart';
+import 'package:algebrix/widgets/bouncy_pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,7 +21,7 @@ class NotesScreen extends StatelessWidget {
   Future<void> _createNote(BuildContext context) async {
     final created = await Navigator.of(
       context,
-    ).push<bool>(MaterialPageRoute(builder: (_) => const NoteFormScreen()));
+    ).push<bool>(AppPageRoute(child: const NoteFormScreen()));
     if (created == true && context.mounted) {
       showAlgebrixSnackBar(
         context,
@@ -32,7 +34,7 @@ class NotesScreen extends StatelessWidget {
   Future<void> _openNote(BuildContext context, StudyNote note) async {
     context.read<NotesProvider>().selectNote(note.id);
     final deleted = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => NoteDetailScreen(note: note)),
+      AppPageRoute(child: NoteDetailScreen(note: note)),
     );
     if (deleted == true && context.mounted) {
       showAlgebrixSnackBar(
@@ -424,16 +426,24 @@ class _NoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.card,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      child: InkWell(
-        key: Key('study-note-${note.id}'),
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+    return BouncyPressable(
+      key: Key('study-note-${note.id}'),
+      shrinkFactor: 0.97,
+      enableHaptics: true,
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: IntrinsicHeight(

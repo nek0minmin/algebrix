@@ -27,6 +27,8 @@ import 'package:algebrix/screens/practice/balance_scale_screen.dart';
 import 'package:algebrix/screens/practice/quiz_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/screens/notes/note_detail_screen.dart';
+import 'package:algebrix/core/animations/app_page_route.dart';
+import 'package:algebrix/widgets/bouncy_pressable.dart';
 
 /// Upgraded Dashboard screen displaying universal search, progress stats,
 /// quick practice tools, continue learning, daily challenge, and account actions.
@@ -98,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onOpenNote: (note) {
                       notesProvider.selectNote(note.id);
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => NoteDetailScreen(note: note)),
+                        AppPageRoute(builder: (_) => NoteDetailScreen(note: note)),
                       );
                     },
                   ),
@@ -167,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           accentColor: AppColors.pink,
                           onTap: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const BalanceScaleScreen()),
+                              AppPageRoute(child: const BalanceScaleScreen()),
                             );
                           },
                         ),
@@ -183,9 +185,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             final targetModule =
                                 lessonProvider.currentModule ?? module1;
                             Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    ModuleQuizScreen(module: targetModule),
+                              AppPageRoute(
+                                child: ModuleQuizScreen(module: targetModule),
                               ),
                             );
                           },
@@ -341,9 +342,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     final navigator = Navigator.of(context);
     navigator.push(
-      MaterialPageRoute(builder: (_) => const ModuleOverviewScreen()),
+      AppPageRoute(child: const ModuleOverviewScreen()),
     );
-    navigator.push(MaterialPageRoute(builder: (_) => const LessonScreen()));
+    navigator.push(AppPageRoute(child: const LessonScreen()));
   }
 }
 
@@ -364,43 +365,51 @@ class _QuickFeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border),
+    return BouncyPressable(
+      shrinkFactor: 0.95,
+      enableHaptics: true,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: accentColor.withValues(alpha: 0.25),
+            width: 1.2,
           ),
-          child: Row(
-            children: [
-              Text(icon, style: const TextStyle(fontSize: 28)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.nunito(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.text,
-                      ),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withValues(alpha: 0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 28)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.nunito(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.text,
                     ),
-                    Text(
-                      subtitle,
-                      style: AppTextStyles.caption.copyWith(color: AppColors.subtitle),
-                    ),
-                  ],
-                ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.caption.copyWith(color: AppColors.subtitle),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
