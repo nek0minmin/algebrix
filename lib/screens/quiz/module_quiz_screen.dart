@@ -456,55 +456,55 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
 
     Color borderColor = AppColors.border;
     Color bgColor = Colors.white;
-    Color textColor = AppColors.text;
 
     if (_isAnswered) {
       if (isCorrectChoice) {
         borderColor = AppColors.mint;
         bgColor = AppColors.lightMint;
-        textColor = const Color(0xFF0F7263);
       } else if (isSelected && !isCorrectChoice) {
         borderColor = AppColors.pink;
         bgColor = AppColors.extraLightPink;
-        textColor = AppColors.darkPink;
       }
     } else if (isSelected) {
       borderColor = AppColors.purple;
-      bgColor = AppColors.lightPurple.withValues(alpha: 0.3);
+      bgColor = AppColors.lightPurple.withValues(alpha: 0.25);
     }
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: _isAnswered ? null : () => _handleSelectOption(optionIndex),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
+        borderRadius: BorderRadius.circular(32),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(32),
             border: Border.all(
               color: borderColor,
-              width: (isSelected || (_isAnswered && isCorrectChoice)) ? 2 : 1.2,
+              width: (isSelected || (_isAnswered && isCorrectChoice)) ? 2 : 1.4,
             ),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: AppColors.shadow,
-                blurRadius: 8,
-                offset: Offset(0, 2),
+                color: (isSelected || (_isAnswered && isCorrectChoice))
+                    ? borderColor.withValues(alpha: 0.15)
+                    : AppColors.shadow.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: Row(
             children: [
               Container(
-                width: 28,
-                height: 28,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: (isSelected || (_isAnswered && isCorrectChoice))
                       ? borderColor
-                      : AppColors.background,
+                      : const Color(0xFFF3F4F6),
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: borderColor,
@@ -515,7 +515,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
                   child: Text(
                     String.fromCharCode(65 + optionIndex),
                     style: GoogleFonts.nunito(
-                      fontSize: 13,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w900,
                       color: (isSelected || (_isAnswered && isCorrectChoice))
                           ? Colors.white
@@ -526,19 +526,52 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
               ),
               const SizedBox(width: 14),
               Expanded(
-                child: Text(
-                  label,
-                  style: GoogleFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: textColor,
-                  ),
+                child: _buildOptionLabel(
+                  label: label,
+                  isAnswered: _isAnswered,
+                  isCorrectChoice: isCorrectChoice,
+                  isSelected: isSelected,
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildOptionLabel({
+    required String label,
+    required bool isAnswered,
+    required bool isCorrectChoice,
+    required bool isSelected,
+  }) {
+    if (isAnswered) {
+      if (isCorrectChoice) {
+        return Text(
+          label,
+          style: GoogleFonts.nunito(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F7263),
+          ),
+        );
+      } else if (isSelected && !isCorrectChoice) {
+        return Text(
+          label,
+          style: GoogleFonts.nunito(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: AppColors.darkPink,
+          ),
+        );
+      }
+    }
+
+    final spans = _parseMathSpans(label, fontSize: 16);
+    return Text.rich(
+      TextSpan(children: spans),
+      textAlign: TextAlign.start,
     );
   }
 
@@ -862,100 +895,135 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
     );
   }
 
-  Widget _buildRichQuestionPrompt(String questionText) {
-    final spans = <InlineSpan>[];
-    final regex = RegExp(
-      r'([\×\*]|\b[+\−\-\÷\=]\b|[+\−\-\÷\=]|\n+|[^\s\×\*\+\−\-\÷\=]+|\s+)',
-    );
-    final matches = regex.allMatches(questionText);
+  static const Set<String> _englishWords = {
+    'a', 'an', 'the', 'in', 'of', 'on', 'at', 'to', 'for', 'with', 'from', 'by', 'into',
+    'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
+    'do', 'does', 'did', 'can', 'could', 'should', 'would', 'may', 'might', 'must',
+    'what', 'which', 'who', 'whom', 'whose', 'why', 'where', 'when', 'how',
+    'this', 'that', 'these', 'those', 'there', 'here',
+    'and', 'or', 'not', 'but', 'nor', 'so', 'yet',
+    'if', 'then', 'else', 'because', 'as', 'until', 'while',
+    'true', 'false', 'evaluate', 'simplify', 'expand', 'calculate', 'solve',
+    'identify', 'find', 'count', 'select', 'choose', 'statement', 'question',
+    'expression', 'expressions', 'equation', 'equations', 'term', 'terms',
+    'variable', 'variables', 'constant', 'constants', 'coefficient', 'coefficients',
+    'like', 'unlike', 'property', 'properties', 'operation', 'operations',
+    'order', 'addition', 'subtraction', 'multiplication', 'division',
+    'commutative', 'associative', 'distributive', 'identity', 'inverse', 'zero',
+    'first', 'second', 'third', 'fourth', 'fifth', 'next', 'last',
+    'left', 'right', 'both', 'side', 'sides', 'value', 'values', 'part', 'parts',
+    'all', 'any', 'each', 'every', 'some', 'many', 'more', 'most', 'less',
+    'pair', 'pairs', 'following', 'represents', 'stands', 'alone', 'standalone',
+    'implicit', 'invisible', 'completely', 'instead', 'according', 'shows',
+    'number', 'numbers', 'letter', 'letters', 'phrase', 'phrases', 'group', 'groups',
+  };
 
-    if (matches.isEmpty) {
-      return Text(
-        questionText,
-        style: GoogleFonts.nunito(
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-          color: AppColors.text,
-          height: 1.45,
-        ),
-        textAlign: TextAlign.center,
-      );
+  bool _isMathToken(String rawToken) {
+    final token = rawToken.trim();
+    if (token.isEmpty) return false;
+
+    if ((token.startsWith('`') && token.endsWith('`')) ||
+        (token.startsWith('"') && token.endsWith('"')) ||
+        (token.startsWith("'") && token.endsWith("'"))) {
+      return true;
     }
 
-    var lastEnd = 0;
+    // Contains digits (e.g. 7x, 5, 12, 4a²)
+    if (RegExp(r'\d').hasMatch(token)) return true;
+
+    // Contains math operators or parentheses
+    if (RegExp(r'[+\−\-\×\*\÷\/\=\<\>\^\(\)\[\]²³]').hasMatch(token)) {
+      return true;
+    }
+
+    // Single letter variables (x, y, n, z, b) — excluding English 'a' and 'i' in sentence context
+    final cleanAlpha = token.replaceAll(RegExp(r'[^a-zA-Z]'), '').toLowerCase();
+    if (cleanAlpha.length == 1) {
+      if (cleanAlpha == 'a' || cleanAlpha == 'i') {
+        return false;
+      }
+      return true;
+    }
+
+    // Check if clean word is common English prose
+    if (_englishWords.contains(cleanAlpha)) {
+      return false;
+    }
+
+    // If it's a short variable combination like 2x or 3xy or ab
+    if (cleanAlpha.length > 1 && cleanAlpha.length <= 4) {
+      return true;
+    }
+
+    return false;
+  }
+
+  List<InlineSpan> _parseMathSpans(
+    String text, {
+    required double fontSize,
+  }) {
+    final spans = <InlineSpan>[];
+    final regex = RegExp(r'(\`[^\`]+\`|"[^"]+"|[^\s]+|\s+)');
+    final matches = regex.allMatches(text);
+
     for (final m in matches) {
-      if (m.start > lastEnd) {
-        spans.add(
-          TextSpan(
-            text: questionText.substring(lastEnd, m.start),
-            style: GoogleFonts.nunito(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppColors.text,
-              height: 1.45,
-            ),
-          ),
-        );
+      final token = m.group(0)!;
+      if (token.trim().isEmpty) {
+        spans.add(const TextSpan(text: ' '));
+        continue;
       }
 
-      final token = m.group(0)!;
-      if (token == '×' || token == '*') {
+      final isMath = _isMathToken(token);
+      final cleanText = token.replaceAll('`', '').replaceAll('"', '');
+
+      if (cleanText == '×' || cleanText == '*') {
         spans.add(
           TextSpan(
-            text: ' × ',
+            text: '×',
             style: GoogleFonts.nunito(
-              fontSize: 15.5,
+              fontSize: fontSize * 0.88,
               fontWeight: FontWeight.w900,
-              color: AppColors.pink,
+              color: const Color(0xFF222428), // Dark gray
               height: 1.45,
             ),
           ),
         );
-      } else if (token == '+' ||
-          token == '−' ||
-          token == '-' ||
-          token == '÷' ||
-          token == '=') {
+      } else if (isMath) {
+        // Dark gray for numbers, equations, operations, and variables
         spans.add(
           TextSpan(
-            text: ' $token ',
+            text: cleanText,
             style: GoogleFonts.nunito(
-              fontSize: 18,
+              fontSize: fontSize,
               fontWeight: FontWeight.w800,
-              color: AppColors.purple,
+              color: const Color(0xFF222428), // Dark gray
+              letterSpacing: 0.3,
               height: 1.45,
             ),
           ),
         );
       } else {
+        // Soft gray for the rest of the question words
         spans.add(
           TextSpan(
-            text: token,
+            text: cleanText,
             style: GoogleFonts.nunito(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppColors.text,
+              fontSize: fontSize,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF5A5A5A), // Soft gray
+              letterSpacing: 0.2,
               height: 1.45,
             ),
           ),
         );
       }
-      lastEnd = m.end;
     }
 
-    if (lastEnd < questionText.length) {
-      spans.add(
-        TextSpan(
-          text: questionText.substring(lastEnd),
-          style: GoogleFonts.nunito(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.text,
-            height: 1.45,
-          ),
-        ),
-      );
-    }
+    return spans;
+  }
+
+  Widget _buildRichQuestionPrompt(String questionText) {
+    final spans = _parseMathSpans(questionText, fontSize: 18.5);
 
     return Text.rich(
       TextSpan(children: spans),
