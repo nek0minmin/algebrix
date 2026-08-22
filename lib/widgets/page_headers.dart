@@ -169,7 +169,7 @@ class SecondaryPageAppBar extends StatelessWidget
                   child: _PageHeaderIdentity(
                     title: title,
                     supportingText: supportingText,
-                    mascotAsset: mascotAsset ?? AppAssets.xyNotes,
+                    mascotAsset: mascotAsset,
                     mascotSize: mascotSize,
                     titleSize: 22,
                     supportingTextSize: 13,
@@ -218,14 +218,16 @@ class _PageHeaderIdentity extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        XyMascot(
-          asset: mascotAsset ?? AppAssets.xyDefault,
-          imageKey: const Key('page-header-xy'),
-          size: mascotSize,
-          shadowBlur: 5.0,
-          shadowOpacity: 0.22,
-        ),
-        const SizedBox(width: 14),
+        if (mascotAsset != null) ...[
+          XyMascot(
+            asset: mascotAsset!,
+            imageKey: const Key('page-header-xy'),
+            size: mascotSize,
+            shadowBlur: 5.0,
+            shadowOpacity: 0.22,
+          ),
+          const SizedBox(width: 14),
+        ],
         Expanded(
           child: Column(
             mainAxisSize: MainAxisSize.min,

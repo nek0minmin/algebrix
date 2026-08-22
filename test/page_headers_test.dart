@@ -127,10 +127,9 @@ void main() {
     }
 
     await pumpSecondary(390);
-    expect(xyForegroundImages(), findsOneWidget);
+    expect(xyForegroundImages(), findsNothing);
     expect(tester.getSize(find.byType(AppBar)), const Size(390, 96));
     expect(tester.getSize(find.byKey(const Key('secondary-page-back-button'))), const Size.square(44));
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(64));
     expect(find.bySemanticsLabel('Back to Notes'), findsWidgets);
 
     final title = tester.widget<Text>(find.text('New note'));
@@ -143,8 +142,7 @@ void main() {
     expect(support.style?.fontWeight, FontWeight.w600);
 
     await pumpSecondary(320, textScale: 1.3);
-    expect(xyForegroundImages(), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(52));
+    expect(xyForegroundImages(), findsNothing);
     expect(find.text('Explain one idea in your own words.'), findsOneWidget);
     expect(tester.takeException(), isNull);
 

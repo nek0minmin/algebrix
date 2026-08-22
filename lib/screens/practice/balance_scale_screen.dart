@@ -7,6 +7,8 @@ import 'package:algebrix/services/math_api_service.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
+import 'package:algebrix/widgets/xy_mascot.dart';
+import 'package:algebrix/widgets/bouncy_pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -105,36 +107,33 @@ class BalanceScaleScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: SecondaryPageAppBar(
+      appBar: const SecondaryPageAppBar(
         title: 'Balance Scale',
         supportingText: 'Isolate x by dragging operations onto the scale.',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // API Status Badge
-              _ApiStatusBadge(providerUsed: provider.providerUsed),
-              const SizedBox(height: 14),
-
-              // Equation Goal Banner
+              // Xy Companion & Target Equation Header
               if (problem != null) ...[
-                _EquationBanner(
+                _EquationAndMascotHeader(
                   problem: problem,
                   moveCount: provider.moveCount,
                   optimalMoves: provider.optimalMoves,
+                  isSolved: provider.isSolved,
                   onReset: provider.resetCurrentProblem,
                 ),
                 const SizedBox(height: 16),
               ],
 
-              // Drag Instructions
+              // Drag & Tap Instructions Banner
               _DragInstructionsBanner(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
-              // Animated Tilting Scale with Drag Targets
+              // Authentic Physical Tilting Scale with Pans & Center Drop
               _AnimatedBalanceScale(
                 leftExpr: provider.leftExpr,
                 rightExpr: provider.rightExpr,
@@ -145,7 +144,7 @@ class BalanceScaleScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Colored Number Block Chips
+              // Tactile Colored Number Block Chips
               _NumberBlockPalette(
                 isLoading: provider.isLoading,
                 isSolved: provider.isSolved,
@@ -190,6 +189,7 @@ class BalanceScaleScreen extends StatelessWidget {
                   onNext: provider.initNewProblem,
                 ),
               ],
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -198,151 +198,197 @@ class BalanceScaleScreen extends StatelessWidget {
   }
 }
 
-// ─── API Status Badge ────────────────────────────────────────────────────────
+// ─── Equation & Xy Mascot Header ────────────────────────────────────────────
 
-class _ApiStatusBadge extends StatelessWidget {
-  const _ApiStatusBadge({required this.providerUsed});
-
-  final String providerUsed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.extraLightPink,
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: AppColors.pink.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: const BoxDecoration(
-              color: Colors.green,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              'Powered by $providerUsed',
-              style: GoogleFonts.nunito(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: AppColors.pink,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Equation Banner ─────────────────────────────────────────────────────────
-
-class _EquationBanner extends StatelessWidget {
-  const _EquationBanner({
+class _EquationAndMascotHeader extends StatelessWidget {
+  const _EquationAndMascotHeader({
     required this.problem,
     required this.moveCount,
     required this.optimalMoves,
+    required this.isSolved,
     required this.onReset,
   });
 
   final BalanceScaleProblem problem;
   final int moveCount;
   final int optimalMoves;
+  final bool isSolved;
   final VoidCallback onReset;
+
+  String _resolveMascotAsset() {
+    if (isSolved) return AppAssets.xyHappy;
+    if (moveCount > optimalMoves + 1) return AppAssets.xyExplaining;
+    return AppAssets.xyPractice;
+  }
+
+  String _resolveSpeechPrompt() {
+    if (isSolved) return 'Awesome! You balanced and isolated x! 🎉';
+    if (moveCount == 0) return 'Keep both sides balanced! Isolate x step-by-step.';
+    if (moveCount <= optimalMoves) return 'Great move! What operation will isolate x next?';
+    return 'Tip: Try eliminating the constant term first!';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.pink.withValues(alpha: 0.3), width: 2),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(
+          color: isSolved
+              ? AppColors.mint
+              : AppColors.pink.withValues(alpha: 0.35),
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.pink.withValues(alpha: 0.08),
+            color: (isSolved ? AppColors.mint : AppColors.pink)
+                .withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          Image.asset(
-            AppAssets.xyPractice,
-            width: 44,
-            height: 44,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Prominent Xy Mascot
+              XyMascot(
+                asset: _resolveMascotAsset(),
+                size: 92,
+                shadowBlur: 5.0,
+                shadowOpacity: 0.2,
+              ),
+              const SizedBox(width: 14),
+
+              // Target Equation Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Flexible(
-                      child: Text(
-                        'Solve for x',
-                        style: AppTextStyles.subtitle2.copyWith(
-                          color: AppColors.pink,
-                          fontWeight: FontWeight.w800,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.extraLightPink,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              'Solve for x',
+                              style: GoogleFonts.nunito(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.darkPink,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ),
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        const SizedBox(width: 6),
+                        // Moves Counter Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: moveCount <= optimalMoves
+                                ? AppColors.lightMint
+                                : (moveCount <= optimalMoves + 2
+                                    ? AppColors.lightYellow
+                                    : AppColors.extraLightPink),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '$moveCount/$optimalMoves moves',
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: moveCount <= optimalMoves
+                                  ? AppColors.mint
+                                  : (moveCount <= optimalMoves + 2
+                                      ? const Color(0xFFB8860B)
+                                      : AppColors.pink),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 6),
-                    // Moves Counter Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: moveCount <= optimalMoves
-                            ? AppColors.lightMint
-                            : (moveCount <= optimalMoves + 2
-                                ? AppColors.lightYellow
-                                : AppColors.extraLightPink),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '$moveCount/$optimalMoves moves',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: moveCount <= optimalMoves
-                              ? AppColors.mint
-                              : (moveCount <= optimalMoves + 2
-                                  ? const Color(0xFFD4A017)
-                                  : AppColors.pink),
-                        ),
+                    const SizedBox(height: 6),
+                    Text(
+                      problem.equation,
+                      style: GoogleFonts.nunito(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.text,
+                        letterSpacing: 0.3,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  problem.equation,
-                  style: GoogleFonts.nunito(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.text,
+              ),
+
+              // Reset Button
+              BouncyPressable(
+                shrinkFactor: 0.9,
+                onTap: onReset,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.extraLightPink,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.pink.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.refresh_rounded,
+                    color: AppColors.pink,
+                    size: 22,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Companion Guide Dialogue
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.tips_and_updates_rounded,
+                  color: AppColors.pink,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _resolveSpeechPrompt(),
+                    style: GoogleFonts.nunito(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text,
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.pink),
-            tooltip: 'Reset Problem',
-            onPressed: onReset,
           ),
         ],
       ),
@@ -356,24 +402,28 @@ class _DragInstructionsBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.lightPurple,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.purple.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.purple.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.touch_app_rounded, color: AppColors.purple, size: 20),
-          const SizedBox(width: 10),
+          const Icon(
+            Icons.touch_app_rounded,
+            color: AppColors.purple,
+            size: 22,
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Drag a number block onto the Center (both sides) or a single Pan. Tap to apply to both sides!',
+              'Drag a number block onto the Center (both sides) or a single Pan. Tap any block to apply to both sides!',
               style: GoogleFonts.nunito(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.text,
-                height: 1.3,
+                height: 1.35,
               ),
             ),
           ),
@@ -438,7 +488,6 @@ class _AnimatedBalanceScaleState extends State<_AnimatedBalanceScale>
     if (oldWidget.leftExpr != widget.leftExpr ||
         oldWidget.rightExpr != widget.rightExpr) {
       _updateTilt();
-      // Trigger wobble when expressions change
       _wobbleController.forward(from: 0);
     }
   }
@@ -447,7 +496,7 @@ class _AnimatedBalanceScaleState extends State<_AnimatedBalanceScale>
     final leftWeight = _estimateWeight(widget.leftExpr);
     final rightWeight = _estimateWeight(widget.rightExpr);
     final diff = rightWeight - leftWeight;
-    final maxDelta = 30.0;
+    const maxDelta = 30.0;
     final oldTilt = _targetTilt;
     _targetTilt = (diff / maxDelta).clamp(-1.0, 1.0) * 0.12; // ~7° max
 
@@ -460,11 +509,9 @@ class _AnimatedBalanceScaleState extends State<_AnimatedBalanceScale>
   }
 
   double _estimateWeight(String expr) {
-    // Try parsing as pure number first
     final numVal = double.tryParse(expr.trim());
     if (numVal != null) return numVal;
 
-    // Extract numeric parts from expressions like "2x + 6"
     double weight = 0;
     final matches = RegExp(r'[\d]+\.?[\d]*').allMatches(expr);
     for (final m in matches) {
@@ -486,32 +533,35 @@ class _AnimatedBalanceScaleState extends State<_AnimatedBalanceScale>
       animation: Listenable.merge([_tiltAnimation, _wobbleAnimation]),
       builder: (context, child) {
         final wobbleOffset = _wobbleController.isAnimating
-            ? math.sin(_wobbleAnimation.value * math.pi * 3) * 3 *
+            ? math.sin(_wobbleAnimation.value * math.pi * 3) *
+                3 *
                 (1 - _wobbleAnimation.value)
             : 0.0;
 
         return Container(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(30),
             border: Border.all(
-              color: widget.isSolved ? AppColors.mint : AppColors.border,
+              color: widget.isSolved
+                  ? AppColors.mint
+                  : AppColors.border.withValues(alpha: 0.9),
               width: widget.isSolved ? 2.5 : 1.5,
             ),
             boxShadow: [
               BoxShadow(
                 color: widget.isSolved
-                    ? AppColors.mint.withValues(alpha: 0.12)
-                    : Colors.black.withValues(alpha: 0.04),
-                blurRadius: 18,
+                    ? AppColors.mint.withValues(alpha: 0.14)
+                    : Colors.black.withValues(alpha: 0.05),
+                blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
             ],
           ),
           child: Column(
             children: [
-              // Center Fulcrum Drop Target (BOTH sides)
+              // 1. Center Drop Target (Apply to BOTH Sides)
               DragTarget<ScaleOp>(
                 onWillAcceptWithDetails: (d) =>
                     !widget.isLoading && !widget.isSolved,
@@ -522,46 +572,64 @@ class _AnimatedBalanceScaleState extends State<_AnimatedBalanceScale>
                   final isHovered = candidateData.isNotEmpty;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 11,
+                    ),
                     decoration: BoxDecoration(
                       color: isHovered
                           ? AppColors.lightMint
-                          : AppColors.background,
-                      borderRadius: BorderRadius.circular(14),
+                          : (widget.isSolved
+                              ? AppColors.lightMint.withValues(alpha: 0.5)
+                              : AppColors.background),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isHovered
                             ? AppColors.mint
-                            : AppColors.border.withValues(alpha: 0.6),
+                            : (widget.isSolved
+                                ? AppColors.mint
+                                : AppColors.border),
                         width: isHovered ? 2.5 : 1.5,
                       ),
+                      boxShadow: [
+                        if (isHovered)
+                          BoxShadow(
+                            color: AppColors.mint.withValues(alpha: 0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 3),
+                          ),
+                      ],
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           isHovered
                               ? Icons.check_circle_rounded
-                              : Icons.center_focus_strong_rounded,
-                          color: isHovered
+                              : (widget.isSolved
+                                  ? Icons.verified_rounded
+                                  : Icons.balance_rounded),
+                          color: isHovered || widget.isSolved
                               ? AppColors.mint
-                              : AppColors.textSecondary,
-                          size: 18,
+                              : AppColors.pink,
+                          size: 20,
                         ),
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(
                             isHovered
                                 ? 'Release to apply to BOTH sides! 🎯'
-                                : '🎯 Drop here → Apply to BOTH sides',
+                                : (widget.isSolved
+                                    ? '⚖️ EQUATION BALANCED & SOLVED!'
+                                    : '🎯 Drop here → Apply to BOTH sides'),
                             style: GoogleFonts.nunito(
-                              fontSize: 12,
+                              fontSize: 12.5,
                               fontWeight: FontWeight.w900,
-                              color: isHovered
-                                  ? AppColors.mint
-                                  : AppColors.textSecondary,
+                              color: isHovered || widget.isSolved
+                                  ? const Color(0xFF0F7263)
+                                  : AppColors.text,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -569,97 +637,18 @@ class _AnimatedBalanceScaleState extends State<_AnimatedBalanceScale>
                   );
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-              // Tilting Beam + Pans
+              // 2. Physical Balance Scale Mechanism (Fulcrum + Beam + Suspension + Pans)
               Transform.translate(
                 offset: Offset(0, wobbleOffset),
-                child: Transform.rotate(
-                  angle: _tiltAnimation.value,
-                  alignment: Alignment.center,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Left Pan Drop Target
-                      Expanded(
-                        child: DragTarget<ScaleOp>(
-                          onWillAcceptWithDetails: (d) =>
-                              !widget.isLoading && !widget.isSolved,
-                          onAcceptWithDetails: (d) {
-                            widget.onApply(
-                                d.data.op, d.data.value, 'left');
-                          },
-                          builder: (ctx, candidateData, rejectedData) {
-                            final isHovered = candidateData.isNotEmpty;
-                            return _ScalePan(
-                              expression: widget.leftExpr,
-                              isLeft: true,
-                              isSolved: widget.isSolved,
-                              isHovered: isHovered,
-                            );
-                          },
-                        ),
-                      ),
-
-                      // Fulcrum + Beam connector
-                      Column(
-                        children: [
-                          const SizedBox(height: 6),
-                          // Beam
-                          Container(
-                            width: 40,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: widget.isSolved
-                                    ? [AppColors.mint, AppColors.mint]
-                                    : [AppColors.text, AppColors.text],
-                              ),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                          ),
-                          // Fulcrum triangle
-                          CustomPaint(
-                            size: const Size(36, 32),
-                            painter: _FulcrumPainter(
-                              color: widget.isSolved
-                                  ? AppColors.mint
-                                  : AppColors.pink,
-                            ),
-                          ),
-                          Container(
-                            height: 8,
-                            width: 50,
-                            decoration: BoxDecoration(
-                              color: AppColors.text,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // Right Pan Drop Target
-                      Expanded(
-                        child: DragTarget<ScaleOp>(
-                          onWillAcceptWithDetails: (d) =>
-                              !widget.isLoading && !widget.isSolved,
-                          onAcceptWithDetails: (d) {
-                            widget.onApply(
-                                d.data.op, d.data.value, 'right');
-                          },
-                          builder: (ctx, candidateData, rejectedData) {
-                            final isHovered = candidateData.isNotEmpty;
-                            return _ScalePan(
-                              expression: widget.rightExpr,
-                              isLeft: false,
-                              isSolved: widget.isSolved,
-                              isHovered: isHovered,
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                child: _PhysicalScaleStructure(
+                  tiltAngle: _tiltAnimation.value,
+                  leftExpr: widget.leftExpr,
+                  rightExpr: widget.rightExpr,
+                  isSolved: widget.isSolved,
+                  isLoading: widget.isLoading,
+                  onApply: widget.onApply,
                 ),
               ),
             ],
@@ -670,10 +659,145 @@ class _AnimatedBalanceScaleState extends State<_AnimatedBalanceScale>
   }
 }
 
-// ─── Scale Pan ──────────────────────────────────────────────────────────────
+// ─── Physical Scale Structure with Beam, Pivot, Chains & Pans ───────────────
 
-class _ScalePan extends StatelessWidget {
-  const _ScalePan({
+class _PhysicalScaleStructure extends StatelessWidget {
+  const _PhysicalScaleStructure({
+    required this.tiltAngle,
+    required this.leftExpr,
+    required this.rightExpr,
+    required this.isSolved,
+    required this.isLoading,
+    required this.onApply,
+  });
+
+  final double tiltAngle;
+  final String leftExpr;
+  final String rightExpr;
+  final bool isSolved;
+  final bool isLoading;
+  final Function(String op, num val, String targetSide) onApply;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Upper Beam with rotation & suspension connecting to pans
+        Transform.rotate(
+          angle: tiltAngle,
+          alignment: Alignment.center,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left Weighing Pan
+              Expanded(
+                child: DragTarget<ScaleOp>(
+                  onWillAcceptWithDetails: (d) => !isLoading && !isSolved,
+                  onAcceptWithDetails: (d) {
+                    onApply(d.data.op, d.data.value, 'left');
+                  },
+                  builder: (ctx, candidateData, rejectedData) {
+                    final isHovered = candidateData.isNotEmpty;
+                    return _ScalePanDish(
+                      expression: leftExpr,
+                      isLeft: true,
+                      isSolved: isSolved,
+                      isHovered: isHovered,
+                    );
+                  },
+                ),
+              ),
+
+              // Central Fulcrum & Level Needle
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Column(
+                  children: [
+                    // Center Pivot Joint Hub
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          colors: [
+                            Colors.white,
+                            isSolved ? AppColors.mint : AppColors.pink,
+                          ],
+                        ),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSolved ? AppColors.mint : AppColors.darkPink,
+                          width: 2.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+
+                    // Sturdy Triangular Fulcrum
+                    CustomPaint(
+                      size: const Size(44, 38),
+                      painter: _FulcrumPainter(
+                        color: isSolved ? AppColors.mint : AppColors.pink,
+                      ),
+                    ),
+
+                    // Heavy Stand Base
+                    Container(
+                      height: 10,
+                      width: 68,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2C3E50),
+                        borderRadius: BorderRadius.circular(5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Right Weighing Pan
+              Expanded(
+                child: DragTarget<ScaleOp>(
+                  onWillAcceptWithDetails: (d) => !isLoading && !isSolved,
+                  onAcceptWithDetails: (d) {
+                    onApply(d.data.op, d.data.value, 'right');
+                  },
+                  builder: (ctx, candidateData, rejectedData) {
+                    final isHovered = candidateData.isNotEmpty;
+                    return _ScalePanDish(
+                      expression: rightExpr,
+                      isLeft: false,
+                      isSolved: isSolved,
+                      isHovered: isHovered,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Scale Pan Dish (Physical Bowl/Tray) ─────────────────────────────────────
+
+class _ScalePanDish extends StatelessWidget {
+  const _ScalePanDish({
     required this.expression,
     required this.isLeft,
     required this.isSolved,
@@ -687,63 +811,170 @@ class _ScalePan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-      decoration: BoxDecoration(
-        color: isHovered
-            ? _lightColorForOp('-')
-            : (isSolved ? AppColors.lightMint : AppColors.background),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isHovered
-              ? AppColors.pink
-              : (isSolved ? AppColors.mint : AppColors.border),
-          width: isHovered ? 2.5 : 1.5,
+    final themeColor = isSolved
+        ? AppColors.mint
+        : (isHovered ? AppColors.pink : AppColors.text);
+
+    return Column(
+      children: [
+        // Suspension Lines (Hanging Cords)
+        CustomPaint(
+          size: const Size(80, 24),
+          painter: _SuspensionChainsPainter(
+            color: isSolved
+                ? AppColors.mint
+                : (isHovered ? AppColors.pink : const Color(0xFF9E9E9E)),
+          ),
         ),
-        boxShadow: isHovered
-            ? [
-                BoxShadow(
-                  color: AppColors.pink.withValues(alpha: 0.2),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            isHovered
-                ? (isLeft ? '↓ LEFT ONLY' : '↓ RIGHT ONLY')
-                : (isLeft ? 'LEFT' : 'RIGHT'),
-            style: GoogleFonts.nunito(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: isHovered ? AppColors.pink : AppColors.textSecondary,
-              letterSpacing: 1.0,
+
+        // Weighing Dish Container
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          decoration: BoxDecoration(
+            color: isHovered
+                ? AppColors.extraLightPink
+                : (isSolved
+                    ? AppColors.lightMint.withValues(alpha: 0.7)
+                    : Colors.white),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(16),
+              bottom: Radius.circular(28),
             ),
-          ),
-          const SizedBox(height: 6),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              expression.isEmpty ? '?' : expression,
-              style: GoogleFonts.nunito(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: isSolved
-                    ? AppColors.mint
-                    : (isHovered ? AppColors.pink : AppColors.text),
+            border: Border.all(
+              color: isHovered
+                  ? AppColors.pink
+                  : (isSolved ? AppColors.mint : AppColors.border),
+              width: isHovered ? 2.5 : 1.8,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isHovered
+                    ? AppColors.pink.withValues(alpha: 0.22)
+                    : (isSolved
+                        ? AppColors.mint.withValues(alpha: 0.16)
+                        : Colors.black.withValues(alpha: 0.05)),
+                blurRadius: isHovered ? 14 : 8,
+                offset: const Offset(0, 4),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Dish Label Tag
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: isHovered
+                      ? AppColors.pink
+                      : (isSolved
+                          ? AppColors.mint
+                          : AppColors.background),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  isHovered
+                      ? (isLeft ? '↓ DROP ON LEFT' : '↓ DROP ON RIGHT')
+                      : (isLeft ? 'LEFT PAN' : 'RIGHT PAN'),
+                  style: GoogleFonts.nunito(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w900,
+                    color: isHovered || isSolved
+                        ? Colors.white
+                        : AppColors.textSecondary,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Algebraic Expression Term sitting in the Dish
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: isSolved
+                      ? Colors.white
+                      : (isHovered
+                          ? Colors.white
+                          : AppColors.background),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: themeColor.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    expression.isEmpty ? '?' : expression,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunito(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: isSolved
+                          ? const Color(0xFF0F7263)
+                          : (isHovered ? AppColors.darkPink : AppColors.text),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
+}
+
+// ─── Suspension Chains Painter ───────────────────────────────────────────────
+
+class _SuspensionChainsPainter extends CustomPainter {
+  final Color color;
+
+  _SuspensionChainsPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final centerX = size.width / 2;
+
+    // Left cord
+    canvas.drawLine(
+      Offset(centerX, 0),
+      Offset(size.width * 0.15, size.height),
+      paint,
+    );
+
+    // Right cord
+    canvas.drawLine(
+      Offset(centerX, 0),
+      Offset(size.width * 0.85, size.height),
+      paint,
+    );
+
+    // Center ring hook
+    final hookPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(centerX, 2), 3.5, hookPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SuspensionChainsPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 // ─── Fulcrum Painter ─────────────────────────────────────────────────────────
@@ -765,6 +996,12 @@ class _FulcrumPainter extends CustomPainter {
       ..close();
 
     canvas.drawPath(path, paint);
+
+    // Level indicator center point
+    final dotPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(size.width / 2, size.height * 0.6), 4, dotPaint);
   }
 
   @override
@@ -789,7 +1026,6 @@ class _NumberBlockPalette extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Build ScaleOp list from dynamic ops
     final chips = dynamicOps.map((m) {
       final op = m['op'] as String;
       final value = m['value'] as num;
@@ -811,20 +1047,21 @@ class _NumberBlockPalette extends StatelessWidget {
             Text(
               'Number Blocks',
               style: AppTextStyles.subtitle1.copyWith(
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
+                color: AppColors.text,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.lightPurple,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 'Drag or Tap',
                 style: GoogleFonts.nunito(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w900,
                   color: AppColors.purple,
                 ),
@@ -832,7 +1069,7 @@ class _NumberBlockPalette extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         if (isLoading)
           const Center(
             child: Padding(
@@ -842,8 +1079,8 @@ class _NumberBlockPalette extends StatelessWidget {
           )
         else
           Wrap(
-            spacing: 10,
-            runSpacing: 10,
+            spacing: 12,
+            runSpacing: 12,
             children: chips
                 .map(
                   (scaleOp) => _DraggableNumberBlock(
@@ -884,10 +1121,11 @@ class _DraggableNumberBlockState extends State<_DraggableNumberBlock>
   @override
   void initState() {
     super.initState();
-    // Subtle idle bobbing animation — each block has a different phase
     _bobController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 1800 + (widget.scaleOp.value.toInt() * 100) % 600),
+      duration: Duration(
+        milliseconds: 1800 + (widget.scaleOp.value.toInt() * 100) % 600,
+      ),
     );
 
     _bobAnimation = Tween<double>(begin: -2, end: 2).animate(
@@ -898,7 +1136,8 @@ class _DraggableNumberBlockState extends State<_DraggableNumberBlock>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final isTesting = WidgetsBinding.instance.runtimeType.toString().contains('Test');
+    final isTesting =
+        WidgetsBinding.instance.runtimeType.toString().contains('Test');
     if (TickerMode.of(context) && !isTesting) {
       if (!_bobController.isAnimating) {
         _bobController.repeat(reverse: true);
@@ -935,22 +1174,30 @@ class _DraggableNumberBlockState extends State<_DraggableNumberBlock>
               child: Transform.scale(
                 scale: 1.15,
                 child: _NumberBlockWidget(
-                    scaleOp: widget.scaleOp, isDragging: true),
+                  scaleOp: widget.scaleOp,
+                  isDragging: true,
+                ),
               ),
             ),
             childWhenDragging: Opacity(
               opacity: 0.3,
               child: _NumberBlockWidget(
-                  scaleOp: widget.scaleOp, isDragging: false),
+                scaleOp: widget.scaleOp,
+                isDragging: false,
+              ),
             ),
-            child: GestureDetector(
+            child: BouncyPressable(
+              shrinkFactor: 0.93,
+              enableHaptics: true,
               onTap: widget.onTap,
-              child: child,
+              child: _NumberBlockWidget(
+                scaleOp: widget.scaleOp,
+                isDragging: false,
+              ),
             ),
           ),
         );
       },
-      child: _NumberBlockWidget(scaleOp: widget.scaleOp, isDragging: false),
     );
   }
 }
@@ -969,22 +1216,24 @@ class _NumberBlockWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 68,
-      height: 72,
+      width: 72,
+      height: 76,
       decoration: BoxDecoration(
         color: isDragging ? scaleOp.lightColor : Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDragging ? scaleOp.color : scaleOp.color.withValues(alpha: 0.4),
+          color: isDragging
+              ? scaleOp.color
+              : scaleOp.color.withValues(alpha: 0.45),
           width: isDragging ? 2.5 : 1.8,
         ),
         boxShadow: [
           BoxShadow(
             color: isDragging
                 ? scaleOp.color.withValues(alpha: 0.35)
-                : scaleOp.color.withValues(alpha: 0.08),
-            blurRadius: isDragging ? 16 : 6,
-            offset: Offset(0, isDragging ? 8 : 3),
+                : scaleOp.color.withValues(alpha: 0.1),
+            blurRadius: isDragging ? 16 : 8,
+            offset: Offset(0, isDragging ? 8 : 4),
           ),
         ],
       ),
@@ -994,7 +1243,7 @@ class _NumberBlockWidget extends StatelessWidget {
           // Operation icon
           Icon(
             scaleOp.icon,
-            size: 16,
+            size: 18,
             color: scaleOp.color,
           ),
           const SizedBox(height: 2),
@@ -1007,7 +1256,8 @@ class _NumberBlockWidget extends StatelessWidget {
               color: AppColors.text,
             ),
           ),
-          // Drag dots
+          const SizedBox(height: 2),
+          // Tactile Grip Dots
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -1028,7 +1278,7 @@ class _NumberBlockWidget extends StatelessWidget {
       width: 4,
       height: 4,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.4),
+        color: color.withValues(alpha: 0.45),
         shape: BoxShape.circle,
       ),
     );
@@ -1050,19 +1300,19 @@ class _StepHistoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
           // Step number circle
           Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(
+            width: 28,
+            height: 28,
+            decoration: const BoxDecoration(
               color: AppColors.extraLightPink,
               shape: BoxShape.circle,
             ),
@@ -1076,38 +1326,31 @@ class _StepHistoryCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           // Operation badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: _lightColorForOp(step.operationText.substring(0, 1)),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               step.operationText,
               style: GoogleFonts.nunito(
-                fontSize: 12,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w900,
                 color: _colorForOp(step.operationText.substring(0, 1)),
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               '${step.leftAfter} = ${step.rightAfter}',
-              style: AppTextStyles.body2.copyWith(
-                fontWeight: FontWeight.w700,
+              style: AppTextStyles.body1.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
               ),
-            ),
-          ),
-          Text(
-            step.providerUsed.contains('MathJS') ? 'POST' : 'Local',
-            style: GoogleFonts.nunito(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -1177,7 +1420,8 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
       animation: _shakeAnimation,
       builder: (context, child) {
         final shakeOffset = _shakeController.isAnimating
-            ? math.sin(_shakeAnimation.value * math.pi * 4) * 6 *
+            ? math.sin(_shakeAnimation.value * math.pi * 4) *
+                6 *
                 (1 - _shakeAnimation.value)
             : 0.0;
         return Transform.translate(
@@ -1186,11 +1430,14 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.purple.withValues(alpha: 0.4), width: 2),
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(
+            color: AppColors.purple.withValues(alpha: 0.4),
+            width: 2,
+          ),
           boxShadow: [
             BoxShadow(
               color: AppColors.purple.withValues(alpha: 0.08),
@@ -1205,13 +1452,15 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
             // Xy mascot + question header
             Row(
               children: [
-                Image.asset(
-                  _showError ? AppAssets.xyExplaining : AppAssets.xyQuestion,
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.contain,
+                XyMascot(
+                  asset: _showError
+                      ? AppAssets.xyExplaining
+                      : AppAssets.xyQuestion,
+                  size: 64,
+                  shadowBlur: 4.0,
+                  shadowOpacity: 0.2,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1228,7 +1477,7 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
                       Text(
                         'WHY does this solution work?',
                         style: GoogleFonts.nunito(
-                          fontSize: 13,
+                          fontSize: 13.5,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textSecondary,
                         ),
@@ -1247,70 +1496,77 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
               final isSelected = _selectedIndex == idx;
               final isWrong = isSelected && _showError;
 
-              return GestureDetector(
-                onTap: () => _onOptionTap(idx),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: isWrong
-                        ? AppColors.error.withValues(alpha: 0.06)
-                        : (isSelected
-                            ? AppColors.lightPurple
-                            : AppColors.background),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: BouncyPressable(
+                  shrinkFactor: 0.97,
+                  enableHaptics: true,
+                  onTap: () => _onOptionTap(idx),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
                       color: isWrong
-                          ? AppColors.error
-                          : (isSelected ? AppColors.purple : AppColors.border),
-                      width: isSelected ? 2 : 1.5,
+                          ? AppColors.error.withValues(alpha: 0.06)
+                          : (isSelected
+                              ? AppColors.lightPurple
+                              : AppColors.background),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: isWrong
+                            ? AppColors.error
+                            : (isSelected ? AppColors.purple : AppColors.border),
+                        width: isSelected ? 2 : 1.5,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: isWrong
-                              ? AppColors.error.withValues(alpha: 0.1)
-                              : (isSelected
-                                  ? AppColors.purple.withValues(alpha: 0.15)
-                                  : AppColors.border.withValues(alpha: 0.5)),
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          String.fromCharCode(65 + idx),
-                          style: GoogleFonts.nunito(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
                             color: isWrong
-                                ? AppColors.error
+                                ? AppColors.error.withValues(alpha: 0.1)
                                 : (isSelected
-                                    ? AppColors.purple
-                                    : AppColors.textSecondary),
+                                    ? AppColors.purple.withValues(alpha: 0.15)
+                                    : AppColors.border.withValues(alpha: 0.5)),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            String.fromCharCode(65 + idx),
+                            style: GoogleFonts.nunito(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w900,
+                              color: isWrong
+                                  ? AppColors.error
+                                  : (isSelected
+                                      ? AppColors.purple
+                                      : AppColors.textSecondary),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          text,
-                          style: GoogleFonts.nunito(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.text,
-                            height: 1.4,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            text,
+                            style: GoogleFonts.nunito(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.text,
+                              height: 1.4,
+                            ),
                           ),
                         ),
-                      ),
-                      if (isWrong)
-                        const Icon(Icons.close_rounded,
-                            color: AppColors.error, size: 18),
-                    ],
+                        if (isWrong)
+                          const Icon(
+                            Icons.close_rounded,
+                            color: AppColors.error,
+                            size: 18,
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -1366,7 +1622,6 @@ class _CelebrationCardState extends State<_CelebrationCard>
       );
     }).toList();
 
-    // Stagger star animations
     for (int i = 0; i < widget.starRating; i++) {
       Future.delayed(Duration(milliseconds: 200 + (i * 200)), () {
         if (mounted) _starControllers[i].forward();
@@ -1398,19 +1653,26 @@ class _CelebrationCardState extends State<_CelebrationCard>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(30),
         border: Border.all(color: AppColors.pink, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.pink.withValues(alpha: 0.15),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          // Xy mascot
-          Image.asset(
-            AppAssets.xyHappy,
-            width: 64,
-            height: 64,
-            fit: BoxFit.contain,
+          // Large Xy mascot
+          XyMascot(
+            asset: AppAssets.xyHappy,
+            size: 100,
+            shadowBlur: 6.0,
+            shadowOpacity: 0.25,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
           // Stars row
           Row(
@@ -1426,10 +1688,8 @@ class _CelebrationCardState extends State<_CelebrationCard>
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Icon(
                         earned ? Icons.star_rounded : Icons.star_outline_rounded,
-                        size: 40,
-                        color: earned
-                            ? AppColors.yellow
-                            : AppColors.border,
+                        size: 44,
+                        color: earned ? AppColors.yellow : AppColors.border,
                       ),
                     ),
                   );
@@ -1442,7 +1702,7 @@ class _CelebrationCardState extends State<_CelebrationCard>
           Text(
             label,
             style: GoogleFonts.nunito(
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: FontWeight.w900,
               color: AppColors.pink,
             ),
@@ -1451,19 +1711,19 @@ class _CelebrationCardState extends State<_CelebrationCard>
           Text(
             'Solved in ${widget.moveCount} move${widget.moveCount == 1 ? '' : 's'} (${widget.optimalMoves} optimal)',
             style: GoogleFonts.nunito(
-              fontSize: 14,
+              fontSize: 14.5,
               fontWeight: FontWeight.w700,
               color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 '+${widget.xp} XP',
                 style: GoogleFonts.nunito(
-                  fontSize: 18,
+                  fontSize: 20,
                   fontWeight: FontWeight.w900,
                   color: AppColors.mint,
                 ),
@@ -1471,15 +1731,15 @@ class _CelebrationCardState extends State<_CelebrationCard>
               if (widget.reasoningPassed) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.lightMint,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     '🧠 Reasoning ✓',
                     style: GoogleFonts.nunito(
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w900,
                       color: AppColors.mint,
                     ),
@@ -1488,7 +1748,7 @@ class _CelebrationCardState extends State<_CelebrationCard>
               ],
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           PrimaryButton(
             label: 'Next Equation →',
             onPressed: widget.onNext,
