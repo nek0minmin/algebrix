@@ -163,29 +163,44 @@ Return ONLY a JSON object with this EXACT structure:
     required String userPrompt,
   }) async {
     final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
-    final response = await _client.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $_groqApiKey',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'model': 'llama-3.3-70b-versatile',
-        'messages': [
-          {'role': 'system', 'content': systemPrompt},
-          {'role': 'user', 'content': userPrompt},
-        ],
-        'temperature': 0.3,
-        'response_format': {'type': 'json_object'},
-      }),
-    ).timeout(const Duration(seconds: 10));
+    final models = [
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b',
+      'qwen/qwen3.6-27b',
+    ];
 
-    if (response.statusCode != 200) {
-      throw Exception('Groq status ${response.statusCode}: ${response.body}');
+    Object? lastError;
+    for (final model in models) {
+      try {
+        final response = await _client.post(
+          url,
+          headers: {
+            'Authorization': 'Bearer $_groqApiKey',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'model': model,
+            'messages': [
+              {'role': 'system', 'content': systemPrompt},
+              {'role': 'user', 'content': userPrompt},
+            ],
+            'temperature': 0.3,
+            'response_format': {'type': 'json_object'},
+          }),
+        ).timeout(const Duration(seconds: 12));
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          return data['choices'][0]['message']['content'] as String;
+        } else {
+          lastError = Exception('Groq $model status ${response.statusCode}: ${response.body}');
+        }
+      } catch (e) {
+        lastError = e;
+      }
     }
 
-    final data = jsonDecode(response.body);
-    return data['choices'][0]['message']['content'] as String;
+    throw lastError ?? Exception('All Groq models failed.');
   }
 
   Future<String> _callNvidia({
