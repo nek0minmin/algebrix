@@ -1,5 +1,4 @@
 import 'package:algebrix/core/providers/balance_scale_provider.dart';
-import 'package:algebrix/screens/practice/balance_scale_screen.dart';
 import 'package:algebrix/screens/practice/practice_screen.dart';
 import 'package:algebrix/services/math_api_service.dart';
 import 'package:flutter/material.dart';

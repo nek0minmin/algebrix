@@ -1283,7 +1283,7 @@ class _ReasoningCheckCardState extends State<_ReasoningCheckCard>
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          '${String.fromCharCode(65 + idx)}',
+                          String.fromCharCode(65 + idx),
                           style: GoogleFonts.nunito(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
