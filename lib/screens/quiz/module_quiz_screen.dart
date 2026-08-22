@@ -687,29 +687,13 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Mascot Hero
+          // Mascot Hero (Clean, prominent, no black background)
           Center(
-            child: Container(
-              width: 110,
-              height: 110,
-              decoration: const BoxDecoration(
-                color: Color(0xFF1E2024),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.shadow,
-                    blurRadius: 16,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(6),
-              child: ClipOval(
-                child: Image.asset(
-                  AppAssets.xyHappy,
-                  fit: BoxFit.contain,
-                ),
-              ),
+            child: Image.asset(
+              percent >= 60 ? AppAssets.xyHappy : AppAssets.xyDefault,
+              width: 140,
+              height: 140,
+              fit: BoxFit.contain,
             ),
           ),
           const SizedBox(height: 20),

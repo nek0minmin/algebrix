@@ -13,9 +13,9 @@ class XySpeechBubble extends StatefulWidget {
   const XySpeechBubble({
     super.key,
     required this.message,
-    this.xyAsset = AppAssets.xyExplaining,
+    this.xyAsset = AppAssets.xyInsight,
     this.bubbleColor = Colors.white,
-    this.xySize = 52.0,
+    this.xySize = 56.0,
     this.showMascot = true,
     this.leadingIcon,
   });
@@ -64,27 +64,11 @@ class _XySpeechBubbleState extends State<XySpeechBubble>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (widget.showMascot) ...[
-              Container(
+              Image.asset(
+                widget.xyAsset,
                 width: widget.xySize,
                 height: widget.xySize,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1E2024),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.shadow,
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(4),
-                child: ClipOval(
-                  child: Image.asset(
-                    widget.xyAsset,
-                    fit: BoxFit.contain,
-                  ),
-                ),
+                fit: BoxFit.contain,
               ),
               const SizedBox(width: 10),
             ],

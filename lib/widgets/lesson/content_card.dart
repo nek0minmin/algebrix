@@ -86,20 +86,11 @@ class _ContentCardState extends State<ContentCard>
                   ),
                   if (widget.xyAsset != null) ...[
                     const SizedBox(width: 10),
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF1E2024),
-                        shape: BoxShape.circle,
-                      ),
-                      padding: const EdgeInsets.all(2),
-                      child: ClipOval(
-                        child: Image.asset(
-                          widget.xyAsset!,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
+                    Image.asset(
+                      widget.xyAsset!,
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.contain,
                     ),
                   ],
                 ],
