@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
-import 'package:algebrix/widgets/xy_mascot.dart';
 
 class XySpeechBubble extends StatefulWidget {
   final String message;
@@ -65,11 +64,11 @@ class _XySpeechBubbleState extends State<XySpeechBubble>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (widget.showMascot) ...[
-              XyMascot(
-                asset: widget.xyAsset,
-                size: widget.xySize,
-                shadowBlur: 4.0,
-                shadowOpacity: 0.22,
+              Image.asset(
+                widget.xyAsset,
+                width: widget.xySize,
+                height: widget.xySize,
+                fit: BoxFit.contain,
               ),
               const SizedBox(width: 10),
             ],

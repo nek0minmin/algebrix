@@ -303,7 +303,7 @@ class _LessonScreenState extends State<LessonScreen> {
           const SizedBox(height: 16),
           XySpeechBubble(
             message: step.xyDialogue!,
-            xyAsset: step.xyAsset ?? AppAssets.xyExplaining,
+            xyAsset: AppAssets.xyInsight,
           ),
         ],
       ],
@@ -370,7 +370,7 @@ class _LessonScreenState extends State<LessonScreen> {
         if (step.xyDialogue != null) ...[
           XySpeechBubble(
             message: step.xyDialogue!,
-            xyAsset: step.xyAsset ?? AppAssets.xyExplaining,
+            xyAsset: AppAssets.xyInsight,
             xySize: 64,
           ),
           const SizedBox(height: 16),
@@ -536,10 +536,10 @@ class _LessonScreenState extends State<LessonScreen> {
         if (step.xyDialogue != null) ...[
           XySpeechBubble(
             message: step.xyDialogue!,
-            xyAsset: step.xyAsset ?? AppAssets.xyExplaining,
-            xySize: 56,
+            xyAsset: AppAssets.xyInsight,
+            xySize: 64,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
         ],
         if (step.title != null) ...[
           Text(
