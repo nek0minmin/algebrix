@@ -2,6 +2,7 @@ import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/services/ai_tutor_service.dart';
+import 'package:algebrix/widgets/xy_mascot.dart';
 import 'package:flutter/material.dart';
 
 /// Interactive AI Feedback Card featuring Xy mascot, step-by-step guidance, and bold math emphasis.
@@ -47,11 +48,11 @@ class AiFeedbackCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.asset(
-                AppAssets.xyInsight,
-                width: 44,
-                height: 44,
-                fit: BoxFit.contain,
+              XyMascot(
+                asset: AppAssets.xyInsight,
+                size: 54,
+                shadowBlur: 4.0,
+                shadowOpacity: 0.22,
               ),
               const SizedBox(width: 10),
               Expanded(

@@ -1,5 +1,6 @@
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
+import 'package:algebrix/widgets/xy_mascot.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -58,12 +59,9 @@ class RootPageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewportWidth = MediaQuery.sizeOf(context).width;
     final useCompactAction = viewportWidth < 560;
-    final hasSearch = searchBar != null || searchPlaceholder != null;
 
-    // Generous, legible mascot sizing matching user UI design
-    final mascotSize = hasSearch
-        ? (viewportWidth < 360 ? 84.0 : 100.0)
-        : (viewportWidth < 340 ? 64.0 : 80.0);
+    // Generous, prominent mascot sizing matching design
+    final mascotSize = viewportWidth < 360 ? 92.0 : 108.0;
 
     return Center(
       child: ConstrainedBox(
@@ -79,8 +77,8 @@ class RootPageHeader extends StatelessWidget {
                   supportingText: subtitle,
                   mascotAsset: _resolveMascotAsset(),
                   mascotSize: mascotSize,
-                  titleSize: viewportWidth < 360 ? 22 : 24,
-                  supportingTextSize: 14,
+                  titleSize: viewportWidth < 360 ? 24 : 26,
+                  supportingTextSize: 14.5,
                   searchBar: searchBar,
                   searchPlaceholder: searchPlaceholder,
                   onSearchChanged: onSearchChanged,
@@ -220,13 +218,12 @@ class _PageHeaderIdentity extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Image.asset(
-          mascotAsset ?? AppAssets.xyDefault,
-          key: const Key('page-header-xy'),
-          width: mascotSize,
-          height: mascotSize,
-          fit: BoxFit.contain,
-          excludeFromSemantics: true,
+        XyMascot(
+          asset: mascotAsset ?? AppAssets.xyDefault,
+          imageKey: const Key('page-header-xy'),
+          size: mascotSize,
+          shadowBlur: 5.0,
+          shadowOpacity: 0.22,
         ),
         const SizedBox(width: 14),
         Expanded(

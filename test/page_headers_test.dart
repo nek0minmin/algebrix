@@ -5,12 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  Finder xyImages() => find.byWidgetPredicate(
-    (widget) =>
-        widget is Image &&
-        widget.image is AssetImage &&
-        (widget.image as AssetImage).assetName.contains('assets/mascot/xy'),
-  );
+  Finder xyForegroundImages() => find.byKey(const Key('page-header-xy'));
 
   Future<void> pumpRootHeader(
     WidgetTester tester, {
@@ -52,39 +47,39 @@ void main() {
     await tester.pump();
   }
 
-  testWidgets('root header uses one responsive Xy and exact title styles', (
+  testWidgets('root header uses prominent Xy and consistent large title styles', (
     tester,
   ) async {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await pumpRootHeader(tester, width: 720);
 
-    expect(xyImages(), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(80));
+    expect(xyForegroundImages(), findsOneWidget);
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(108));
     final title = tester.widget<Text>(find.text('Notes'));
     final subtitle = tester.widget<Text>(
       find.text('Keep your algebra ideas close.'),
     );
-    expect(title.style?.fontSize, 24);
+    expect(title.style?.fontSize, 26);
     expect(title.style?.fontWeight, FontWeight.w900);
-    expect(subtitle.style?.fontSize, 14);
+    expect(subtitle.style?.fontSize, 14.5);
     expect(subtitle.style?.fontWeight, FontWeight.w600);
 
     await pumpRootHeader(tester, width: 320, textScale: 1.3);
-    expect(xyImages(), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(64));
+    expect(xyForegroundImages(), findsOneWidget);
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(92));
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('root header with search bar displays bigger mascot and search input', (
+  testWidgets('root header with search bar displays prominent mascot and search input', (
     tester,
   ) async {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await pumpRootHeader(tester, width: 720, searchPlaceholder: 'Search Lessons');
 
-    expect(xyImages(), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(100));
+    expect(xyForegroundImages(), findsOneWidget);
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(108));
     expect(find.text('Search Lessons'), findsOneWidget);
     expect(find.byIcon(Icons.search_rounded), findsOneWidget);
   });
@@ -132,7 +127,7 @@ void main() {
     }
 
     await pumpSecondary(390);
-    expect(xyImages(), findsOneWidget);
+    expect(xyForegroundImages(), findsOneWidget);
     expect(tester.getSize(find.byType(AppBar)), const Size(390, 96));
     expect(tester.getSize(find.byKey(const Key('secondary-page-back-button'))), const Size.square(44));
     expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(64));
@@ -148,7 +143,7 @@ void main() {
     expect(support.style?.fontWeight, FontWeight.w600);
 
     await pumpSecondary(320, textScale: 1.3);
-    expect(xyImages(), findsOneWidget);
+    expect(xyForegroundImages(), findsOneWidget);
     expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(52));
     expect(find.text('Explain one idea in your own words.'), findsOneWidget);
     expect(tester.takeException(), isNull);

@@ -11,6 +11,7 @@ import 'package:algebrix/widgets/lesson/xy_speech_bubble.dart';
 import 'package:algebrix/screens/lessons/lesson_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/widgets/search_bar_widget.dart';
+import 'package:algebrix/widgets/xy_mascot.dart';
 
 /// Module Overview screen showing the module intro and lesson list with progressive unlocking.
 class ModuleOverviewScreen extends StatefulWidget {
@@ -174,11 +175,11 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
                   ),
                   child: Row(
                     children: [
-                      Image.asset(
-                        AppAssets.xyLessons,
-                        width: 64,
-                        height: 64,
-                        fit: BoxFit.contain,
+                      XyMascot(
+                        asset: AppAssets.xyLessons,
+                        size: 84,
+                        shadowBlur: 5.0,
+                        shadowOpacity: 0.25,
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -425,11 +426,11 @@ class _ModuleIntroCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Image.asset(
-            module.xyAsset ?? AppAssets.xyLessons,
-            width: 104,
-            height: 104,
-            fit: BoxFit.contain,
+          XyMascot(
+            asset: module.xyAsset ?? AppAssets.xyLessons,
+            size: 120,
+            shadowBlur: 6.0,
+            shadowOpacity: 0.25,
           ),
           const SizedBox(height: 14),
           // Title

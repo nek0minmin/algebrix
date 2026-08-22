@@ -7,6 +7,7 @@ import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_model.dart';
 import 'package:algebrix/services/module_quiz_service.dart';
 import 'package:algebrix/widgets/primary_button.dart';
+import 'package:algebrix/widgets/xy_mascot.dart';
 
 /// Interactive AI-Powered 15-Question Module Quiz with progressive difficulty and mascot feedback.
 class ModuleQuizScreen extends StatefulWidget {
@@ -492,7 +493,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
                 _buildRichQuestionPrompt(question.question),
                 const SizedBox(height: 16),
 
-                // 3. ONE SINGLE BIG Mascot Picture (Centered, 140x140)
+                // 3. ONE SINGLE BIG Mascot Picture (Centered, with contrast shadow)
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   transitionBuilder: (child, animation) => ScaleTransition(
@@ -502,12 +503,12 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
                     ),
                     child: child,
                   ),
-                  child: Image.asset(
-                    mascotAsset,
+                  child: XyMascot(
                     key: ValueKey('mascot-$mascotAsset'),
-                    width: 140,
-                    height: 140,
-                    fit: BoxFit.contain,
+                    asset: mascotAsset,
+                    size: 155,
+                    shadowBlur: 6.0,
+                    shadowOpacity: 0.22,
                   ),
                 ),
 
@@ -687,13 +688,13 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Mascot Hero (Clean, prominent, no black background)
+          // Mascot Hero (Clean, prominent, soft drop shadow)
           Center(
-            child: Image.asset(
-              percent >= 60 ? AppAssets.xyHappy : AppAssets.xyDefault,
-              width: 140,
-              height: 140,
-              fit: BoxFit.contain,
+            child: XyMascot(
+              asset: percent >= 60 ? AppAssets.xyHappy : AppAssets.xyDefault,
+              size: 155,
+              shadowBlur: 6.0,
+              shadowOpacity: 0.22,
             ),
           ),
           const SizedBox(height: 20),
