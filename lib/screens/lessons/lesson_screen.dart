@@ -16,6 +16,7 @@ import 'package:algebrix/screens/lessons/lesson_complete_screen.dart';
 import 'package:algebrix/widgets/lesson/activities/classification_activity.dart';
 import 'package:algebrix/widgets/lesson/activities/ordering_activity.dart';
 import 'package:algebrix/widgets/lesson/activities/term_selection_activity.dart';
+import 'package:algebrix/widgets/xy_mascot.dart';
 
 /// Main Lesson Viewer — the core interactive learning experience.
 ///
@@ -314,18 +315,19 @@ class _LessonScreenState extends State<LessonScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 32),
+        const SizedBox(height: 28),
         Center(
-          child: Image.asset(
-            step.xyAsset ?? AppAssets.xyIdea,
-            width: 120,
-            height: 120,
+          child: XyMascot(
+            asset: AppAssets.xyExplaining,
+            size: 140,
+            shadowBlur: 6.0,
+            shadowOpacity: 0.22,
           ),
         ),
         const SizedBox(height: 24),
         if (step.xyDialogue != null)
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               color: AppColors.extraLightPink,
               borderRadius: BorderRadius.circular(24),
@@ -340,7 +342,8 @@ class _LessonScreenState extends State<LessonScreen> {
                   'XY’S INSIGHT',
                   style: AppTextStyles.subtitle1.copyWith(
                     color: AppColors.pink,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -359,7 +362,7 @@ class _LessonScreenState extends State<LessonScreen> {
     );
   }
 
-  /// Interactive step — question with choice grid and Xy dialogue.
+  /// Interactive step — question with choice grid, bold centered title, and Xy Question mascot.
   Widget _buildInteractiveStep(LessonStep step, bool isAnswered) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -368,31 +371,42 @@ class _LessonScreenState extends State<LessonScreen> {
           XySpeechBubble(
             message: step.xyDialogue!,
             xyAsset: step.xyAsset ?? AppAssets.xyExplaining,
-            xySize: 56,
+            xySize: 64,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+        ] else ...[
+          Center(
+            child: XyMascot(
+              asset: AppAssets.xyQuestion,
+              size: 120,
+              shadowBlur: 5.0,
+              shadowOpacity: 0.22,
+            ),
+          ),
+          const SizedBox(height: 14),
         ],
         if (step.title != null) ...[
           Text(
             step.title!,
+            textAlign: TextAlign.center,
             style: AppTextStyles.heading3.copyWith(
               color: AppColors.text,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
         ],
         if (step.question != null)
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.border),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.shadow,
-                  blurRadius: 8,
+                  color: AppColors.shadow.withValues(alpha: 0.04),
+                  blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
               ],
@@ -412,15 +426,25 @@ class _LessonScreenState extends State<LessonScreen> {
     );
   }
 
-  /// Quiz step — structured quiz question with feedback.
+  /// Quiz step — structured quiz question with feedback and Xy Question mascot.
   Widget _buildQuizStep(LessonStep step, bool isAnswered) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Center(
+          child: XyMascot(
+            asset: AppAssets.xyQuestion,
+            size: 120,
+            shadowBlur: 5.0,
+            shadowOpacity: 0.22,
+          ),
+        ),
+        const SizedBox(height: 14),
+
         // Quiz badge
         Center(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
               color: AppColors.lightPurple,
               borderRadius: BorderRadius.circular(16),
@@ -445,19 +469,19 @@ class _LessonScreenState extends State<LessonScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
 
         if (step.question != null)
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(color: AppColors.border),
             ),
             child: _buildQuestionText(step.question!, fontSize: 19),
           ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
 
         if (step.choices != null)
           InteractiveChoiceGrid(
@@ -920,11 +944,11 @@ class _ModuleLessonIntro extends StatelessWidget {
                   color: AppColors.pink.withValues(alpha: 0.12),
                 ),
               ),
-              child: Image.asset(
-                step.xyAsset ?? AppAssets.xyExplaining,
-                width: compact ? 128 : 150,
-                height: compact ? 128 : 150,
-                fit: BoxFit.contain,
+              child: XyMascot(
+                asset: step.xyAsset ?? AppAssets.xyLessons,
+                size: compact ? 135 : 160,
+                shadowBlur: 6.0,
+                shadowOpacity: 0.25,
               ),
             ),
             if (step.xyDialogue != null) ...[
@@ -1105,12 +1129,12 @@ class _LessonIntroEntranceState extends State<_LessonIntroEntrance>
                     ),
                   ),
                   alignment: Alignment.center,
-                  child: Image.asset(
-                    AppAssets.xyLessons,
-                    key: const ValueKey('variables-intro-xy'),
-                    width: mascotSize,
-                    height: mascotSize,
-                    fit: BoxFit.contain,
+                  child: XyMascot(
+                    asset: AppAssets.xyLessons,
+                    imageKey: const ValueKey('variables-intro-xy'),
+                    size: mascotSize,
+                    shadowBlur: 6.0,
+                    shadowOpacity: 0.25,
                   ),
                 ),
               ),
