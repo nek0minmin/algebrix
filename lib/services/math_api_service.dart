@@ -242,31 +242,93 @@ class MathApiService {
   }
 
   /// Generates dynamic operation chips from a problem's coefficients,
-  /// including correct operations plus distractors. Shuffled.
+  /// consistently returning exactly 8 unique, high-yield operation options.
   List<Map<String, dynamic>> generateOpsForProblem(BalanceScaleProblem problem) {
     final rng = Random();
+    final uniqueSet = <String>{};
     final ops = <Map<String, dynamic>>[];
 
-    // Correct operations
-    if (problem.constantLeft > 0) {
-      ops.add({'op': '-', 'value': problem.constantLeft});
-    } else if (problem.constantLeft < 0) {
-      ops.add({'op': '+', 'value': problem.constantLeft.abs()});
+    void addOp(String op, num value) {
+      if (value <= 0) return;
+      final key = '$op-$value';
+      if (!uniqueSet.contains(key) && ops.length < 8) {
+        uniqueSet.add(key);
+        ops.add({'op': op, 'value': value});
+      }
     }
-    ops.add({'op': '/', 'value': problem.coefficientX});
 
-    // Distractors — wrong direction / wrong value
+    final constVal = problem.constantLeft.abs();
+    final coeff = problem.coefficientX;
+    final target = problem.targetX;
+
+    // 1. Correct Step 1: Inverse constant operation
     if (problem.constantLeft > 0) {
-      ops.add({'op': '+', 'value': problem.constantLeft}); // wrong direction
-    } else {
-      ops.add({'op': '-', 'value': problem.constantLeft.abs()});
+      addOp('-', constVal);
+    } else if (problem.constantLeft < 0) {
+      addOp('+', constVal);
     }
-    ops.add({'op': '-', 'value': problem.coefficientX}); // wrong value for subtract
-    ops.add({'op': '*', 'value': 2}); // tempting multiply
-    ops.add({'op': '/', 'value': (problem.constantLeft.abs() > 1) ? problem.constantLeft.abs() : (rng.nextInt(3) + 2)}); // wrong divisor
+
+    // 2. Correct Step 2: Divide by coefficient
+    addOp('/', coeff);
+
+    // 3. Common Distractor: Same operation on constant (wrong sign)
+    if (problem.constantLeft > 0) {
+      addOp('+', constVal);
+    } else {
+      addOp('-', constVal);
+    }
+
+    // 4. Common Distractor: Divide by constant
+    if (constVal > 1 && constVal != coeff) {
+      addOp('/', constVal);
+    }
+
+    // 5. Common Distractor: Subtract / Add coefficient
+    addOp('-', coeff);
+    addOp('+', coeff);
+
+    // 6. Tempting Distractor: Multiply by coefficient or 2
+    addOp('*', 2);
+    if (coeff > 2) {
+      addOp('*', coeff);
+    }
+
+    // 7. Solution-based Distractor: Operations with targetX
+    if (target > 1 && target != coeff && target != constVal) {
+      addOp('-', target);
+      addOp('+', target);
+      addOp('/', target);
+    }
+
+    // 8. Fill remaining slots up to 8 with smart relevant math operators
+    final candidates = [
+      {'op': '-', 'value': 2},
+      {'op': '+', 'value': 2},
+      {'op': '-', 'value': 1},
+      {'op': '+', 'value': 1},
+      {'op': '/', 'value': 2},
+      {'op': '*', 'value': 3},
+      {'op': '-', 'value': 5},
+      {'op': '+', 'value': 3},
+      {'op': '/', 'value': 4},
+      {'op': '/', 'value': 5},
+    ];
+
+    for (final cand in candidates) {
+      if (ops.length >= 8) break;
+      addOp(cand['op'] as String, cand['value'] as num);
+    }
+
+    // Fallback if still under 8
+    int extra = 6;
+    while (ops.length < 8) {
+      addOp('-', extra);
+      addOp('+', extra);
+      extra++;
+    }
 
     ops.shuffle(rng);
-    return ops;
+    return ops.take(8).toList();
   }
 
   String _buildExpr(String baseExpr, String op, num value) {

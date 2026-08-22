@@ -1039,6 +1039,10 @@ class _NumberBlockPalette extends StatelessWidget {
       );
     }).toList();
 
+    final options = chips.take(8).toList();
+    final row1 = options.length >= 4 ? options.sublist(0, 4) : options;
+    final row2 = options.length >= 8 ? options.sublist(4, 8) : <ScaleOp>[];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1078,18 +1082,65 @@ class _NumberBlockPalette extends StatelessWidget {
             ),
           )
         else
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: chips
-                .map(
-                  (scaleOp) => _DraggableNumberBlock(
-                    scaleOp: scaleOp,
-                    isSolved: isSolved,
-                    onTap: () => onApply(scaleOp.op, scaleOp.value, 'both'),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const spacing = 10.0;
+              final availableWidth = constraints.maxWidth;
+              // Consistently 4 items per row with 3 gaps
+              final tileWidth =
+                  ((availableWidth - (3 * spacing)) / 4).floorToDouble();
+              final tileHeight = (tileWidth * 1.06).clamp(64.0, 86.0);
+              final fontSize = (tileWidth * 0.31).clamp(16.0, 24.0);
+              final iconSize = (tileWidth * 0.25).clamp(14.0, 20.0);
+
+              return Column(
+                children: [
+                  // Row 1 (Top 4 options)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: row1.map((scaleOp) {
+                      return SizedBox(
+                        width: tileWidth,
+                        height: tileHeight,
+                        child: _DraggableNumberBlock(
+                          scaleOp: scaleOp,
+                          isSolved: isSolved,
+                          tileWidth: tileWidth,
+                          tileHeight: tileHeight,
+                          fontSize: fontSize,
+                          iconSize: iconSize,
+                          onTap: () =>
+                              onApply(scaleOp.op, scaleOp.value, 'both'),
+                        ),
+                      );
+                    }).toList(),
                   ),
-                )
-                .toList(),
+                  if (row2.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    // Row 2 (Bottom 4 options)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: row2.map((scaleOp) {
+                        return SizedBox(
+                          width: tileWidth,
+                          height: tileHeight,
+                          child: _DraggableNumberBlock(
+                            scaleOp: scaleOp,
+                            isSolved: isSolved,
+                            tileWidth: tileWidth,
+                            tileHeight: tileHeight,
+                            fontSize: fontSize,
+                            iconSize: iconSize,
+                            onTap: () =>
+                                onApply(scaleOp.op, scaleOp.value, 'both'),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
       ],
     );
@@ -1102,11 +1153,19 @@ class _DraggableNumberBlock extends StatefulWidget {
   const _DraggableNumberBlock({
     required this.scaleOp,
     required this.isSolved,
+    required this.tileWidth,
+    required this.tileHeight,
+    required this.fontSize,
+    required this.iconSize,
     required this.onTap,
   });
 
   final ScaleOp scaleOp;
   final bool isSolved;
+  final double tileWidth;
+  final double tileHeight;
+  final double fontSize;
+  final double iconSize;
   final VoidCallback onTap;
 
   @override
@@ -1158,7 +1217,14 @@ class _DraggableNumberBlockState extends State<_DraggableNumberBlock>
     if (widget.isSolved) {
       return Opacity(
         opacity: 0.4,
-        child: _NumberBlockWidget(scaleOp: widget.scaleOp, isDragging: false),
+        child: _NumberBlockWidget(
+          scaleOp: widget.scaleOp,
+          isDragging: false,
+          tileWidth: widget.tileWidth,
+          tileHeight: widget.tileHeight,
+          fontSize: widget.fontSize,
+          iconSize: widget.iconSize,
+        ),
       );
     }
 
@@ -1176,6 +1242,10 @@ class _DraggableNumberBlockState extends State<_DraggableNumberBlock>
                 child: _NumberBlockWidget(
                   scaleOp: widget.scaleOp,
                   isDragging: true,
+                  tileWidth: widget.tileWidth,
+                  tileHeight: widget.tileHeight,
+                  fontSize: widget.fontSize,
+                  iconSize: widget.iconSize,
                 ),
               ),
             ),
@@ -1184,6 +1254,10 @@ class _DraggableNumberBlockState extends State<_DraggableNumberBlock>
               child: _NumberBlockWidget(
                 scaleOp: widget.scaleOp,
                 isDragging: false,
+                tileWidth: widget.tileWidth,
+                tileHeight: widget.tileHeight,
+                fontSize: widget.fontSize,
+                iconSize: widget.iconSize,
               ),
             ),
             child: BouncyPressable(
@@ -1193,6 +1267,10 @@ class _DraggableNumberBlockState extends State<_DraggableNumberBlock>
               child: _NumberBlockWidget(
                 scaleOp: widget.scaleOp,
                 isDragging: false,
+                tileWidth: widget.tileWidth,
+                tileHeight: widget.tileHeight,
+                fontSize: widget.fontSize,
+                iconSize: widget.iconSize,
               ),
             ),
           ),
@@ -1208,19 +1286,27 @@ class _NumberBlockWidget extends StatelessWidget {
   const _NumberBlockWidget({
     required this.scaleOp,
     required this.isDragging,
+    required this.tileWidth,
+    required this.tileHeight,
+    required this.fontSize,
+    required this.iconSize,
   });
 
   final ScaleOp scaleOp;
   final bool isDragging;
+  final double tileWidth;
+  final double tileHeight;
+  final double fontSize;
+  final double iconSize;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 72,
-      height: 76,
+      width: tileWidth,
+      height: tileHeight,
       decoration: BoxDecoration(
         color: isDragging ? scaleOp.lightColor : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDragging
               ? scaleOp.color
@@ -1243,17 +1329,20 @@ class _NumberBlockWidget extends StatelessWidget {
           // Operation icon
           Icon(
             scaleOp.icon,
-            size: 18,
+            size: iconSize,
             color: scaleOp.color,
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           // Value
-          Text(
-            scaleOp.value.toString().replaceAll('.0', ''),
-            style: GoogleFonts.nunito(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: AppColors.text,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              scaleOp.value.toString().replaceAll('.0', ''),
+              style: GoogleFonts.nunito(
+                fontSize: fontSize,
+                fontWeight: FontWeight.w900,
+                color: AppColors.text,
+              ),
             ),
           ),
           const SizedBox(height: 2),
@@ -1262,9 +1351,9 @@ class _NumberBlockWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _dot(scaleOp.color),
-              const SizedBox(width: 3),
+              const SizedBox(width: 2.5),
               _dot(scaleOp.color),
-              const SizedBox(width: 3),
+              const SizedBox(width: 2.5),
               _dot(scaleOp.color),
             ],
           ),
@@ -1275,8 +1364,8 @@ class _NumberBlockWidget extends StatelessWidget {
 
   Widget _dot(Color color) {
     return Container(
-      width: 4,
-      height: 4,
+      width: 3.5,
+      height: 3.5,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.45),
         shape: BoxShape.circle,
