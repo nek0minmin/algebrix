@@ -20,6 +20,9 @@ class AppAssets {
   static const String xyPointUp = 'assets/mascot/xy-point-up.png';
   static const String xyPointRight = 'assets/mascot/xy-point-right.png';
   static const String xyPointLeft = 'assets/mascot/xy-point-left.png';
+  static const String xySitPencil = 'assets/mascot/xy-sit-pencil.png';
+  static const String xyBalance = 'assets/mascot/xy-balance.png';
+  static const String xyAndChemie = 'assets/mascot/xy-and-chemie.png';
 
   // Quiz countdown sequence
   static const String xyLoading = 'assets/mascot/xy-loading.png';

@@ -17,6 +17,10 @@ import 'package:provider/provider.dart';
 ///
 /// Features an Algebrix-themed pastel math kingdom with:
 /// - Crisp white & soft pastel cloud islands with faint math grid patterns.
+/// - Illustrated Mascot Xy placed in spacious open realms of the map:
+///     • Lower Valley: `xy-sit-pencil` studying math concepts
+///     • Mid Highlands: `xy-balance` balancing on the scale
+///     • Summit Mountain: `xy-and-chemie` conducting math experiments
 /// - Giant 3D isometric math blocks ([x], [2x], [+3], [=], [-5]) scattered on hills.
 /// - A prominent golden Balance Scale monument at the mountain summit.
 /// - A winding pastel cobblestone pathway with soft pink/mint border ribbons.
@@ -100,6 +104,7 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                           width: mapWidth,
                           height: _mapCanvasHeight,
                           child: Stack(
+                            clipBehavior: Clip.none,
                             children: [
                               // Background Illustrated Algebrix Landscape
                               Positioned.fill(
@@ -113,6 +118,42 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                                         if (provider.starsForLevel(i) > 0) i,
                                     ],
                                   ),
+                                ),
+                              ),
+
+                              // ── Mascot Xy Waypoint 1 (Lower-Left Valley) ──
+                              Positioned(
+                                left: mapWidth * 0.10,
+                                top: _mapCanvasHeight * 0.74,
+                                child: _MapMascotWaypoint(
+                                  asset: AppAssets.xySitPencil,
+                                  size: 96,
+                                  bubbleText: 'Equation balancing! ✏️',
+                                  bubbleColor: AppColors.pink,
+                                ),
+                              ),
+
+                              // ── Mascot Xy Waypoint 2 (Mid-Right Highlands) ─
+                              Positioned(
+                                right: mapWidth * 0.08,
+                                top: _mapCanvasHeight * 0.46,
+                                child: _MapMascotWaypoint(
+                                  asset: AppAssets.xyBalance,
+                                  size: 102,
+                                  bubbleText: 'Keep it balanced! ⚖️',
+                                  bubbleColor: AppColors.purple,
+                                ),
+                              ),
+
+                              // ── Mascot Xy Waypoint 3 (Upper-Left Summit) ──
+                              Positioned(
+                                left: mapWidth * 0.10,
+                                top: _mapCanvasHeight * 0.20,
+                                child: _MapMascotWaypoint(
+                                  asset: AppAssets.xyAndChemie,
+                                  size: 98,
+                                  bubbleText: 'Summit Master! 🧪✨',
+                                  bubbleColor: AppColors.mint,
                                 ),
                               ),
 
@@ -138,7 +179,7 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
 
                                 return Positioned(
                                   left: pos.dx - 44,
-                                  top: pos.dy - 56,
+                                  top: pos.dy - 44,
                                   child: _AlgebrixLevelNode(
                                     key: Key('quest-level-node-$levelNumber'),
                                     definition: def,
@@ -469,6 +510,69 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
 }
 
 // =============================================================================
+// Map Mascot Waypoint Widget (Placed in Spacious Open Map Realms)
+// =============================================================================
+
+class _MapMascotWaypoint extends StatelessWidget {
+  const _MapMascotWaypoint({
+    required this.asset,
+    required this.size,
+    required this.bubbleText,
+    required this.bubbleColor,
+  });
+
+  final String asset;
+  final double size;
+  final String bubbleText;
+  final Color bubbleColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Speech Dialogue Bubble
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: bubbleColor.withValues(alpha: 0.35),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: bubbleColor.withValues(alpha: 0.12),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Text(
+            bubbleText,
+            style: GoogleFonts.nunito(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w900,
+              color: AppColors.text,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+
+        // Mascot with Soft Shadow Aura
+        XyMascot(
+          asset: asset,
+          size: size,
+          shadowBlur: 8.0,
+          shadowOpacity: 0.22,
+        ),
+      ],
+    );
+  }
+}
+
+// =============================================================================
 // Mathematical S-Curve Node Coordinates
 // =============================================================================
 
@@ -698,58 +802,14 @@ class _AlgebrixLevelNode extends StatelessWidget {
       onTap: onTap,
       child: SizedBox(
         width: 88,
-        height: 110,
+        height: 88,
         child: Stack(
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
-            // Mascot Xy perched on the active / next playable level
-            if (isNextPlayable)
-              Positioned(
-                top: -38,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    XyMascot(
-                      asset: _isCompleted
-                          ? AppAssets.xyHappy
-                          : AppAssets.xyDefault,
-                      size: 54,
-                      shadowBlur: 4.0,
-                      shadowOpacity: 0.25,
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.pink,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x33FF5CA8),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        'HERE! 👇',
-                        style: GoogleFonts.nunito(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
             // Arched Stars above node
             Positioned(
-              top: isNextPlayable ? 18 : 6,
+              top: -12,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -761,85 +821,82 @@ class _AlgebrixLevelNode extends StatelessWidget {
             ),
 
             // 3D Level Disc Button
-            Positioned(
-              bottom: 6,
-              child: Container(
-                width: 66,
-                height: 66,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  // 3D Pedestal Base in Algebrix Theme
-                  color: !isUnlocked
-                      ? const Color(0xFFD1C4E9) // Soft lavender stone
-                      : (_isCompleted
-                          ? const Color(0xFF38B2A1) // Darker mint base rim
-                          : const Color(0xFFE91E8C)), // Darker pink base rim
-                  boxShadow: [
+            Container(
+              width: 66,
+              height: 66,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                // 3D Pedestal Base in Algebrix Theme
+                color: !isUnlocked
+                    ? const Color(0xFFD1C4E9) // Soft lavender stone
+                    : (_isCompleted
+                        ? const Color(0xFF38B2A1) // Darker mint base rim
+                        : const Color(0xFFE91E8C)), // Darker pink base rim
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.16),
+                    blurRadius: 10,
+                    offset: const Offset(0, 6),
+                  ),
+                  if (isNextPlayable)
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.16),
-                      blurRadius: 10,
-                      offset: const Offset(0, 6),
+                      color: AppColors.pink.withValues(alpha: 0.45),
+                      blurRadius: 16,
+                      spreadRadius: 2,
                     ),
-                    if (isNextPlayable)
-                      BoxShadow(
-                        color: AppColors.pink.withValues(alpha: 0.45),
-                        blurRadius: 16,
-                        spreadRadius: 2,
-                      ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      // Inner Glossy Gradient in Algebrix Palette
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: !isUnlocked
-                            ? [
-                                const Color(0xFFEDE7FF),
-                                const Color(0xFFD1C4E9),
-                              ]
-                            : (_isCompleted
-                                ? [
-                                    const Color(0xFF62D9C7),
-                                    const Color(0xFF32BAA6),
-                                  ]
-                                : [
-                                    const Color(0xFFFF69B4),
-                                    const Color(0xFFFF4081),
-                                  ]),
-                      ),
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2.2,
-                      ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    // Inner Glossy Gradient in Algebrix Palette
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: !isUnlocked
+                          ? [
+                              const Color(0xFFEDE7FF),
+                              const Color(0xFFD1C4E9),
+                            ]
+                          : (_isCompleted
+                              ? [
+                                  const Color(0xFF62D9C7),
+                                  const Color(0xFF32BAA6),
+                                ]
+                              : [
+                                  const Color(0xFFFF69B4),
+                                  const Color(0xFFFF4081),
+                                ]),
                     ),
-                    child: Center(
-                      child: !isUnlocked
-                          ? const Icon(
-                              Icons.lock_rounded,
-                              color: Color(0xFF9575CD),
-                              size: 24,
-                            )
-                          : Text(
-                              '${definition.levelNumber}',
-                              style: GoogleFonts.nunito(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                                shadows: const [
-                                  Shadow(
-                                    color: Colors.black26,
-                                    offset: Offset(0, 2),
-                                    blurRadius: 3,
-                                  ),
-                                ],
-                              ),
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 2.2,
+                    ),
+                  ),
+                  child: Center(
+                    child: !isUnlocked
+                        ? const Icon(
+                            Icons.lock_rounded,
+                            color: Color(0xFF9575CD),
+                            size: 24,
+                          )
+                        : Text(
+                            '${definition.levelNumber}',
+                            style: GoogleFonts.nunito(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              shadows: const [
+                                Shadow(
+                                  color: Colors.black26,
+                                  offset: Offset(0, 2),
+                                  blurRadius: 3,
+                                ),
+                              ],
                             ),
-                    ),
+                          ),
                   ),
                 ),
               ),
@@ -1140,20 +1197,10 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     );
 
     // ── 3. 3D Isometric Math Blocks across the map ───────────────────────────
-    // [ x ] Mint Block near Level 1
+    // Stacked Toy Blocks (1, 2, 3) near Start on the right
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.15, size.height * 0.90),
-      size: 42,
-      label: 'x',
-      color: AppColors.mint,
-      textColor: const Color(0xFF0F7263),
-    );
-
-    // Stacked Toy Blocks (1, 2, 3) near Start
-    _draw3DMathBlock(
-      canvas,
-      center: Offset(size.width * 0.78, size.height * 0.94),
+      center: Offset(size.width * 0.84, size.height * 0.94),
       size: 34,
       label: '1',
       color: AppColors.pink,
@@ -1161,7 +1208,7 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     );
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.86, size.height * 0.92),
+      center: Offset(size.width * 0.90, size.height * 0.91),
       size: 34,
       label: '2',
       color: AppColors.yellow,
@@ -1169,7 +1216,7 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     );
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.82, size.height * 0.87),
+      center: Offset(size.width * 0.86, size.height * 0.86),
       size: 32,
       label: '3',
       color: AppColors.purple,
@@ -1199,7 +1246,7 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     // [ 2x ] Purple Block near Level 6
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.12, size.height * 0.48),
+      center: Offset(size.width * 0.12, size.height * 0.52),
       size: 42,
       label: '2x',
       color: AppColors.purple,
@@ -1209,7 +1256,7 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     // [ −5 ] Pink Block near Level 8
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.18, size.height * 0.32),
+      center: Offset(size.width * 0.84, size.height * 0.36),
       size: 40,
       label: '−5',
       color: AppColors.pink,
@@ -1219,7 +1266,7 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     // [ ÷2 ] Mint Block near Level 9
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.86, size.height * 0.22),
+      center: Offset(size.width * 0.86, size.height * 0.24),
       size: 40,
       label: '÷2',
       color: AppColors.mint,
@@ -1228,9 +1275,9 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
 
     // ── 4. Floating Pastel Clouds & Star Sparkles ────────────────────────────
     _drawFluffyCloud(canvas, Offset(size.width * 0.82, size.height * 0.12), 48);
-    _drawFluffyCloud(canvas, Offset(size.width * 0.16, size.height * 0.20), 40);
+    _drawFluffyCloud(canvas, Offset(size.width * 0.16, size.height * 0.10), 40);
     _drawFluffyCloud(canvas, Offset(size.width * 0.88, size.height * 0.40), 44);
-    _drawFluffyCloud(canvas, Offset(size.width * 0.10, size.height * 0.75), 42);
+    _drawFluffyCloud(canvas, Offset(size.width * 0.10, size.height * 0.86), 42);
 
     // Star Sparkles
     _drawSparkle(canvas, Offset(size.width * 0.50, size.height * 0.14), const Color(0xFFFFB300), 10);
@@ -1462,7 +1509,7 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
       ..quadraticBezierTo(center.dx, center.dy, center.dx + radius, center.dy)
       ..quadraticBezierTo(center.dx, center.dy, center.dx, center.dy + radius)
       ..quadraticBezierTo(center.dx, center.dy, center.dx - radius, center.dy)
-      ..quadraticBezierTo(center.dx, center.dy, center.dx, center.dy - radius)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx - radius, center.dy)
       ..close();
 
     canvas.drawPath(path, Paint()..color = color);
