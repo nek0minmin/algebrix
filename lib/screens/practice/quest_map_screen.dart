@@ -13,12 +13,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-/// Full Game World Map Screen for "Balands — The Land of Balancing".
+/// Algebrix Game World Map Screen for "Balands — The Land of Balancing".
 ///
-/// Features a winding S-curve dirt pathway climbing from Level 1 at the valley
-/// to Level 10 at the mountain summit. Includes rich illustrated landscape
-/// elements (river, wooden bridge, hollow log, trees, flowers, rocks), 3D tactile
-/// stepping-stone nodes, 3-star arches, and Xy mascot perched on the active level.
+/// Features an Algebrix-themed pastel math kingdom with:
+/// - Crisp white & soft pastel cloud islands with faint math grid patterns.
+/// - Giant 3D isometric math blocks ([x], [2x], [+3], [=], [-5]) scattered on hills.
+/// - A prominent golden Balance Scale monument at the mountain summit.
+/// - A winding pastel cobblestone pathway with soft pink/mint border ribbons.
+/// - 3D tactile stepping-stone buttons in signature Algebrix Pink, Mint, and Purple.
 class QuestMapScreen extends StatefulWidget {
   const QuestMapScreen({super.key});
 
@@ -28,7 +30,7 @@ class QuestMapScreen extends StatefulWidget {
 
 class _QuestMapScreenState extends State<QuestMapScreen> {
   final ScrollController _scrollController = ScrollController();
-  static const double _mapCanvasHeight = 1560.0;
+  static const double _mapCanvasHeight = 1580.0;
 
   @override
   void initState() {
@@ -60,7 +62,7 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
     }
 
     final nodePos = _getNodePosition(activeLevel - 1, 400, _mapCanvasHeight);
-    final targetScroll = (nodePos.dy - 300).clamp(
+    final targetScroll = (nodePos.dy - 320).clamp(
       0.0,
       _scrollController.position.maxScrollExtent,
     );
@@ -77,10 +79,10 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
     final provider = context.watch<QuestMapProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF73C873),
+      backgroundColor: const Color(0xFFF9F7FD),
       body: Stack(
         children: [
-          // ─── 1. Scrollable Illustrated World Map ───────────────────────────
+          // ─── 1. Scrollable Algebrix World Map Canvas ───────────────────────
           Positioned.fill(
             child: provider.isLoading
                 ? const Center(
@@ -99,11 +101,11 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                           height: _mapCanvasHeight,
                           child: Stack(
                             children: [
-                              // Background Illustrated Landscape (Painter)
+                              // Background Illustrated Algebrix Landscape
                               Positioned.fill(
                                 child: CustomPaint(
                                   size: Size(mapWidth, _mapCanvasHeight),
-                                  painter: _GameMapLandscapePainter(
+                                  painter: _AlgebrixMapLandscapePainter(
                                     mapWidth: mapWidth,
                                     mapHeight: _mapCanvasHeight,
                                     completedLevels: [
@@ -137,7 +139,7 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                                 return Positioned(
                                   left: pos.dx - 44,
                                   top: pos.dy - 56,
-                                  child: _GameLevelNode(
+                                  child: _AlgebrixLevelNode(
                                     key: Key('quest-level-node-$levelNumber'),
                                     definition: def,
                                     starsEarned: starsEarned,
@@ -300,10 +302,10 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
               ),
               const SizedBox(height: 18),
 
-              // Target Equation Banner
+              // Target Equation Banner (Defensive Zero Overflow)
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
+                  horizontal: 16,
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
@@ -472,14 +474,12 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
 
 /// Calculates the (x, y) center coordinate of each level node along the snaking trail.
 Offset _getNodePosition(int index, double mapWidth, double mapHeight) {
-  // 10 levels: Level 1 (index 0) at the bottom valley, Level 10 (index 9) at the summit.
   final t = index / 9.0; // 0.0 (bottom) to 1.0 (top)
 
-  // Vertical placement (from bottom Y ~1400 to top Y ~200)
+  // Vertical placement (from bottom Y ~1420 to top Y ~200)
   final y = (mapHeight - 160.0) - (t * (mapHeight - 340.0));
 
-  // Horizontal snaking curve across width
-  // Uses custom tuned points to create natural S-turns matching Picture 2
+  // Horizontal snaking curve across width matching Picture 2
   const xFractions = [
     0.30, // Level 1 (bottom left)
     0.50, // Level 2 (center)
@@ -527,8 +527,9 @@ class _FloatingGameHud extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withValues(alpha: 0.35),
-            Colors.transparent,
+            Colors.white.withValues(alpha: 0.95),
+            Colors.white.withValues(alpha: 0.8),
+            Colors.white.withValues(alpha: 0.0),
           ],
         ),
       ),
@@ -545,9 +546,13 @@ class _FloatingGameHud extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.pink.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
+                    color: AppColors.pink.withValues(alpha: 0.12),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -555,7 +560,7 @@ class _FloatingGameHud extends StatelessWidget {
               ),
               child: const Icon(
                 Icons.arrow_back_rounded,
-                color: AppColors.text,
+                color: AppColors.pink,
                 size: 22,
               ),
             ),
@@ -567,11 +572,15 @@ class _FloatingGameHud extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.92),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.purple.withValues(alpha: 0.25),
+                  width: 1.5,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
+                    color: AppColors.purple.withValues(alpha: 0.08),
                     blurRadius: 10,
                     offset: const Offset(0, 3),
                   ),
@@ -579,7 +588,7 @@ class _FloatingGameHud extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Text('🗺️', style: TextStyle(fontSize: 18)),
+                  const Text('⚖️', style: TextStyle(fontSize: 18)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -623,11 +632,11 @@ class _FloatingGameHud extends StatelessWidget {
                 color: const Color(0xFFFFE082),
                 width: 1.5,
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
+                  color: Color(0x18FFA000),
                   blurRadius: 10,
-                  offset: const Offset(0, 3),
+                  offset: Offset(0, 3),
                 ),
               ],
             ),
@@ -658,11 +667,11 @@ class _FloatingGameHud extends StatelessWidget {
 }
 
 // =============================================================================
-// 3D Game Level Stepping Node Widget
+// Algebrix 3D Level Stepping Node Widget
 // =============================================================================
 
-class _GameLevelNode extends StatelessWidget {
-  const _GameLevelNode({
+class _AlgebrixLevelNode extends StatelessWidget {
+  const _AlgebrixLevelNode({
     super.key,
     required this.definition,
     required this.starsEarned,
@@ -719,8 +728,8 @@ class _GameLevelNode extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                         boxShadow: const [
                           BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 4,
+                            color: Color(0x33FF5CA8),
+                            blurRadius: 6,
                             offset: Offset(0, 2),
                           ),
                         ],
@@ -738,7 +747,7 @@ class _GameLevelNode extends StatelessWidget {
                 ),
               ),
 
-            // Arched Stars above node (when completed or unlocked)
+            // Arched Stars above node
             Positioned(
               top: isNextPlayable ? 18 : 6,
               child: Row(
@@ -759,60 +768,60 @@ class _GameLevelNode extends StatelessWidget {
                 height: 66,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  // Wooden / Stone 3D Pedestal Base
+                  // 3D Pedestal Base in Algebrix Theme
                   color: !isUnlocked
-                      ? const Color(0xFF607D8B)
+                      ? const Color(0xFFD1C4E9) // Soft lavender stone
                       : (_isCompleted
-                          ? const Color(0xFFB87333) // Bronze/wood rim
-                          : const Color(0xFFC2185B)), // Active pink rim
+                          ? const Color(0xFF38B2A1) // Darker mint base rim
+                          : const Color(0xFFE91E8C)), // Darker pink base rim
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.35),
+                      color: Colors.black.withValues(alpha: 0.16),
                       blurRadius: 10,
                       offset: const Offset(0, 6),
                     ),
                     if (isNextPlayable)
                       BoxShadow(
-                        color: AppColors.pink.withValues(alpha: 0.5),
+                        color: AppColors.pink.withValues(alpha: 0.45),
                         blurRadius: 16,
                         spreadRadius: 2,
                       ),
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(4.5),
+                  padding: const EdgeInsets.all(4.0),
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      // Inner Glossy Gradient
+                      // Inner Glossy Gradient in Algebrix Palette
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: !isUnlocked
                             ? [
-                                const Color(0xFFCFD8DC),
-                                const Color(0xFF90A4AE),
+                                const Color(0xFFEDE7FF),
+                                const Color(0xFFD1C4E9),
                               ]
                             : (_isCompleted
                                 ? [
-                                    const Color(0xFF4FC3F7),
-                                    const Color(0xFF0288D1),
+                                    const Color(0xFF62D9C7),
+                                    const Color(0xFF32BAA6),
                                   ]
                                 : [
                                     const Color(0xFFFF69B4),
-                                    const Color(0xFFE91E63),
+                                    const Color(0xFFFF4081),
                                   ]),
                       ),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        width: 2.0,
+                        color: Colors.white,
+                        width: 2.2,
                       ),
                     ),
                     child: Center(
                       child: !isUnlocked
                           ? const Icon(
                               Icons.lock_rounded,
-                              color: Color(0xFFECEFF1),
+                              color: Color(0xFF9575CD),
                               size: 24,
                             )
                           : Text(
@@ -823,7 +832,7 @@ class _GameLevelNode extends StatelessWidget {
                                 color: Colors.white,
                                 shadows: const [
                                   Shadow(
-                                    color: Colors.black38,
+                                    color: Colors.black26,
                                     offset: Offset(0, 2),
                                     blurRadius: 3,
                                   ),
@@ -855,7 +864,7 @@ class _GameLevelNode extends StatelessWidget {
             size: 18,
             color: earned
                 ? const Color(0xFFFFB300)
-                : const Color(0xFFB0BEC5).withValues(alpha: 0.6),
+                : const Color(0xFFE0E0E0),
             shadows: earned
                 ? const [
                     Shadow(
@@ -873,11 +882,11 @@ class _GameLevelNode extends StatelessWidget {
 }
 
 // =============================================================================
-// Game Map Landscape Custom Painter
+// Algebrix Map Landscape Custom Painter (Pastel, White & Math Blocks)
 // =============================================================================
 
-class _GameMapLandscapePainter extends CustomPainter {
-  _GameMapLandscapePainter({
+class _AlgebrixMapLandscapePainter extends CustomPainter {
+  _AlgebrixMapLandscapePainter({
     required this.mapWidth,
     required this.mapHeight,
     required this.completedLevels,
@@ -889,45 +898,77 @@ class _GameMapLandscapePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // ── 1. Lush Green Landscape Gradient Background ──────────────────────────
+    // ── 1. Clean White / Light Lavender Background ───────────────────────────
     final bgPaint = Paint()
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Color(0xFF5EBA5E), // Mountain summit forest green
-          Color(0xFF76CD76), // Mid highland grass
-          Color(0xFF86D986), // Low valley meadow
+          Color(0xFFF7F2FC), // Top cloud summit
+          Color(0xFFFCF9FF), // Mid realm
+          Color(0xFFFDFBFF), // Bottom valley
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
-    // ── 2. Rolling Green Hills & Elevation Shading ───────────────────────────
-    _drawHill(canvas, size, 0.20 * size.height, const Color(0xFF4DA84D));
-    _drawHill(canvas, size, 0.45 * size.height, const Color(0xFF62BC62));
-    _drawHill(canvas, size, 0.75 * size.height, const Color(0xFF70C970));
+    // ── 2. Subtle Math Grid Pattern ──────────────────────────────────────────
+    _drawMathGrid(canvas, size);
 
-    // ── 3. Winding Blue Creek / River ────────────────────────────────────────
-    _drawRiver(canvas, size);
+    // ── 3. Soft Pastel Rolling Cloud/Hill Masses ─────────────────────────────
+    _drawPastelMass(
+      canvas,
+      size,
+      0.18 * size.height,
+      AppColors.lightPurple.withValues(alpha: 0.6),
+    );
+    _drawPastelMass(
+      canvas,
+      size,
+      0.44 * size.height,
+      AppColors.lightMint.withValues(alpha: 0.65),
+    );
+    _drawPastelMass(
+      canvas,
+      size,
+      0.72 * size.height,
+      AppColors.extraLightPink.withValues(alpha: 0.75),
+    );
 
-    // ── 4. Winding S-Curve Sandy Road ────────────────────────────────────────
-    _drawSandyRoad(canvas, size);
+    // ── 4. Winding Pastel River Creek ────────────────────────────────────────
+    _drawPastelRiver(canvas, size);
 
-    // ── 5. Wooden Bridge crossing the River ──────────────────────────────────
-    _drawWoodenBridge(canvas, size);
+    // ── 5. Algebrix Winding Pastel Pathway ───────────────────────────────────
+    _drawAlgebrixPath(canvas, size);
 
-    // ── 6. Scenery Details: Trees, Logs, Rocks, Flowers ──────────────────────
-    _drawSceneryElements(canvas, size);
+    // ── 6. Pastel Bridge Crossing ────────────────────────────────────────────
+    _drawPastelBridge(canvas, size);
+
+    // ── 7. Giant 3D Math Blocks & Balance Scales ─────────────────────────────
+    _drawMathBlocksAndScales(canvas, size);
   }
 
-  void _drawHill(Canvas canvas, Size size, double topY, Color color) {
+  void _drawMathGrid(Canvas canvas, Size size) {
+    final gridPaint = Paint()
+      ..color = const Color(0xFFEDE7F6).withValues(alpha: 0.6)
+      ..strokeWidth = 1.0;
+
+    const spacing = 38.0;
+    for (double x = 0; x < size.width; x += spacing) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+    for (double y = 0; y < size.height; y += spacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+  }
+
+  void _drawPastelMass(Canvas canvas, Size size, double topY, Color color) {
     final path = Path()
       ..moveTo(0, topY)
       ..cubicTo(
         size.width * 0.35,
-        topY - 45,
+        topY - 40,
         size.width * 0.70,
-        topY + 35,
+        topY + 30,
         size.width,
         topY - 20,
       )
@@ -936,12 +977,12 @@ class _GameMapLandscapePainter extends CustomPainter {
       ..close();
 
     final paint = Paint()
-      ..color = color.withValues(alpha: 0.35)
+      ..color = color
       ..style = PaintingStyle.fill;
     canvas.drawPath(path, paint);
   }
 
-  void _drawRiver(Canvas canvas, Size size) {
+  void _drawPastelRiver(Canvas canvas, Size size) {
     // River crosses horizontally between Level 6 & Level 8 (around Y = 620-720)
     final riverPath = Path()
       ..moveTo(0, size.height * 0.44)
@@ -964,36 +1005,23 @@ class _GameMapLandscapePainter extends CustomPainter {
       )
       ..close();
 
-    // River Water
+    // Pastel Turquoise River Water
     final riverPaint = Paint()
       ..shader = const LinearGradient(
-        colors: [Color(0xFF29B6F6), Color(0xFF0288D1)],
+        colors: [Color(0xFFB2EBF2), Color(0xFF80DEEA)],
       ).createShader(Rect.fromLTWH(0, size.height * 0.40, size.width, size.height * 0.15));
     canvas.drawPath(riverPath, riverPaint);
 
     // River Bank Edges
     final bankPaint = Paint()
-      ..color = const Color(0xFFB2DFDB).withValues(alpha: 0.6)
+      ..color = Colors.white.withValues(alpha: 0.9)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     canvas.drawPath(riverPath, bankPaint);
-
-    // Lily Pads
-    _drawLilyPad(canvas, Offset(size.width * 0.18, size.height * 0.45));
-    _drawLilyPad(canvas, Offset(size.width * 0.82, size.height * 0.46));
   }
 
-  void _drawLilyPad(Canvas canvas, Offset center) {
-    final paint = Paint()..color = const Color(0xFF388E3C);
-    canvas.drawCircle(center, 9, paint);
-    // Flower dot
-    canvas.drawCircle(center, 3, Paint()..color = const Color(0xFFFF80AB));
-  }
-
-  void _drawSandyRoad(Canvas canvas, Size size) {
+  void _drawAlgebrixPath(Canvas canvas, Size size) {
     final roadPath = Path();
-
-    // Construct smooth continuous spline through all 10 node coordinates
     final points = List.generate(10, (i) => _getNodePosition(i, mapWidth, mapHeight));
 
     roadPath.moveTo(points[0].dx, points[0].dy + 40);
@@ -1014,62 +1042,64 @@ class _GameMapLandscapePainter extends CustomPainter {
       );
     }
 
-    // Top finish line extending past Level 10
     roadPath.lineTo(points.last.dx, points.last.dy - 40);
 
-    // 1. Road Dirt Shadow / Earth Border (Wide)
+    // 1. Outer Pastel Pink / Purple Glow Ribbon (Wide)
     final shadowPaint = Paint()
-      ..color = const Color(0xFFC7A263)
+      ..color = AppColors.lightPink.withValues(alpha: 0.85)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 72
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     canvas.drawPath(roadPath, shadowPaint);
 
-    // 2. Main Sand / Cobblestone Road
-    final sandPaint = Paint()
-      ..color = const Color(0xFFFBE4B5)
+    // 2. Crisp White Stepping Road
+    final whiteRoadPaint = Paint()
+      ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 58
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-    canvas.drawPath(roadPath, sandPaint);
+    canvas.drawPath(roadPath, whiteRoadPaint);
 
-    // 3. Inner Trail Highlights (Footpath)
+    // 3. Inner Lavender Track
     final innerPaint = Paint()
-      ..color = const Color(0xFFFFF2D4)
+      ..color = AppColors.lightPurple.withValues(alpha: 0.6)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 36
+      ..strokeWidth = 32
       ..strokeCap = StrokeCap.round;
     canvas.drawPath(roadPath, innerPaint);
 
     // 4. Pedestal Bases under each Node
     for (final pt in points) {
-      // Wood base ring
+      // Soft shadow
       canvas.drawOval(
-        Rect.fromCenter(center: Offset(pt.dx, pt.dy + 12), width: 78, height: 44),
-        Paint()..color = const Color(0xFF8D5B28),
+        Rect.fromCenter(center: Offset(pt.dx, pt.dy + 14), width: 80, height: 44),
+        Paint()..color = Colors.black.withValues(alpha: 0.08),
+      );
+      // Clean white pedestal
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset(pt.dx, pt.dy + 10), width: 76, height: 40),
+        Paint()..color = Colors.white,
       );
       canvas.drawOval(
-        Rect.fromCenter(center: Offset(pt.dx, pt.dy + 8), width: 74, height: 40),
-        Paint()..color = const Color(0xFFC48E56),
+        Rect.fromCenter(center: Offset(pt.dx, pt.dy + 8), width: 72, height: 36),
+        Paint()..color = AppColors.extraLightPink,
       );
     }
   }
 
-  void _drawWoodenBridge(Canvas canvas, Size size) {
-    // Bridge at crossing point between Level 7 and Level 8 (around Y = 680, X = 0.32)
+  void _drawPastelBridge(Canvas canvas, Size size) {
     final bridgeCenter = Offset(size.width * 0.29, size.height * 0.465);
 
-    // Bridge Planks
-    final plankPaint = Paint()..color = const Color(0xFF9E642E);
-    final plankHighlight = Paint()..color = const Color(0xFFD49E6A);
+    final plankPaint = Paint()..color = AppColors.lightPurple;
+    final plankHighlight = Paint()..color = Colors.white;
 
     canvas.save();
     canvas.translate(bridgeCenter.dx, bridgeCenter.dy);
-    canvas.rotate(0.24); // Slight angle to match road curve
+    canvas.rotate(0.24);
 
-    // Draw 6 wooden planks
+    // Draw wooden/pastel planks
     for (int i = -3; i <= 3; i++) {
       final y = i * 11.0;
       canvas.drawRRect(
@@ -1085,163 +1115,380 @@ class _GameMapLandscapePainter extends CustomPainter {
       );
     }
 
-    // Wooden Side Rails
+    // Side Rails
     final railPaint = Paint()
-      ..color = const Color(0xFF6D4016)
+      ..color = AppColors.purple
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4;
+      ..strokeWidth = 3.5;
     canvas.drawLine(const Offset(-32, -36), const Offset(-32, 36), railPaint);
     canvas.drawLine(const Offset(32, -36), const Offset(32, 36), railPaint);
 
     canvas.restore();
   }
 
-  void _drawSceneryElements(Canvas canvas, Size size) {
-    // ── Hollow Log (Picture 2 inspired) ──────────────────────────────────────
-    _drawHollowLog(canvas, Offset(size.width * 0.82, size.height * 0.58));
-
-    // ── Milestone Direction Sign ─────────────────────────────────────────────
-    _drawWoodenSign(canvas, Offset(size.width * 0.38, size.height * 0.72));
-
-    // ── Cartoon Trees ────────────────────────────────────────────────────────
-    _drawTree(canvas, Offset(size.width * 0.12, size.height * 0.92), 26);
-    _drawTree(canvas, Offset(size.width * 0.88, size.height * 0.88), 30);
-    _drawTree(canvas, Offset(size.width * 0.10, size.height * 0.65), 32);
-    _drawTree(canvas, Offset(size.width * 0.88, size.height * 0.35), 34);
-    _drawTree(canvas, Offset(size.width * 0.14, size.height * 0.24), 28);
-    _drawTree(canvas, Offset(size.width * 0.22, size.height * 0.08), 36);
-
-    // ── Wildflowers ──────────────────────────────────────────────────────────
-    _drawFlower(canvas, Offset(size.width * 0.22, size.height * 0.85), const Color(0xFFFF80AB));
-    _drawFlower(canvas, Offset(size.width * 0.60, size.height * 0.82), const Color(0xFFFFD54F));
-    _drawFlower(canvas, Offset(size.width * 0.84, size.height * 0.76), const Color(0xFFBA68C8));
-    _drawFlower(canvas, Offset(size.width * 0.44, size.height * 0.56), const Color(0xFFFF80AB));
-    _drawFlower(canvas, Offset(size.width * 0.78, size.height * 0.22), const Color(0xFFFFD54F));
-
-    // ── Summit Balance Monument (Near Level 10) ──────────────────────────────
-    _drawSummitScaleMonument(canvas, Offset(size.width * 0.68, size.height * 0.06));
-  }
-
-  void _drawTree(Canvas canvas, Offset root, double radius) {
-    // Tree Trunk
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(root.dx, root.dy + 8), width: 10, height: 20),
-        const Radius.circular(4),
-      ),
-      Paint()..color = const Color(0xFF795548),
+  void _drawMathBlocksAndScales(Canvas canvas, Size size) {
+    // ── 1. Giant Summit Balance Scale Monument (Near Level 10) ───────────────
+    _drawGiantBalanceScaleMonument(
+      canvas,
+      Offset(size.width * 0.70, size.height * 0.07),
     );
 
-    // Tree Shadow
+    // ── 2. Mid-Mountain Balance Scale Milestone (Between Level 4 & 5) ────────
+    _drawMiniBalanceScale(
+      canvas,
+      Offset(size.width * 0.22, size.height * 0.60),
+    );
+
+    // ── 3. 3D Isometric Math Blocks across the map ───────────────────────────
+    // [ x ] Mint Block near Level 1
+    _draw3DMathBlock(
+      canvas,
+      center: Offset(size.width * 0.15, size.height * 0.90),
+      size: 42,
+      label: 'x',
+      color: AppColors.mint,
+      textColor: const Color(0xFF0F7263),
+    );
+
+    // Stacked Toy Blocks (1, 2, 3) near Start
+    _draw3DMathBlock(
+      canvas,
+      center: Offset(size.width * 0.78, size.height * 0.94),
+      size: 34,
+      label: '1',
+      color: AppColors.pink,
+      textColor: Colors.white,
+    );
+    _draw3DMathBlock(
+      canvas,
+      center: Offset(size.width * 0.86, size.height * 0.92),
+      size: 34,
+      label: '2',
+      color: AppColors.yellow,
+      textColor: const Color(0xFF7B5A00),
+    );
+    _draw3DMathBlock(
+      canvas,
+      center: Offset(size.width * 0.82, size.height * 0.87),
+      size: 32,
+      label: '3',
+      color: AppColors.purple,
+      textColor: Colors.white,
+    );
+
+    // [ +3 ] Pink Block near Level 3
+    _draw3DMathBlock(
+      canvas,
+      center: Offset(size.width * 0.88, size.height * 0.78),
+      size: 40,
+      label: '+3',
+      color: AppColors.pink,
+      textColor: Colors.white,
+    );
+
+    // [ = ] Golden Block near Level 5
+    _draw3DMathBlock(
+      canvas,
+      center: Offset(size.width * 0.80, size.height * 0.58),
+      size: 38,
+      label: '=',
+      color: AppColors.yellow,
+      textColor: const Color(0xFF7B5A00),
+    );
+
+    // [ 2x ] Purple Block near Level 6
+    _draw3DMathBlock(
+      canvas,
+      center: Offset(size.width * 0.12, size.height * 0.48),
+      size: 42,
+      label: '2x',
+      color: AppColors.purple,
+      textColor: Colors.white,
+    );
+
+    // [ −5 ] Pink Block near Level 8
+    _draw3DMathBlock(
+      canvas,
+      center: Offset(size.width * 0.18, size.height * 0.32),
+      size: 40,
+      label: '−5',
+      color: AppColors.pink,
+      textColor: Colors.white,
+    );
+
+    // [ ÷2 ] Mint Block near Level 9
+    _draw3DMathBlock(
+      canvas,
+      center: Offset(size.width * 0.86, size.height * 0.22),
+      size: 40,
+      label: '÷2',
+      color: AppColors.mint,
+      textColor: const Color(0xFF0F7263),
+    );
+
+    // ── 4. Floating Pastel Clouds & Star Sparkles ────────────────────────────
+    _drawFluffyCloud(canvas, Offset(size.width * 0.82, size.height * 0.12), 48);
+    _drawFluffyCloud(canvas, Offset(size.width * 0.16, size.height * 0.20), 40);
+    _drawFluffyCloud(canvas, Offset(size.width * 0.88, size.height * 0.40), 44);
+    _drawFluffyCloud(canvas, Offset(size.width * 0.10, size.height * 0.75), 42);
+
+    // Star Sparkles
+    _drawSparkle(canvas, Offset(size.width * 0.50, size.height * 0.14), const Color(0xFFFFB300), 10);
+    _drawSparkle(canvas, Offset(size.width * 0.88, size.height * 0.05), AppColors.pink, 12);
+    _drawSparkle(canvas, Offset(size.width * 0.25, size.height * 0.42), AppColors.mint, 9);
+    _drawSparkle(canvas, Offset(size.width * 0.70, size.height * 0.70), const Color(0xFFFFB300), 11);
+  }
+
+  void _draw3DMathBlock(
+    Canvas canvas, {
+    required Offset center,
+    required double size,
+    required String label,
+    required Color color,
+    required Color textColor,
+  }) {
+    final half = size / 2;
+    final depth = size * 0.28;
+
+    // Drop shadow
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(root.dx, root.dy + 16), width: radius * 1.6, height: 12),
-      Paint()..color = Colors.black.withValues(alpha: 0.15),
+      Rect.fromCenter(center: Offset(center.dx, center.dy + half + 6), width: size * 1.3, height: 12),
+      Paint()..color = Colors.black.withValues(alpha: 0.10),
     );
 
-    // Fluffy Green Foliage
-    final foliageDark = Paint()..color = const Color(0xFF2E7D32);
-    final foliageLight = Paint()..color = const Color(0xFF4CAF50);
-    final foliageTop = Paint()..color = const Color(0xFF81C784);
-
-    canvas.drawCircle(Offset(root.dx, root.dy - 2), radius, foliageDark);
-    canvas.drawCircle(Offset(root.dx, root.dy - 6), radius * 0.85, foliageLight);
-    canvas.drawCircle(Offset(root.dx - 3, root.dy - 10), radius * 0.65, foliageTop);
-  }
-
-  void _drawHollowLog(Canvas canvas, Offset center) {
-    // Hollow log matching reference image
-    final logBody = Paint()..color = const Color(0xFF8D5B28);
-    final logRing = Paint()..color = const Color(0xFFD49E6A);
-    final logHole = Paint()..color = const Color(0xFF3E2723);
-
-    // Outer body
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: center, width: 62, height: 34),
-        const Radius.circular(8),
-      ),
-      logBody,
-    );
-
-    // End cross-section ring
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(center.dx - 22, center.dy), width: 18, height: 32),
-      logRing,
-    );
-    // Dark hollow opening
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(center.dx - 22, center.dy), width: 12, height: 24),
-      logHole,
-    );
-  }
-
-  void _drawWoodenSign(Canvas canvas, Offset center) {
-    // Post
-    canvas.drawRect(
-      Rect.fromCenter(center: Offset(center.dx, center.dy + 10), width: 6, height: 22),
-      Paint()..color = const Color(0xFF6D4016),
-    );
-    // Board
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: center, width: 34, height: 16),
-        const Radius.circular(4),
-      ),
-      Paint()..color = const Color(0xFFB07D38),
-    );
-  }
-
-  void _drawFlower(Canvas canvas, Offset center, Color color) {
-    final petalPaint = Paint()..color = color;
-    canvas.drawCircle(Offset(center.dx - 3, center.dy), 3, petalPaint);
-    canvas.drawCircle(Offset(center.dx + 3, center.dy), 3, petalPaint);
-    canvas.drawCircle(Offset(center.dx, center.dy - 3), 3, petalPaint);
-    canvas.drawCircle(Offset(center.dx, center.dy + 3), 3, petalPaint);
-    // Center dot
-    canvas.drawCircle(center, 2.5, Paint()..color = const Color(0xFFFFF9C4));
-  }
-
-  void _drawSummitScaleMonument(Canvas canvas, Offset center) {
-    // Golden Balance Scale Icon / Arch at summit
-    final goldPaint = Paint()..color = const Color(0xFFFFD700);
-    final amberPaint = Paint()..color = const Color(0xFFFFA000);
-
-    // Fulcrum Base
-    final path = Path()
-      ..moveTo(center.dx, center.dy - 10)
-      ..lineTo(center.dx - 14, center.dy + 14)
-      ..lineTo(center.dx + 14, center.dy + 14)
+    // 3D Right Side Depth Face (Darker)
+    final rightFace = Path()
+      ..moveTo(center.dx + half, center.dy - half)
+      ..lineTo(center.dx + half + depth, center.dy - half - depth * 0.6)
+      ..lineTo(center.dx + half + depth, center.dy + half - depth * 0.6)
+      ..lineTo(center.dx + half, center.dy + half)
       ..close();
-    canvas.drawPath(path, amberPaint);
+    canvas.drawPath(
+      rightFace,
+      Paint()..color = _darken(color, 0.25),
+    );
 
-    // Scale Beam
+    // 3D Top Depth Face (Lighter)
+    final topFace = Path()
+      ..moveTo(center.dx - half, center.dy - half)
+      ..lineTo(center.dx - half + depth, center.dy - half - depth * 0.6)
+      ..lineTo(center.dx + half + depth, center.dy - half - depth * 0.6)
+      ..lineTo(center.dx + half, center.dy - half)
+      ..close();
+    canvas.drawPath(
+      topFace,
+      Paint()..color = _lighten(color, 0.20),
+    );
+
+    // Front Face
+    final frontRect = Rect.fromCenter(center: center, width: size, height: size);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(frontRect, Radius.circular(size * 0.2)),
+      Paint()..color = color,
+    );
+
+    // Front Face Border
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(frontRect, Radius.circular(size * 0.2)),
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.6)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+
+    // Label Text
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: GoogleFonts.nunito(
+          fontSize: size * 0.44,
+          fontWeight: FontWeight.w900,
+          color: textColor,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    textPainter.paint(
+      canvas,
+      Offset(center.dx - textPainter.width / 2, center.dy - textPainter.height / 2),
+    );
+  }
+
+  void _drawGiantBalanceScaleMonument(Canvas canvas, Offset center) {
+    final baseColor = AppColors.purple;
+    final goldBeam = const Color(0xFFFFB300);
+    final goldDish = const Color(0xFFFFD54F);
+
+    // Soft Monument Glow
+    canvas.drawCircle(
+      center,
+      50,
+      Paint()..color = AppColors.lightPurple.withValues(alpha: 0.5),
+    );
+
+    // Fulcrum Base Stand
+    final fulcrumPath = Path()
+      ..moveTo(center.dx, center.dy - 12)
+      ..lineTo(center.dx - 18, center.dy + 20)
+      ..lineTo(center.dx + 18, center.dy + 20)
+      ..close();
+    canvas.drawPath(fulcrumPath, Paint()..color = baseColor);
+
+    // Pivot Pin
+    canvas.drawCircle(
+      Offset(center.dx, center.dy - 12),
+      5,
+      Paint()..color = AppColors.pink,
+    );
+
+    // Golden Balance Crossbar
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(center.dx, center.dy - 10), width: 42, height: 5),
+        Rect.fromCenter(center: Offset(center.dx, center.dy - 12), width: 66, height: 6),
+        const Radius.circular(3),
+      ),
+      Paint()..color = goldBeam,
+    );
+
+    // Suspension Chains
+    final chainPaint = Paint()
+      ..color = const Color(0xFFB07D38)
+      ..strokeWidth = 1.8;
+    // Left Chain
+    canvas.drawLine(Offset(center.dx - 26, center.dy - 12), Offset(center.dx - 26, center.dy + 4), chainPaint);
+    // Right Chain
+    canvas.drawLine(Offset(center.dx + 26, center.dy - 12), Offset(center.dx + 26, center.dy + 4), chainPaint);
+
+    // Weighing Dishes
+    canvas.drawArc(
+      Rect.fromCenter(center: Offset(center.dx - 26, center.dy + 6), width: 22, height: 14),
+      0,
+      math.pi,
+      false,
+      Paint()..color = goldDish,
+    );
+    canvas.drawArc(
+      Rect.fromCenter(center: Offset(center.dx + 26, center.dy + 6), width: 22, height: 14),
+      0,
+      math.pi,
+      false,
+      Paint()..color = goldDish,
+    );
+
+    // Block [x] inside left dish!
+    _draw3DMathBlock(
+      canvas,
+      center: Offset(center.dx - 26, center.dy - 2),
+      size: 16,
+      label: 'x',
+      color: AppColors.mint,
+      textColor: const Color(0xFF0F7263),
+    );
+
+    // Weights [5] inside right dish!
+    _draw3DMathBlock(
+      canvas,
+      center: Offset(center.dx + 26, center.dy - 2),
+      size: 16,
+      label: '5',
+      color: AppColors.pink,
+      textColor: Colors.white,
+    );
+  }
+
+  void _drawMiniBalanceScale(Canvas canvas, Offset center) {
+    final goldBeam = const Color(0xFFFFB300);
+
+    // Base
+    final fulcrumPath = Path()
+      ..moveTo(center.dx, center.dy - 8)
+      ..lineTo(center.dx - 12, center.dy + 12)
+      ..lineTo(center.dx + 12, center.dy + 12)
+      ..close();
+    canvas.drawPath(fulcrumPath, Paint()..color = AppColors.pink);
+
+    // Crossbar
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset(center.dx, center.dy - 8), width: 44, height: 4),
         const Radius.circular(2),
       ),
-      goldPaint,
+      Paint()..color = goldBeam,
     );
 
-    // Scale Dishes
+    // Dishes
     canvas.drawArc(
-      Rect.fromCenter(center: Offset(center.dx - 16, center.dy - 2), width: 14, height: 10),
+      Rect.fromCenter(center: Offset(center.dx - 18, center.dy + 2), width: 14, height: 9),
       0,
       math.pi,
       false,
-      goldPaint,
+      Paint()..color = const Color(0xFFFFD54F),
     );
     canvas.drawArc(
-      Rect.fromCenter(center: Offset(center.dx + 16, center.dy - 2), width: 14, height: 10),
+      Rect.fromCenter(center: Offset(center.dx + 18, center.dy + 2), width: 14, height: 9),
       0,
       math.pi,
       false,
-      goldPaint,
+      Paint()..color = const Color(0xFFFFD54F),
+    );
+  }
+
+  void _drawFluffyCloud(Canvas canvas, Offset center, double width) {
+    final cloudPaint = Paint()..color = Colors.white.withValues(alpha: 0.85);
+
+    // Cloud shadow
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(center.dx, center.dy + 8), width: width * 1.1, height: 16),
+      Paint()..color = AppColors.lightPurple.withValues(alpha: 0.25),
+    );
+
+    // Multi-puff cloud body
+    canvas.drawCircle(Offset(center.dx - width * 0.25, center.dy), width * 0.28, cloudPaint);
+    canvas.drawCircle(Offset(center.dx, center.dy - width * 0.12), width * 0.36, cloudPaint);
+    canvas.drawCircle(Offset(center.dx + width * 0.25, center.dy), width * 0.26, cloudPaint);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset(center.dx, center.dy + 4), width: width * 0.8, height: width * 0.35),
+        Radius.circular(width * 0.18),
+      ),
+      cloudPaint,
+    );
+  }
+
+  void _drawSparkle(Canvas canvas, Offset center, Color color, double radius) {
+    final path = Path()
+      ..moveTo(center.dx, center.dy - radius)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx + radius, center.dy)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx, center.dy + radius)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx - radius, center.dy)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx, center.dy - radius)
+      ..close();
+
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  Color _darken(Color c, [double percent = 0.2]) {
+    final f = 1 - percent;
+    return Color.fromARGB(
+      (c.a * 255).round(),
+      ((c.r * 255) * f).round().clamp(0, 255),
+      ((c.g * 255) * f).round().clamp(0, 255),
+      ((c.b * 255) * f).round().clamp(0, 255),
+    );
+  }
+
+  Color _lighten(Color c, [double percent = 0.2]) {
+    return Color.fromARGB(
+      (c.a * 255).round(),
+      (((c.r * 255) + (255 - (c.r * 255)) * percent)).round().clamp(0, 255),
+      (((c.g * 255) + (255 - (c.g * 255)) * percent)).round().clamp(0, 255),
+      (((c.b * 255) + (255 - (c.b * 255)) * percent)).round().clamp(0, 255),
     );
   }
 
   @override
-  bool shouldRepaint(covariant _GameMapLandscapePainter oldDelegate) {
+  bool shouldRepaint(covariant _AlgebrixMapLandscapePainter oldDelegate) {
     return completedLevels.length != oldDelegate.completedLevels.length ||
         mapWidth != oldDelegate.mapWidth ||
         mapHeight != oldDelegate.mapHeight;
