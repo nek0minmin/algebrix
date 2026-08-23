@@ -1,6 +1,7 @@
 import 'package:algebrix/core/providers/balance_scale_provider.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/models/quest_map_model.dart';
+import 'package:algebrix/screens/practice/balance_scale_screen.dart';
 import 'package:algebrix/screens/practice/practice_screen.dart';
 import 'package:algebrix/services/math_api_service.dart';
 import 'package:algebrix/services/quest_repository.dart';
@@ -185,6 +186,45 @@ void main() {
       expect(find.text('Balands'), findsOneWidget);
       expect(find.text('The Land of Balancing'), findsOneWidget);
       expect(find.byKey(const Key('quest-level-node-1')), findsOneWidget);
+    });
+
+    testWidgets('BalanceScaleScreen celebration dialog renders Back, Retry, and Next Level buttons', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(430, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final scaleProvider = BalanceScaleProvider();
+      final questRepo = _FakeQuestRepository();
+      final questProvider = QuestMapProvider(repository: questRepo);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<BalanceScaleProvider>.value(value: scaleProvider),
+            ChangeNotifierProvider<QuestMapProvider>.value(value: questProvider),
+          ],
+          child: const MaterialApp(
+            home: BalanceScaleScreen(questLevelNumber: 1),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Solve level 1: -3
+      await scaleProvider.applyOperation('-', 3, targetSide: 'both');
+      await tester.pumpAndSettle();
+
+      // Answer reasoning check correctly (option 0 for level 1)
+      scaleProvider.submitReasoningAnswer(0);
+      await tester.pumpAndSettle(const Duration(milliseconds: 600));
+
+      expect(find.byKey(const Key('celebration-btn-back')), findsOneWidget);
+      expect(find.byKey(const Key('celebration-btn-retry')), findsOneWidget);
+      expect(find.byKey(const Key('celebration-btn-next-level')), findsOneWidget);
+      expect(find.text('Back'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+      expect(find.text('Next Level ➔'), findsOneWidget);
     });
   });
 }

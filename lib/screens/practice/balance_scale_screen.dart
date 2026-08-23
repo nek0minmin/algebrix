@@ -8,6 +8,7 @@ import 'package:algebrix/services/math_api_service.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
+import 'package:algebrix/widgets/secondary_button.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
 import 'package:flutter/material.dart';
@@ -111,15 +112,17 @@ class BalanceScaleScreen extends StatefulWidget {
 class _BalanceScaleScreenState extends State<BalanceScaleScreen> {
   String? _lastPresentedProblemId;
   bool _dialogOpen = false;
+  int? _currentLevelNumber;
 
   @override
   void initState() {
     super.initState();
-    if (widget.questLevelNumber != null) {
+    _currentLevelNumber = widget.questLevelNumber;
+    if (_currentLevelNumber != null) {
       // Load the specific level problem for quest mode.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         context.read<BalanceScaleProvider>().initLevelProblem(
-              widget.questLevelNumber!,
+              _currentLevelNumber!,
             );
       });
     }
@@ -145,23 +148,69 @@ class _BalanceScaleScreenState extends State<BalanceScaleScreen> {
             value: provider,
             child: _ReasoningAndCelebrationDialog(
               problem: problem,
-              isQuestMode: widget.questLevelNumber != null,
-              onDismissAndNext: () {
+              isQuestMode: _currentLevelNumber != null,
+              currentLevelNumber: _currentLevelNumber,
+              onBack: () {
                 _dialogOpen = false;
                 Navigator.of(dialogCtx).pop();
 
-                if (widget.questLevelNumber != null) {
-                  // Quest mode: report result and go back to map.
+                if (_currentLevelNumber != null) {
+                  // Quest mode: save level result and return to quest map.
                   final questProvider = context.read<QuestMapProvider>();
                   questProvider.submitLevelResult(
-                    levelNumber: widget.questLevelNumber!,
+                    levelNumber: _currentLevelNumber!,
                     moveCount: provider.moveCount,
                     optimalMoves: provider.optimalMoves,
                     reasoningPassed: provider.reasoningPassed,
                   );
                   Navigator.of(context).pop(); // Back to quest map
                 } else {
-                  // Sandbox mode: load next random problem.
+                  Navigator.of(context).pop(); // Back to previous screen
+                }
+              },
+              onRetry: () {
+                _dialogOpen = false;
+                _lastPresentedProblemId = null;
+                Navigator.of(dialogCtx).pop();
+
+                if (_currentLevelNumber != null) {
+                  // Save progress achieved so far, then reset level.
+                  final questProvider = context.read<QuestMapProvider>();
+                  questProvider.submitLevelResult(
+                    levelNumber: _currentLevelNumber!,
+                    moveCount: provider.moveCount,
+                    optimalMoves: provider.optimalMoves,
+                    reasoningPassed: provider.reasoningPassed,
+                  );
+                  provider.initLevelProblem(_currentLevelNumber!);
+                } else {
+                  provider.resetCurrentProblem();
+                }
+              },
+              onNextLevel: () {
+                _dialogOpen = false;
+                _lastPresentedProblemId = null;
+                Navigator.of(dialogCtx).pop();
+
+                if (_currentLevelNumber != null) {
+                  final questProvider = context.read<QuestMapProvider>();
+                  questProvider.submitLevelResult(
+                    levelNumber: _currentLevelNumber!,
+                    moveCount: provider.moveCount,
+                    optimalMoves: provider.optimalMoves,
+                    reasoningPassed: provider.reasoningPassed,
+                  );
+
+                  if (_currentLevelNumber! < 10) {
+                    setState(() {
+                      _currentLevelNumber = _currentLevelNumber! + 1;
+                    });
+                    provider.initLevelProblem(_currentLevelNumber!);
+                  } else {
+                    // Completed level 10 (all Balands levels)!
+                    Navigator.of(context).pop();
+                  }
+                } else {
                   provider.initNewProblem();
                 }
               },
@@ -1515,13 +1564,19 @@ class _StepHistoryCard extends StatelessWidget {
 class _ReasoningAndCelebrationDialog extends StatefulWidget {
   const _ReasoningAndCelebrationDialog({
     required this.problem,
-    required this.onDismissAndNext,
+    required this.onBack,
+    required this.onRetry,
+    required this.onNextLevel,
     this.isQuestMode = false,
+    this.currentLevelNumber,
   });
 
   final BalanceScaleProblem problem;
-  final VoidCallback onDismissAndNext;
+  final VoidCallback onBack;
+  final VoidCallback onRetry;
+  final VoidCallback onNextLevel;
   final bool isQuestMode;
+  final int? currentLevelNumber;
 
   @override
   State<_ReasoningAndCelebrationDialog> createState() =>
@@ -1963,10 +2018,49 @@ class _ReasoningAndCelebrationDialogState
           ),
           const SizedBox(height: 20),
 
-          // Next Equation / Back to Map Button
+          // ── Action Buttons ──
+          // Row 1: ( Back ), ( Retry )
+          Row(
+            children: [
+              Expanded(
+                child: SecondaryButton(
+                  key: const Key('celebration-btn-back'),
+                  label: 'Back',
+                  icon: Icons.arrow_back_rounded,
+                  height: 48,
+                  borderColor: AppColors.border,
+                  textColor: AppColors.text,
+                  backgroundColor: AppColors.background,
+                  onPressed: widget.onBack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SecondaryButton(
+                  key: const Key('celebration-btn-retry'),
+                  label: 'Retry',
+                  icon: Icons.refresh_rounded,
+                  height: 48,
+                  borderColor: AppColors.pink.withValues(alpha: 0.5),
+                  textColor: AppColors.pink,
+                  backgroundColor: AppColors.extraLightPink,
+                  onPressed: widget.onRetry,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Row 2: ( Next Level )
           PrimaryButton(
-            label: widget.isQuestMode ? 'Back to Map 🗺️' : 'Next Equation →',
-            onPressed: widget.onDismissAndNext,
+            key: const Key('celebration-btn-next-level'),
+            label: widget.isQuestMode
+                ? ((widget.currentLevelNumber ?? 1) >= 10
+                    ? 'Finish Quest 🏆'
+                    : 'Next Level ➔')
+                : 'Next Equation ➔',
+            height: 52,
+            onPressed: widget.onNextLevel,
           ),
         ],
       ),
