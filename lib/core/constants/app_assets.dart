@@ -42,7 +42,7 @@ class AppAssets {
   static const String starSilhouette = 'assets/mascot/star-silhouette.png';
 
   // ── Images ────────────────────────────────────────────────────────────────
-  // (Lesson illustrations, backgrounds, etc. will be added here)
+  static const String algebria = 'assets/mascot/algebria.jpg';
 
   // ── Animations ────────────────────────────────────────────────────────────
   // (Lottie files or Rive animations will be added here)

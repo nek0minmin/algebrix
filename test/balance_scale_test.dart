@@ -135,7 +135,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Practice Arena'), findsOneWidget);
-      expect(find.text('Balance Scale'), findsOneWidget);
+      expect(find.text('Explore Algebria'), findsOneWidget);
       expect(find.text('AI Module Quiz'), findsOneWidget);
       expect(find.text('Root Finder'), findsOneWidget);
 
