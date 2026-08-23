@@ -95,6 +95,13 @@ const m1Lesson3 = LessonContent(
     ),
     LessonStep(
       id: 'm1_l3_s07',
+      type: LessonStepType.xySays,
+      xyDialogue:
+          'Pro tip: Always circle the sign in front of each term so negative numbers never slip away!',
+      xyAsset: AppAssets.xyIdea,
+    ),
+    LessonStep(
+      id: 'm1_l3_s08',
       type: LessonStepType.summary,
       title: 'Terms Summary',
       xyDialogue:

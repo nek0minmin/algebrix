@@ -68,7 +68,9 @@ const m1Lesson2 = LessonContent(
           ClassificationItem(id: 'x', label: 'x', categoryId: 'change'),
           ClassificationItem(id: '7', label: '7', categoryId: 'stay'),
           ClassificationItem(id: 'y', label: 'y', categoryId: 'change'),
-          ClassificationItem(id: '12', label: '12', categoryId: 'stay'),
+          ClassificationItem(id: '15', label: '15', categoryId: 'stay'),
+          ClassificationItem(id: 'a', label: 'a', categoryId: 'change'),
+          ClassificationItem(id: '−4', label: '−4', categoryId: 'stay'),
         ],
       ),
       explanation: 'Variables change; numbers alone are constants.',
@@ -77,6 +79,13 @@ const m1Lesson2 = LessonContent(
     ),
     LessonStep(
       id: 'm1_l2_s06',
+      type: LessonStepType.xySays,
+      xyDialogue:
+          'When looking at an expression, spot the standalone numbers first—those are your constants!',
+      xyAsset: AppAssets.xyIdea,
+    ),
+    LessonStep(
+      id: 'm1_l2_s07',
       type: LessonStepType.quiz,
       title: 'Quick Check',
       question: 'Which number is the constant in 4x + 9?',
@@ -95,7 +104,7 @@ const m1Lesson2 = LessonContent(
           'Look for the number standing by itself without a variable.',
     ),
     LessonStep(
-      id: 'm1_l2_s07',
+      id: 'm1_l2_s08',
       type: LessonStepType.quiz,
       title: 'Think About It',
       question: 'If x changes from 2 to 10 in x + 7, what happens to 7?',
@@ -114,7 +123,7 @@ const m1Lesson2 = LessonContent(
           'Remember: constants stay fixed regardless of how the variable changes.',
     ),
     LessonStep(
-      id: 'm1_l2_s08',
+      id: 'm1_l2_s09',
       type: LessonStepType.summary,
       title: 'Constants Summary',
       xyDialogue:

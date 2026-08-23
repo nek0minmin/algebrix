@@ -51,13 +51,23 @@ class DailyChallengeCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text(
-                  title,
-                  style: AppTextStyles.subtitle1,
+                Expanded(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: AppTextStyles.subtitle1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('🔥'),
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 8),
-                const Text('🔥'),
-                const Spacer(),
                 XpBadge(amount: xpReward),
               ],
             ),

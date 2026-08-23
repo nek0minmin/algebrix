@@ -185,6 +185,11 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       await _authService.resendOTP(email: email);
+      if (_authService.errorMessage != null) {
+        _errorMessage = _formatErrorMessage(_authService.errorMessage!);
+        _setLoading(false);
+        return false;
+      }
       _setLoading(false);
       return true;
     } catch (e) {

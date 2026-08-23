@@ -120,7 +120,7 @@ void main() {
     testWidgets('RegisterScreen renders registration fields and buttons', (tester) async {
       await tester.pumpWidget(createTestableWidget(const RegisterScreen()));
 
-      expect(find.text('Create Account'), findsOneWidget);
+      expect(find.textContaining('Create your account'), findsOneWidget);
       expect(find.text('Full Name'), findsOneWidget);
       expect(find.text('Email Address'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
@@ -163,6 +163,7 @@ void main() {
       await tester.enterText(find.byType(TextFormField).at(2), 'short');
       await tester.enterText(find.byType(TextFormField).at(3), 'short');
 
+      await tester.ensureVisible(find.text('Sign Up'));
       await tester.tap(find.text('Sign Up'));
       await tester.pump();
 
@@ -191,7 +192,7 @@ void main() {
       );
 
       await expectLater(service.signOut(), throwsException);
-      expect(service.errorMessage, 'Sign out failed. Please try again.');
+      expect(service.errorMessage, contains('Google cleanup failed'));
     });
 
     test('AuthProvider clears its user only after sign out completes', () async {

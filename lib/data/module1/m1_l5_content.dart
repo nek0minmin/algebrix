@@ -121,6 +121,13 @@ const m1Lesson5 = LessonContent(
     ),
     LessonStep(
       id: 'm1_l5_s09',
+      type: LessonStepType.xySays,
+      xyDialogue:
+          'Remember: every single variable has a multiplier—even when it looks all alone!',
+      xyAsset: AppAssets.xyIdea,
+    ),
+    LessonStep(
+      id: 'm1_l5_s10',
       type: LessonStepType.summary,
       title: 'Coefficients Summary',
       xyDialogue:

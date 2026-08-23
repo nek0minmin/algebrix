@@ -44,19 +44,26 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        final aiProvider = context.read<AiNotesProvider>();
-        if (widget.note?.aiFeedbackResult != null) {
-          aiProvider.setFeedback(widget.note!.aiFeedbackResult!);
-        } else {
-          aiProvider.clearFeedback();
-        }
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        try {
+          final aiProvider = context.read<AiNotesProvider?>();
+          if (aiProvider != null) {
+            if (widget.note?.aiFeedbackResult != null) {
+              aiProvider.setFeedback(widget.note!.aiFeedbackResult!);
+            } else {
+              aiProvider.clearFeedback();
+            }
+          }
+        } catch (_) {}
       }
     });
   }
 
   @override
   void deactivate() {
-    context.read<AiNotesProvider>().clearFeedback();
+    try {
+      context.read<AiNotesProvider?>()?.clearFeedback();
+    } catch (_) {}
     super.deactivate();
   }
 
@@ -82,7 +89,8 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     }
 
     _formKey.currentState?.validate();
-    final aiProvider = context.read<AiNotesProvider>();
+    final aiProvider = context.read<AiNotesProvider?>();
+    if (aiProvider == null) return;
     FocusManager.instance.primaryFocus?.unfocus();
 
     if (content.toLowerCase().contains('problem') || content.contains('=')) {
@@ -106,8 +114,8 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     final rawContent = _contentController.text.trim();
 
     final notesProvider = context.read<NotesProvider>();
-    final aiProvider = context.read<AiNotesProvider>();
-    final currentFeedback = aiProvider.currentFeedback;
+    final aiProvider = context.read<AiNotesProvider?>();
+    final currentFeedback = aiProvider?.currentFeedback;
 
     final isAiDetectedOffTopic = currentFeedback != null &&
         (currentFeedback.isCorrect == false ||
@@ -242,7 +250,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
     if (!mounted) return;
     if (success) {
-      aiProvider.clearFeedback();
+      aiProvider?.clearFeedback();
       Navigator.of(context).pop(true);
       return;
     }
@@ -286,7 +294,9 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isSaving = context.watch<NotesProvider>().isSaving;
-    final aiProvider = context.watch<AiNotesProvider>();
+    final aiProvider = context.watch<AiNotesProvider?>();
+    final isAnalyzing = aiProvider?.isAnalyzing ?? false;
+    final currentFeedback = aiProvider?.currentFeedback;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -300,23 +310,21 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
         top: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
+            constraints: const BoxConstraints(maxWidth: 720),
             child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Form(
                 key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const _FieldLabel(
-                      label: 'Lesson',
-                      helper: 'Connect this note to what you are learning.',
+                      label: 'Lesson tag',
+                      helper:
+                          'Connect your note to an Algebra module so it stays organized.',
                     ),
                     const SizedBox(height: 10),
                     FormField<String>(
-                      key: const Key('note-lesson-field'),
                       initialValue: _lessonId,
                       validator: (value) => value == null
                           ? 'Choose a lesson for this note.'
@@ -413,7 +421,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                             shadowColor: AppColors.pink.withValues(alpha: 0.2),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(99),
-                              onTap: (isSaving || aiProvider.isAnalyzing)
+                              onTap: (isSaving || isAnalyzing)
                                   ? null
                                   : _analyzeWithAi,
                               child: Container(
@@ -431,7 +439,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    if (aiProvider.isAnalyzing)
+                                    if (isAnalyzing)
                                       const SizedBox(
                                         width: 16,
                                         height: 16,
@@ -449,7 +457,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                                       ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      aiProvider.isAnalyzing
+                                      isAnalyzing
                                           ? "Thinking..."
                                           : "Ask Xy's Insights!",
                                       style: AppTextStyles.caption.copyWith(
@@ -468,13 +476,13 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                     ),
 
                     // Active Xy AI Feedback Card
-                    if (aiProvider.currentFeedback != null) ...[
+                    if (currentFeedback != null) ...[
                       const SizedBox(height: 14),
                       AiFeedbackCard(
-                        feedback: aiProvider.currentFeedback!,
-                        onClose: () => aiProvider.clearFeedback(),
+                        feedback: currentFeedback,
+                        onClose: () => aiProvider?.clearFeedback(),
                         onChipSelected: (chipText) {
-                          aiProvider.getSocraticHint(question: chipText, hintType: chipText);
+                          aiProvider?.getSocraticHint(question: chipText, hintType: chipText);
                         },
                       ),
                     ],
@@ -681,12 +689,16 @@ class _LessonPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lessonProvider = context.watch<LessonProvider>();
+    final lessonProvider = Provider.of<LessonProvider?>(context);
 
     // Filter to show lessons the user has finished reading or visited in progress
-    final completedOptions = noteLessonOptions
-        .where((opt) => lessonProvider.isLessonCompleted(opt.lessonId) || lessonProvider.progressForLesson(opt.lessonId) != null)
-        .toList();
+    final completedOptions = lessonProvider != null
+        ? noteLessonOptions
+            .where((opt) =>
+                lessonProvider.isLessonCompleted(opt.lessonId) ||
+                lessonProvider.progressForLesson(opt.lessonId) != null)
+            .toList()
+        : <NoteLessonOption>[];
 
     // Fallback: If no lessons completed yet, display all options so new users can create notes
     final displayOptions = completedOptions.isNotEmpty ? completedOptions : noteLessonOptions;
@@ -758,7 +770,7 @@ class _LessonPickerSheet extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final option = displayOptions[index];
                   final selected = option.lessonId == selectedLessonId;
-                  final isFinished = lessonProvider.isLessonCompleted(option.lessonId);
+                  final isFinished = lessonProvider?.isLessonCompleted(option.lessonId) ?? false;
 
                   return Material(
                     color: selected

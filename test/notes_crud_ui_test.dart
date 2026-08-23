@@ -12,8 +12,12 @@ void main() {
   testWidgets('student can create, read, update, and delete a study note', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(430, 900));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    tester.view.physicalSize = const Size(430, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
 
     final repository = _MemoryNotesRepository();
     final provider = NotesProvider(repository: repository);
@@ -107,7 +111,12 @@ void main() {
     'thinking prompts add math-focused structure without overwriting',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(430, 900));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      tester.view.physicalSize = const Size(430, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
 
       final provider = NotesProvider(repository: _MemoryNotesRepository());
       provider.bindAccount('student-1');
@@ -145,8 +154,12 @@ void main() {
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
-    await tester.binding.setSurfaceSize(const Size(390, 844));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
 
     final provider = NotesProvider(repository: _MemoryNotesRepository());
     provider.bindAccount('student-1');
@@ -175,8 +188,12 @@ void main() {
   testWidgets('thinking prompts respond at the 380px content breakpoint', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(480, 900));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    tester.view.physicalSize = const Size(480, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
 
     final provider = NotesProvider(repository: _MemoryNotesRepository());
     provider.bindAccount('student-1');
@@ -204,6 +221,7 @@ void main() {
     expect(find.bySemanticsLabel('Insert Explain why prompt'), findsOneWidget);
 
     await tester.binding.setSurfaceSize(const Size(390, 900));
+    tester.view.physicalSize = const Size(390, 900);
     await tester.pumpAndSettle();
 
     expect(
@@ -220,8 +238,12 @@ void main() {
   testWidgets('notes and form remain usable at a narrow phone width', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(320, 700));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
 
     final provider = NotesProvider(repository: _MemoryNotesRepository());
     provider.bindAccount('student-1');

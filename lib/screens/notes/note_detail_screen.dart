@@ -23,13 +23,14 @@ class NoteDetailScreen extends StatelessWidget {
   }
 
   Future<void> _edit(BuildContext context, StudyNote currentNote) async {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     final updated = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => NoteFormScreen(note: currentNote)),
     );
     if (updated == true && context.mounted) {
       showAlgebrixSnackBar(
         context,
-        message: 'Study note updated!',
+        message: 'Study note updated.',
         icon: Icons.check_circle_rounded,
       );
     }

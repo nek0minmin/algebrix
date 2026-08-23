@@ -131,8 +131,15 @@ GRANT SELECT, INSERT, UPDATE ON TABLE public.quest_level_progress TO authenticat
 -- ============================================================================
 
 INSERT INTO public.quest_lands (id, name, subtitle, sort_order, total_levels, unlock_stars_required)
-VALUES ('balands', 'Balands', 'The Land of Balancing', 1, 10, 0)
-ON CONFLICT (id) DO NOTHING;
+VALUES 
+  ('balands', 'Balands', 'The Land of Balancing', 1, 10, 0),
+  ('pairadise', 'Pairadise', 'The Land of Pairs', 2, 10, 25)
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  subtitle = EXCLUDED.subtitle,
+  sort_order = EXCLUDED.sort_order,
+  total_levels = EXCLUDED.total_levels,
+  unlock_stars_required = EXCLUDED.unlock_stars_required;
 
 -- PostgREST receives this after commit and refreshes its schema cache.
 NOTIFY pgrst, 'reload schema';

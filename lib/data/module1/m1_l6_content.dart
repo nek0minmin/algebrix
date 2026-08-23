@@ -81,7 +81,7 @@ const m1Lesson6 = LessonContent(
       title: 'Parentheses Change Everything!',
       bodyText:
           'Parentheses **( )** tell us to jump ahead and complete the grouped operation first!\n\n• Without: `2 + 3 × 4 = 14`\n• With `( )`: `(2 + 3) × 4 = 20`',
-      mathExpression: '2 + 3 × 4 = 14   •   (2 + 3) × 4 = 20',
+      mathExpression: '2 + 3 × 4 = 14     (2 + 3) × 4 = 20',
       mathAnnotation:
           'The same numbers and operations give different results when parentheses change the order.',
       xyDialogue:

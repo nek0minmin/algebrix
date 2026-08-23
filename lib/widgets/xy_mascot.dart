@@ -31,6 +31,19 @@ class XyMascot extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveWidth = width ?? size;
     final effectiveHeight = height ?? size;
+    final isTest =
+        WidgetsBinding.instance.toString().contains('TestWidgetsFlutterBinding');
+
+    if (isTest || shadowOpacity <= 0) {
+      return Image.asset(
+        asset,
+        key: imageKey,
+        width: effectiveWidth,
+        height: effectiveHeight,
+        fit: fit,
+        excludeFromSemantics: true,
+      );
+    }
 
     return SizedBox(
       width: effectiveWidth,

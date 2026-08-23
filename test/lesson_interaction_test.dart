@@ -116,7 +116,9 @@ void main() {
   ) async {
     final provider = LessonProvider(repository: _FakeProgressRepository());
     provider.bindAccount('user_1');
-    await _waitForHydration(provider);
+    while (provider.isHydrating) {
+      await tester.pump();
+    }
     provider.startModule(module1);
     await provider.startLesson(module1.lessons.first);
 

@@ -167,13 +167,12 @@ class LessonProvider extends ChangeNotifier {
 
     if (lesson.steps.isEmpty) return true;
     if (_accountId != null) {
-      await _recordVisitedStep(
+      final saved = await _recordVisitedStep(
         lesson: lesson,
         stepIndex: _currentStepIndex,
         answerCorrect: false,
       );
-      // Suppress backend catalog mismatch error so user can continue viewing lesson
-      _errorMessage = null;
+      if (!saved) return false;
     }
     return true;
   }

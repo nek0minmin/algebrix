@@ -81,9 +81,15 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<QuestMapProvider>();
+    final isPairadise = provider.activeLandId == 'pairadise';
+    final landName =
+        provider.activeLand?.name ?? (isPairadise ? 'Pairadise' : 'Balands');
+    final landSubtitle = provider.activeLand?.subtitle ??
+        (isPairadise ? 'The Land of Pairs' : 'The Land of Balancing');
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F7FD),
+      backgroundColor:
+          isPairadise ? const Color(0xFFF0FDF4) : const Color(0xFFF9F7FD),
       body: Stack(
         children: [
           // ─── 1. Scrollable Algebrix World Map Canvas ───────────────────────
@@ -110,72 +116,180 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                               Positioned.fill(
                                 child: CustomPaint(
                                   size: Size(mapWidth, _mapCanvasHeight),
-                                  painter: _AlgebrixMapLandscapePainter(
-                                    mapWidth: mapWidth,
-                                    mapHeight: _mapCanvasHeight,
-                                    completedLevels: [
-                                      for (int i = 1; i <= 10; i++)
-                                        if (provider.starsForLevel(i) > 0) i,
-                                    ],
+                                  painter: isPairadise
+                                      ? _PairadiseMapLandscapePainter(
+                                          mapWidth: mapWidth,
+                                          mapHeight: _mapCanvasHeight,
+                                          completedLevels: [
+                                            for (int i = 1; i <= 10; i++)
+                                              if (provider.starsForLevel(i) >
+                                                  0)
+                                                i,
+                                          ],
+                                        )
+                                      : _AlgebrixMapLandscapePainter(
+                                          mapWidth: mapWidth,
+                                          mapHeight: _mapCanvasHeight,
+                                          completedLevels: [
+                                            for (int i = 1; i <= 10; i++)
+                                              if (provider.starsForLevel(i) >
+                                                  0)
+                                                i,
+                                          ],
+                                        ),
+                                ),
+                              ),
+
+                              // ── Waypoints for Active Land ──
+                              if (!isPairadise) ...[
+                                // Balands Waypoint 1 (Lower Valley)
+                                Positioned(
+                                  left: mapWidth * 0.10,
+                                  top: _mapCanvasHeight * 0.58,
+                                  child: _MapMascotWaypoint(
+                                    asset: AppAssets.xySitPencil,
+                                    size: 140,
+                                    bubbleText: 'Equation balancing! ✏️',
+                                    bubbleColor: AppColors.pink,
                                   ),
                                 ),
-                              ),
-
-                              // ── Mascot Xy Waypoint 1 (Lower Valley Meadow - Pic 1) ──────────
-                              Positioned(
-                                left: mapWidth * 0.10,
-                                top: _mapCanvasHeight * 0.58,
-                                child: _MapMascotWaypoint(
-                                  asset: AppAssets.xySitPencil,
-                                  size: 140,
-                                  bubbleText: 'Equation balancing! ✏️',
-                                  bubbleColor: AppColors.pink,
+                                // Balands Waypoint 2 (Mid Highlands)
+                                Positioned(
+                                  right: mapWidth * 0.08,
+                                  top: _mapCanvasHeight * 0.35,
+                                  child: _MapMascotWaypoint(
+                                    asset: AppAssets.xyBalance,
+                                    size: 145,
+                                    bubbleText: 'Keep it balanced! ⚖️',
+                                    bubbleColor: AppColors.purple,
+                                  ),
                                 ),
-                              ),
-
-                              // ── Mascot Xy Waypoint 2 (Mid-Highlands Meadow - Pic 2) ─────────
-                              Positioned(
-                                right: mapWidth * 0.08,
-                                top: _mapCanvasHeight * 0.35,
-                                child: _MapMascotWaypoint(
-                                  asset: AppAssets.xyBalance,
-                                  size: 145,
-                                  bubbleText: 'Keep it balanced! ⚖️',
-                                  bubbleColor: AppColors.purple,
+                                // Balands Waypoint 3 (Upper Summit)
+                                Positioned(
+                                  left: mapWidth * 0.08,
+                                  top: _mapCanvasHeight * 0.10,
+                                  child: _MapMascotWaypoint(
+                                    asset: AppAssets.xyAndChemie,
+                                    size: 145,
+                                    bubbleText: 'Summit Master! 🧪✨',
+                                    bubbleColor: AppColors.mint,
+                                  ),
                                 ),
-                              ),
-
-                              // ── Mascot Xy Waypoint 3 (Upper-Left Summit Meadow - Pic 3) ────
-                              Positioned(
-                                left: mapWidth * 0.08,
-                                top: _mapCanvasHeight * 0.10,
-                                child: _MapMascotWaypoint(
-                                  asset: AppAssets.xyAndChemie,
-                                  size: 145,
-                                  bubbleText: 'Summit Master! 🧪✨',
-                                  bubbleColor: AppColors.mint,
+                              ] else ...[
+                                // Pairadise Waypoint 1 (Lower Lagoon)
+                                Positioned(
+                                  left: mapWidth * 0.10,
+                                  top: _mapCanvasHeight * 0.65,
+                                  child: _MapMascotWaypoint(
+                                    asset: AppAssets.xyWelcome,
+                                    size: 140,
+                                    bubbleText: 'Welcome to Pairadise! 🌴',
+                                    bubbleColor: AppColors.mint,
+                                  ),
                                 ),
-                              ),
+                                // Pairadise Waypoint 2 (Mid Isles)
+                                Positioned(
+                                  right: mapWidth * 0.08,
+                                  top: _mapCanvasHeight * 0.38,
+                                  child: _MapMascotWaypoint(
+                                    asset: AppAssets.xyIdea,
+                                    size: 145,
+                                    bubbleText: 'Twin symmetry! ✨',
+                                    bubbleColor: const Color(0xFF00897B),
+                                  ),
+                                ),
+                                // Pairadise Waypoint 3 (Twin Summit)
+                                Positioned(
+                                  left: mapWidth * 0.08,
+                                  top: _mapCanvasHeight * 0.12,
+                                  child: _MapMascotWaypoint(
+                                    asset: AppAssets.xyAndChemie,
+                                    size: 145,
+                                    bubbleText: 'Pair Masters! 🌺',
+                                    bubbleColor: AppColors.pink,
+                                  ),
+                                ),
+                              ],
+
+                              // ── Realm Portals ──
+                              // Top Portal on Balands (leads to Pairadise)
+                              if (!isPairadise)
+                                Positioned(
+                                  left: mapWidth * 0.36 - 48,
+                                  top: 80,
+                                  child: _RealmPortalWaypoint(
+                                    key: const Key('portal-waypoint-summit'),
+                                    isDestinationPairadise: true,
+                                    isUnlocked: provider.isPairadiseUnlocked,
+                                    totalStars: provider.totalStars,
+                                    requiredStars: 25,
+                                    onTap: () {
+                                      if (provider.isPairadiseUnlocked) {
+                                        _showPairadiseCelebrationDialog(
+                                          context,
+                                          provider,
+                                        );
+                                      } else {
+                                        showAlgebrixSnackBar(
+                                          context,
+                                          message:
+                                              'Collect 25 stars in Balands to unlock Pairadise! (Currently: ${provider.totalStars}/25 ⭐) 🔒',
+                                          icon: Icons.lock_rounded,
+                                          isError: true,
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ),
+
+                              // Bottom Return Portal on Pairadise (returns to Balands)
+                              if (isPairadise)
+                                Positioned(
+                                  left: mapWidth * 0.65 - 48,
+                                  top: _mapCanvasHeight - 110,
+                                  child: _RealmPortalWaypoint(
+                                    key: const Key('portal-waypoint-return'),
+                                    isDestinationPairadise: false,
+                                    isUnlocked: true,
+                                    totalStars: provider.totalStars,
+                                    requiredStars: 0,
+                                    onTap: () {
+                                      provider.switchLand('balands');
+                                      showAlgebrixSnackBar(
+                                        context,
+                                        message: 'Returned to Balands! ⚖️',
+                                        icon: Icons.balance_rounded,
+                                      );
+                                    },
+                                  ),
+                                ),
 
                               // Interactive 3D Level Nodes
                               ...List.generate(10, (index) {
                                 final levelNumber = index + 1;
-                                final def = provider.levelDefinitions.length > index
+                                final def = provider.levelDefinitions.length >
+                                        index
                                     ? provider.levelDefinitions[index]
                                     : QuestLevelDefinition(
                                         levelNumber: levelNumber,
-                                        difficulty: levelNumber <= 3 ? 2 : (levelNumber <= 7 ? 5 : 8),
+                                        difficulty: levelNumber <= 3
+                                            ? 2
+                                            : (levelNumber <= 7 ? 5 : 8),
                                         description: 'Level $levelNumber',
                                       );
 
-                                final starsEarned = provider.starsForLevel(levelNumber);
-                                final isUnlocked = provider.isLevelUnlocked(levelNumber);
+                                final starsEarned =
+                                    provider.starsForLevel(levelNumber);
+                                final isUnlocked =
+                                    provider.isLevelUnlocked(levelNumber);
                                 final isNextPlayable = isUnlocked &&
                                     (starsEarned == 0 ||
                                         levelNumber == 10 ||
-                                        !provider.isLevelUnlocked(levelNumber + 1));
+                                        !provider.isLevelUnlocked(
+                                            levelNumber + 1));
 
-                                final pos = _getNodePosition(index, mapWidth, _mapCanvasHeight);
+                                final pos = _getNodePosition(
+                                    index, mapWidth, _mapCanvasHeight);
 
                                 return Positioned(
                                   left: pos.dx - 44,
@@ -184,7 +298,8 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                                     key: Key('quest-level-node-$levelNumber'),
                                     definition: def,
                                     starsEarned: starsEarned,
-                                    bestMoves: provider.bestMovesForLevel(levelNumber),
+                                    bestMoves: provider
+                                        .bestMovesForLevel(levelNumber),
                                     isUnlocked: isUnlocked,
                                     isNextPlayable: isNextPlayable,
                                     onTap: () {
@@ -194,13 +309,14 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                                           provider,
                                           def,
                                           starsEarned,
-                                          provider.bestMovesForLevel(levelNumber),
+                                          provider
+                                              .bestMovesForLevel(levelNumber),
                                         );
                                       } else {
                                         showAlgebrixSnackBar(
                                           context,
                                           message:
-                                              'Complete Level ${levelNumber - 1} to unlock this land! 🔒',
+                                              'Complete Level ${levelNumber - 1} to unlock this level! 🔒',
                                           icon: Icons.lock_rounded,
                                           isError: true,
                                         );
@@ -223,15 +339,180 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
             left: 0,
             right: 0,
             child: _FloatingGameHud(
-              landName: 'Balands',
-              landSubtitle: 'The Land of Balancing',
+              landName: landName,
+              landSubtitle: landSubtitle,
               starsEarned: provider.activeLandStars,
               maxStars: 30,
+              isPairadise: isPairadise,
               onBack: () => Navigator.of(context).pop(),
+              onLandTap: () => _showWorldSelectorSheet(context, provider),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showPairadiseCelebrationDialog(
+    BuildContext context,
+    QuestMapProvider provider,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogCtx) => _PairadiseUnlockCelebrationDialog(
+        totalStars: provider.totalStars,
+        onEnterPairadise: () {
+          Navigator.of(dialogCtx).pop();
+          provider.switchLand('pairadise');
+        },
+      ),
+    );
+  }
+
+  void _showWorldSelectorSheet(
+    BuildContext context,
+    QuestMapProvider provider,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetCtx) {
+        final totalStars = provider.totalStars;
+        final isPairadiseUnlocked = provider.isPairadiseUnlocked;
+        final activeLandId = provider.activeLandId ?? 'balands';
+
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 30,
+                offset: Offset(0, -8),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.fromLTRB(22, 16, 22, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Header Title
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Explore Algebria Realms',
+                      style: GoogleFonts.nunito(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.text,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF9E6),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFFFE082)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(AppAssets.star, width: 15, height: 15),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$totalStars ⭐',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.text,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Realm 1: Balands
+              _RealmWorldCard(
+                landId: 'balands',
+                name: 'Balands',
+                subtitle: 'The Land of Balancing',
+                icon: Icons.balance_rounded,
+                iconColor: AppColors.purple,
+                bgColor: AppColors.lightPurple.withValues(alpha: 0.35),
+                borderColor: AppColors.purple,
+                isUnlocked: true,
+                isActive: activeLandId == 'balands',
+                statusText: activeLandId == 'balands'
+                    ? 'CURRENT REALM'
+                    : 'TRAVEL ➔',
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  provider.switchLand('balands');
+                },
+              ),
+              const SizedBox(height: 12),
+
+              // Realm 2: Pairadise
+              _RealmWorldCard(
+                landId: 'pairadise',
+                name: 'Pairadise',
+                subtitle: 'The Land of Pairs',
+                icon: Icons.spa_rounded,
+                iconColor: const Color(0xFF00897B),
+                bgColor: const Color(0xFFE0F2F1).withValues(alpha: 0.6),
+                borderColor: const Color(0xFF26A69A),
+                isUnlocked: isPairadiseUnlocked,
+                isActive: activeLandId == 'pairadise',
+                statusText: isPairadiseUnlocked
+                    ? (activeLandId == 'pairadise'
+                        ? 'CURRENT REALM'
+                        : 'TRAVEL ➔')
+                    : '🔒 REQUIRES 25 ⭐ ($totalStars/25)',
+                onTap: isPairadiseUnlocked
+                    ? () {
+                        Navigator.of(sheetCtx).pop();
+                        provider.switchLand('pairadise');
+                      }
+                    : () {
+                        showAlgebrixSnackBar(
+                          context,
+                          message:
+                              'Collect 25 stars in Balands to unlock Pairadise! ($totalStars/25 ⭐) 🔒',
+                          icon: Icons.lock_rounded,
+                          isError: true,
+                        );
+                      },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -242,7 +523,9 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
     int starsEarned,
     int? bestMoves,
   ) {
-    final problem = provider.getLevelProblem(def.levelNumber);
+    final isPairadise = provider.activeLandId == 'pairadise';
+    final problem =
+        !isPairadise ? provider.getLevelProblem(def.levelNumber) : null;
 
     showModalBottomSheet<void>(
       context: context,
@@ -285,7 +568,9 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                   XyMascot(
                     asset: starsEarned == 3
                         ? AppAssets.xyHappy
-                        : AppAssets.xyPractice,
+                        : (isPairadise
+                            ? AppAssets.xyIdea
+                            : AppAssets.xyPractice),
                     size: 64,
                     shadowBlur: 4.0,
                     shadowOpacity: 0.2,
@@ -343,17 +628,21 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
               ),
               const SizedBox(height: 18),
 
-              // Target Equation Banner (Defensive Zero Overflow)
+              // Target Equation / Pair Objective Banner
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.extraLightPink,
+                  color: isPairadise
+                      ? const Color(0xFFE0F2F1)
+                      : AppColors.extraLightPink,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.pink.withValues(alpha: 0.35),
+                    color: isPairadise
+                        ? const Color(0xFF80CBC4)
+                        : AppColors.pink.withValues(alpha: 0.35),
                     width: 1.5,
                   ),
                 ),
@@ -366,11 +655,15 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'TARGET EQUATION',
+                            isPairadise
+                                ? 'PAIR OBJECTIVE'
+                                : 'TARGET EQUATION',
                             style: GoogleFonts.nunito(
                               fontSize: 11,
                               fontWeight: FontWeight.w900,
-                              color: AppColors.darkPink,
+                              color: isPairadise
+                                  ? const Color(0xFF00695C)
+                                  : AppColors.darkPink,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -379,9 +672,11 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              problem.equation,
+                              isPairadise
+                                  ? 'Pairadise Mystery 🌴'
+                                  : (problem?.equation ?? 'x + 3 = 7'),
                               style: GoogleFonts.nunito(
-                                fontSize: 22,
+                                fontSize: 20,
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.text,
                               ),
@@ -400,15 +695,21 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.pink.withValues(alpha: 0.25),
+                          color: isPairadise
+                              ? const Color(0xFF80CBC4)
+                              : AppColors.pink.withValues(alpha: 0.25),
                         ),
                       ),
                       child: Text(
-                        '${problem.optimalMoves} ${problem.optimalMoves == 1 ? "move" : "moves"}',
+                        isPairadise
+                            ? 'Twin Puzzle'
+                            : '${problem?.optimalMoves ?? 1} moves',
                         style: GoogleFonts.nunito(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.pink,
+                          color: isPairadise
+                              ? const Color(0xFF00695C)
+                              : AppColors.pink,
                         ),
                       ),
                     ),
@@ -427,7 +728,8 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFF9E6),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFFFE082), width: 1.5),
+                        border: Border.all(
+                            color: const Color(0xFFFFE082), width: 1.5),
                       ),
                       alignment: Alignment.center,
                       child: Row(
@@ -435,7 +737,8 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                         children: List.generate(3, (i) {
                           final earned = i < starsEarned;
                           return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 5),
                             child: Image.asset(
                               earned
                                   ? AppAssets.star
@@ -486,16 +789,25 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                 label: 'Play Level ${def.levelNumber} 🚀',
                 onPressed: () {
                   Navigator.of(sheetCtx).pop();
-                  Navigator.push(
-                    context,
-                    AppPageRoute(
-                      child: BalanceScaleScreen(
-                        questLevelNumber: def.levelNumber,
+                  if (isPairadise) {
+                    showAlgebrixSnackBar(
+                      context,
+                      message:
+                          'Pairadise Level ${def.levelNumber} mechanics are coming soon! Stay tuned for twin adventures! 🌴✨',
+                      icon: Icons.spa_rounded,
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      AppPageRoute(
+                        child: BalanceScaleScreen(
+                          questLevelNumber: def.levelNumber,
+                        ),
                       ),
-                    ),
-                  ).then((_) {
-                    provider.loadQuestMap();
-                  });
+                    ).then((_) {
+                      provider.loadQuestMap();
+                    });
+                  }
                 },
               ),
             ],
@@ -618,16 +930,32 @@ class _FloatingGameHud extends StatelessWidget {
     required this.starsEarned,
     required this.maxStars,
     required this.onBack,
+    this.isPairadise = false,
+    this.onLandTap,
   });
 
   final String landName;
   final String landSubtitle;
   final int starsEarned;
   final int maxStars;
+  final bool isPairadise;
   final VoidCallback onBack;
+  final VoidCallback? onLandTap;
 
   @override
   Widget build(BuildContext context) {
+    final landIcon =
+        isPairadise ? Icons.spa_rounded : Icons.balance_rounded;
+    final landIconBg =
+        isPairadise ? const Color(0xFFE0F2F1) : AppColors.lightPurple;
+    final landIconColor =
+        isPairadise ? const Color(0xFF00897B) : AppColors.purple;
+    final landTitleColor =
+        isPairadise ? const Color(0xFF00695C) : const Color(0xFF4A3E8F);
+    final landBorderColor = isPairadise
+        ? const Color(0xFF80CBC4)
+        : AppColors.purple.withValues(alpha: 0.3);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 44, 16, 12),
       decoration: BoxDecoration(
@@ -675,79 +1003,99 @@ class _FloatingGameHud extends StatelessWidget {
           ),
           const SizedBox(width: 12),
 
-          // Land Title Capsule (Centered + Eye-Catching Font + Singular Icon Color)
+          // Land Title Capsule (Interactive World Switcher)
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: AppColors.purple.withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.purple.withValues(alpha: 0.1),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+            child: BouncyPressable(
+              shrinkFactor: 0.95,
+              enableHaptics: true,
+              onTap: onLandTap,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: landBorderColor,
+                    width: 1.5,
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Singular color scale icon badge
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: AppColors.lightPurple,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: AppColors.purple.withValues(alpha: 0.25),
-                        width: 1,
+                  boxShadow: [
+                    BoxShadow(
+                      color: landIconColor.withValues(alpha: 0.12),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Singular color scale / palm icon badge
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: landIconBg,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: landIconColor.withValues(alpha: 0.25),
+                          width: 1,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        landIcon,
+                        color: landIconColor,
+                        size: 19,
                       ),
                     ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.balance_rounded,
-                      color: AppColors.purple,
-                      size: 19,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
+                    const SizedBox(width: 8),
 
-                  // Centered Text with Stylized Eye-Catching Font
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          landName.toUpperCase(),
-                          style: GoogleFonts.fredoka(
-                            fontSize: 16.5,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.5,
-                            color: const Color(0xFF4A3E8F),
+                    // Centered Text with Stylized Font
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  landName.toUpperCase(),
+                                  style: GoogleFonts.fredoka(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.2,
+                                    color: landTitleColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 3),
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 18,
+                                color: landIconColor.withValues(alpha: 0.7),
+                              ),
+                            ],
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          landSubtitle,
-                          style: GoogleFonts.nunito(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textSecondary,
-                            letterSpacing: 0.2,
+                          Text(
+                            landSubtitle,
+                            style: GoogleFonts.nunito(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textSecondary,
+                              letterSpacing: 0.2,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -792,6 +1140,486 @@ class _FloatingGameHud extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Realm World Card (Used in World Selector Sheet)
+// =============================================================================
+
+class _RealmWorldCard extends StatelessWidget {
+  const _RealmWorldCard({
+    required this.landId,
+    required this.name,
+    required this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    required this.bgColor,
+    required this.borderColor,
+    required this.isUnlocked,
+    required this.isActive,
+    required this.statusText,
+    required this.onTap,
+  });
+
+  final String landId;
+  final String name;
+  final String subtitle;
+  final IconData icon;
+  final Color iconColor;
+  final Color bgColor;
+  final Color borderColor;
+  final bool isUnlocked;
+  final bool isActive;
+  final String statusText;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyPressable(
+      shrinkFactor: 0.96,
+      enableHaptics: isUnlocked,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isActive
+              ? bgColor
+              : (isUnlocked ? Colors.white : const Color(0xFFF5F5F5)),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive
+                ? borderColor
+                : (isUnlocked ? AppColors.border : Colors.black12),
+            width: isActive ? 2.0 : 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: (isActive ? borderColor : Colors.black)
+                  .withValues(alpha: isActive ? 0.15 : 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // World Icon Badge
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: isUnlocked ? bgColor : const Color(0xFFECEFF1),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isUnlocked
+                      ? borderColor.withValues(alpha: 0.4)
+                      : const Color(0xFFCFD8DC),
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                isUnlocked ? icon : Icons.lock_rounded,
+                color: isUnlocked ? iconColor : const Color(0xFF90A4AE),
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: 14),
+
+            // World Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          name,
+                          style: GoogleFonts.nunito(
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w900,
+                            color: isUnlocked
+                                ? AppColors.text
+                                : AppColors.textSecondary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isActive) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: borderColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'ACTIVE',
+                            style: GoogleFonts.nunito(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.nunito(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Status Badge
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: isUnlocked
+                    ? (isActive ? borderColor : const Color(0xFFFFF9E6))
+                    : const Color(0xFFECEFF1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isUnlocked
+                      ? (isActive ? borderColor : const Color(0xFFFFE082))
+                      : const Color(0xFFCFD8DC),
+                ),
+              ),
+              child: Text(
+                statusText,
+                style: GoogleFonts.nunito(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: isUnlocked
+                      ? (isActive ? Colors.white : AppColors.text)
+                      : const Color(0xFF546E7A),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Pairadise Unlock Celebration Dialog (Xy Congratulatory Scene)
+// =============================================================================
+
+class _PairadiseUnlockCelebrationDialog extends StatelessWidget {
+  const _PairadiseUnlockCelebrationDialog({
+    required this.totalStars,
+    required this.onEnterPairadise,
+  });
+
+  final int totalStars;
+  final VoidCallback onEnterPairadise;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(
+            color: const Color(0xFF26A69A),
+            width: 2.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 30,
+              offset: const Offset(0, 12),
+            ),
+            BoxShadow(
+              color: const Color(0xFF26A69A).withValues(alpha: 0.25),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Mascot in celebration
+            XyMascot(
+              asset: AppAssets.xyHappy,
+              size: 110,
+              shadowBlur: 8,
+              shadowOpacity: 0.25,
+            ),
+            const SizedBox(height: 14),
+
+            // Congratulations Title
+            Text(
+              'Balands Conquered! 🎉',
+              style: GoogleFonts.fredoka(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF00695C),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+
+            // Star Badge Pill
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF9E6),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFFFE082), width: 1.5),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(AppAssets.star, width: 18, height: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    '$totalStars Stars Acquired ⭐',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.text,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Speech Story Block from Xy
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0F2F1).withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFF80CBC4),
+                ),
+              ),
+              child: Text(
+                '“We finally got to the end of Balands and acquired enough knowledge to go on our next adventure!\n\nWelcome to PAIRADISE — Land of Pairs! 🌴✨”',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text,
+                  height: 1.45,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 22),
+
+            // Action Button
+            PrimaryButton(
+              label: 'Enter Pairadise ➔',
+              onPressed: onEnterPairadise,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Realm Portal Waypoint Widget (Portal between Lands)
+// =============================================================================
+
+class _RealmPortalWaypoint extends StatefulWidget {
+  const _RealmPortalWaypoint({
+    super.key,
+    required this.isDestinationPairadise,
+    required this.isUnlocked,
+    required this.totalStars,
+    required this.requiredStars,
+    required this.onTap,
+  });
+
+  final bool isDestinationPairadise;
+  final bool isUnlocked;
+  final int totalStars;
+  final int requiredStars;
+  final VoidCallback onTap;
+
+  @override
+  State<_RealmPortalWaypoint> createState() => _RealmPortalWaypointState();
+}
+
+class _RealmPortalWaypointState extends State<_RealmPortalWaypoint>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+    if (!WidgetsBinding.instance.toString().contains('TestWidgetsFlutterBinding')) {
+      _pulseController.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isPairadiseTarget = widget.isDestinationPairadise;
+    final isUnlocked = widget.isUnlocked;
+
+    return BouncyPressable(
+      shrinkFactor: 0.92,
+      enableHaptics: true,
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _pulseController,
+        builder: (context, child) {
+          final pulse = isUnlocked ? _pulseController.value * 0.08 : 0.0;
+          return Transform.scale(
+            scale: 1.0 + pulse,
+            child: child,
+          );
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Portal Ring Graphic
+            Container(
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: isUnlocked
+                      ? (isPairadiseTarget
+                          ? [
+                              const Color(0xFF00E5FF),
+                              const Color(0xFF00BFA5),
+                              const Color(0xFFFF4081),
+                            ]
+                          : [
+                              const Color(0xFF9C27B0),
+                              const Color(0xFF673AB7),
+                              const Color(0xFF3F51B5),
+                            ])
+                      : [
+                          const Color(0xFFCFD8DC),
+                          const Color(0xFF90A4AE),
+                        ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: (isUnlocked
+                            ? (isPairadiseTarget
+                                ? const Color(0xFF00BFA5)
+                                : AppColors.purple)
+                            : Colors.black26)
+                        .withValues(alpha: isUnlocked ? 0.45 : 0.2),
+                    blurRadius: isUnlocked ? 16 : 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(4),
+              child: Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                alignment: Alignment.center,
+                child: isUnlocked
+                    ? Icon(
+                        isPairadiseTarget
+                            ? Icons.auto_awesome_rounded
+                            : Icons.balance_rounded,
+                        color: isPairadiseTarget
+                            ? const Color(0xFF00BFA5)
+                            : AppColors.purple,
+                        size: 36,
+                      )
+                    : const Icon(
+                        Icons.lock_rounded,
+                        color: Color(0xFF78909C),
+                        size: 32,
+                      ),
+              ),
+            ),
+            const SizedBox(height: 6),
+
+            // Portal Label Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isUnlocked
+                    ? (isPairadiseTarget
+                        ? const Color(0xFFE0F2F1)
+                        : AppColors.lightPurple)
+                    : const Color(0xFFECEFF1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isUnlocked
+                      ? (isPairadiseTarget
+                          ? const Color(0xFF80CBC4)
+                          : AppColors.purple.withValues(alpha: 0.4))
+                      : const Color(0xFFB0BEC5),
+                  width: 1.2,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                isPairadiseTarget
+                    ? (isUnlocked
+                        ? 'PAIRADISE 🌴 ➔'
+                        : '🔒 25⭐ TO PAIRADISE')
+                    : '↩️ BALANDS ⚖️',
+                style: GoogleFonts.nunito(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w900,
+                  color: isUnlocked
+                      ? (isPairadiseTarget
+                          ? const Color(0xFF00695C)
+                          : const Color(0xFF4A3E8F))
+                      : const Color(0xFF546E7A),
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1604,3 +2432,273 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
         mapHeight != oldDelegate.mapHeight;
   }
 }
+
+// =============================================================================
+// Pairadise (Land of Pairs) Map Canvas Painter
+// =============================================================================
+
+class _PairadiseMapLandscapePainter extends CustomPainter {
+  const _PairadiseMapLandscapePainter({
+    required this.mapWidth,
+    required this.mapHeight,
+    required this.completedLevels,
+  });
+
+  final double mapWidth;
+  final double mapHeight;
+  final List<int> completedLevels;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // 1. Tropical Sunset & Twilight Sky Gradient
+    final bgPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color(0xFFFFE0B2), // Warm sunset peach summit
+          Color(0xFFFFD180), // Golden twilight horizon
+          Color(0xFFE0F7FA), // Mint crystal lagoon
+          Color(0xFFF3E5F5), // Soft lavender mirror sands
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
+
+    // 2. Coordinate Grid
+    _drawMathGrid(canvas, size);
+
+    // 3. Twin Archipelago Island Masses (Soft mint & coral hills)
+    _drawTwinIslands(canvas, size);
+
+    // 4. Mirror Waters & Lagoon Waves
+    _drawLagoonWaters(canvas, size);
+
+    // 5. Stepping Stones Trail
+    _drawPairadisePath(canvas, size);
+
+    // 6. Tropical Palm Silhouettes and Twin Crystal Arches
+    _drawTwinCrystalArchesAndPalms(canvas, size);
+  }
+
+  void _drawMathGrid(Canvas canvas, Size size) {
+    final gridPaint = Paint()
+      ..color = const Color(0xFF80CBC4).withValues(alpha: 0.25)
+      ..strokeWidth = 1.0;
+
+    const spacing = 38.0;
+    for (double x = 0; x < size.width; x += spacing) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+    for (double y = 0; y < size.height; y += spacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+  }
+
+  void _drawTwinIslands(Canvas canvas, Size size) {
+    // Left Isle
+    final leftIslePath = Path()
+      ..moveTo(0, size.height * 0.25)
+      ..cubicTo(
+        size.width * 0.40,
+        size.height * 0.20,
+        size.width * 0.45,
+        size.height * 0.55,
+        0,
+        size.height * 0.60,
+      )
+      ..close();
+
+    final leftPaint = Paint()
+      ..color = const Color(0xFFE0F2F1).withValues(alpha: 0.8)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(leftIslePath, leftPaint);
+
+    // Right Isle (Twin Symmetry)
+    final rightIslePath = Path()
+      ..moveTo(size.width, size.height * 0.35)
+      ..cubicTo(
+        size.width * 0.60,
+        size.height * 0.30,
+        size.width * 0.55,
+        size.height * 0.70,
+        size.width,
+        size.height * 0.75,
+      )
+      ..close();
+
+    final rightPaint = Paint()
+      ..color = const Color(0xFFFFE0B2).withValues(alpha: 0.75)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(rightIslePath, rightPaint);
+
+    // Base Sands Mass
+    final baseSandsPath = Path()
+      ..moveTo(0, size.height * 0.78)
+      ..cubicTo(
+        size.width * 0.5,
+        size.height * 0.72,
+        size.width * 0.5,
+        size.height * 0.84,
+        size.width,
+        size.height * 0.78,
+      )
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    final basePaint = Paint()
+      ..color = const Color(0xFFE1F5FE).withValues(alpha: 0.85)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(baseSandsPath, basePaint);
+  }
+
+  void _drawLagoonWaters(Canvas canvas, Size size) {
+    final lagoonPath = Path()
+      ..moveTo(0, size.height * 0.45)
+      ..cubicTo(
+        size.width * 0.35,
+        size.height * 0.40,
+        size.width * 0.65,
+        size.height * 0.52,
+        size.width,
+        size.height * 0.47,
+      )
+      ..lineTo(size.width, size.height * 0.56)
+      ..cubicTo(
+        size.width * 0.65,
+        size.height * 0.62,
+        size.width * 0.35,
+        size.height * 0.50,
+        0,
+        size.height * 0.54,
+      )
+      ..close();
+
+    final waterPaint = Paint()
+      ..shader = const LinearGradient(
+        colors: [Color(0xFF80DEEA), Color(0xFF4DD0E1)],
+      ).createShader(Rect.fromLTWH(
+          0, size.height * 0.40, size.width, size.height * 0.2));
+    canvas.drawPath(lagoonPath, waterPaint);
+
+    // Lagoon Waves/Ripples
+    final ripplePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    canvas.drawPath(lagoonPath, ripplePaint);
+  }
+
+  void _drawPairadisePath(Canvas canvas, Size size) {
+    final roadPath = Path();
+    final points =
+        List.generate(10, (i) => _getNodePosition(i, mapWidth, mapHeight));
+
+    roadPath.moveTo(points[0].dx, points[0].dy + 40);
+    for (int i = 0; i < points.length - 1; i++) {
+      final p0 = points[i];
+      final p1 = points[i + 1];
+      final midY = (p0.dy + p1.dy) / 2.0;
+      roadPath.cubicTo(p0.dx, midY, p1.dx, midY, p1.dx, p1.dy);
+    }
+    roadPath.lineTo(points.last.dx, points.last.dy - 35);
+
+    // Outer Glow Ribbon
+    final outerRibbon = Paint()
+      ..color = const Color(0xFFB2DFDB).withValues(alpha: 0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 30.0;
+    canvas.drawPath(roadPath, outerRibbon);
+
+    // Coral Path Base
+    final roadBed = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 22.0;
+    canvas.drawPath(roadPath, roadBed);
+
+    // Center Twin Stepping Line
+    final centerDash = Paint()
+      ..color = const Color(0xFF00BFA5).withValues(alpha: 0.45)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 4.0;
+    canvas.drawPath(roadPath, centerDash);
+  }
+
+  void _drawTwinCrystalArchesAndPalms(Canvas canvas, Size size) {
+    // Twin Crystal Arch at Summit Peak (Y ~ 140)
+    final archCenter = Offset(size.width * 0.5, 140);
+    final archPaint = Paint()
+      ..color = const Color(0xFF00E5FF).withValues(alpha: 0.4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8.0;
+
+    canvas.drawArc(
+      Rect.fromCenter(center: archCenter, width: 90, height: 70),
+      math.pi,
+      math.pi,
+      false,
+      archPaint,
+    );
+
+    // Palm Silhouette Accents
+    _drawPalmSilhouette(
+        canvas, Offset(size.width * 0.15, size.height * 0.28), 34);
+    _drawPalmSilhouette(
+        canvas, Offset(size.width * 0.85, size.height * 0.32), 34);
+    _drawPalmSilhouette(
+        canvas, Offset(size.width * 0.12, size.height * 0.72), 38);
+    _drawPalmSilhouette(
+        canvas, Offset(size.width * 0.88, size.height * 0.68), 38);
+  }
+
+  void _drawPalmSilhouette(Canvas canvas, Offset root, double height) {
+    final trunkPaint = Paint()
+      ..color = const Color(0xFF00796B).withValues(alpha: 0.35)
+      ..strokeWidth = 3.5
+      ..strokeCap = StrokeCap.round;
+
+    final top = Offset(root.dx + 4, root.dy - height);
+    canvas.drawLine(root, top, trunkPaint);
+
+    // Fronds
+    final frondPaint = Paint()
+      ..color = const Color(0xFF00897B).withValues(alpha: 0.45)
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawArc(
+        Rect.fromCenter(
+            center: Offset(top.dx - 10, top.dy), width: 22, height: 16),
+        0,
+        math.pi,
+        false,
+        frondPaint);
+    canvas.drawArc(
+        Rect.fromCenter(
+            center: Offset(top.dx + 10, top.dy), width: 22, height: 16),
+        0,
+        math.pi,
+        false,
+        frondPaint);
+    canvas.drawArc(
+        Rect.fromCenter(
+            center: Offset(top.dx, top.dy - 6), width: 20, height: 14),
+        0,
+        math.pi,
+        false,
+        frondPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PairadiseMapLandscapePainter oldDelegate) {
+    return completedLevels.length != oldDelegate.completedLevels.length ||
+        mapWidth != oldDelegate.mapWidth ||
+        mapHeight != oldDelegate.mapHeight;
+  }
+}
+

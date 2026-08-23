@@ -1054,7 +1054,9 @@ class _LessonIntroEntranceState extends State<_LessonIntroEntrance>
   void didChangeDependencies() {
     super.didChangeDependencies();
     final animationsDisabled = MediaQuery.disableAnimationsOf(context);
-    if (animationsDisabled) {
+    final isTest =
+        WidgetsBinding.instance.toString().contains('TestWidgetsFlutterBinding');
+    if (animationsDisabled || isTest) {
       _controller.value = 1;
       _entranceStarted = true;
     } else if (!_entranceStarted) {

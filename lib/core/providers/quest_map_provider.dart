@@ -22,10 +22,10 @@ class QuestMapProvider extends ChangeNotifier {
   // ---------------------------------------------------------------------------
 
   String? _accountId;
-  List<QuestLand> _lands = [];
+  List<QuestLand> _lands = _defaultLands;
   Map<int, QuestLevelProgress> _levelProgress = {}; // keyed by levelNumber
   int _totalStars = 0;
-  String? _activeLandId;
+  String? _activeLandId = 'balands';
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -42,13 +42,13 @@ class QuestMapProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  /// The currently active land (null until loaded).
+  /// The currently active land (defaults to Balands).
   QuestLand? get activeLand {
     if (_activeLandId == null) return null;
     try {
       return _lands.firstWhere((l) => l.id == _activeLandId);
     } catch (_) {
-      return null;
+      return _lands.isNotEmpty ? _lands.first : null;
     }
   }
 
@@ -61,10 +61,27 @@ class QuestMapProvider extends ChangeNotifier {
     return sum;
   }
 
-  /// Static level definitions for 'Balands' (10 levels).
-  List<QuestLevelDefinition> get levelDefinitions => _balandsLevelDefs;
+  /// Whether a specific land is unlocked.
+  bool isLandUnlocked(String landId) {
+    if (landId == 'balands') return true;
+    final land = _lands.firstWhere(
+      (l) => l.id == landId,
+      orElse: () => _defaultLands.firstWhere(
+        (l) => l.id == landId,
+        orElse: () => _defaultLands[1],
+      ),
+    );
+    return _totalStars >= land.unlockStarsRequired;
+  }
 
-  /// Whether a level is unlocked.
+  /// Whether Pairadise (Land of Pairs) is currently unlocked (>= 25 total stars).
+  bool get isPairadiseUnlocked => isLandUnlocked('pairadise');
+
+  /// Static level definitions for the currently active land.
+  List<QuestLevelDefinition> get levelDefinitions =>
+      _activeLandId == 'pairadise' ? _pairadiseLevelDefs : _balandsLevelDefs;
+
+  /// Whether a level is unlocked in the current land.
   /// Level 1 is always unlocked. Level N+1 requires level N to have ≥ 1 star.
   bool isLevelUnlocked(int levelNumber) {
     if (levelNumber <= 1) return true;
@@ -129,7 +146,7 @@ class QuestMapProvider extends ChangeNotifier {
     if (accountId == null) {
       _levelProgress = {};
       _totalStars = 0;
-      _activeLandId = null;
+      _activeLandId = 'balands';
       notifyListeners();
       return;
     }
@@ -138,26 +155,37 @@ class QuestMapProvider extends ChangeNotifier {
   }
 
   /// Load all lands and progress for the first (or given) land.
-  Future<void> loadQuestMap({String landId = 'balands'}) async {
+  Future<void> loadQuestMap({String? landId}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
+    final targetLand = landId ?? _activeLandId ?? 'balands';
+
     try {
-      _lands = await _repository.fetchAllLands();
-      _activeLandId = landId;
+      final fetchedLands = await _repository.fetchAllLands();
+      _lands = fetchedLands.isNotEmpty ? fetchedLands : _defaultLands;
+      _activeLandId = targetLand;
       _totalStars = await _repository.fetchTotalStars();
 
-      final progressList = await _repository.fetchLandProgress(landId);
+      final progressList = await _repository.fetchLandProgress(targetLand);
       _levelProgress = {
         for (final p in progressList) p.levelNumber: p,
       };
     } catch (e) {
+      if (_lands.isEmpty) _lands = _defaultLands;
+      _activeLandId = targetLand;
       _errorMessage = 'Failed to load quest map: $e';
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Switch the active game world (e.g. from 'balands' to 'pairadise').
+  Future<void> switchLand(String landId) async {
+    if (_activeLandId == landId) return;
+    await loadQuestMap(landId: landId);
   }
 
   /// Submit the result of completing a level.
@@ -213,10 +241,15 @@ class QuestMapProvider extends ChangeNotifier {
         completedAt: DateTime.now().toUtc(),
       );
 
-      // Recalculate total stars
-      _totalStars = 0;
-      for (final p in _levelProgress.values) {
-        _totalStars += p.starsEarned;
+      // Refresh total stars across all lands
+      try {
+        _totalStars = await _repository.fetchTotalStars();
+      } catch (_) {
+        int sum = 0;
+        for (final p in _levelProgress.values) {
+          sum += p.starsEarned;
+        }
+        _totalStars = sum;
       }
     } catch (e) {
       // Silently handle persistence errors — local state is still updated
@@ -239,6 +272,29 @@ class QuestMapProvider extends ChangeNotifier {
   BalanceScaleProblem getLevelProblem(int levelNumber) {
     return _apiService.getLevelProblem(levelNumber);
   }
+
+  // ---------------------------------------------------------------------------
+  // Static Fallback Seed Lands
+  // ---------------------------------------------------------------------------
+
+  static const List<QuestLand> _defaultLands = [
+    QuestLand(
+      id: 'balands',
+      name: 'Balands',
+      subtitle: 'The Land of Balancing',
+      sortOrder: 1,
+      totalLevels: 10,
+      unlockStarsRequired: 0,
+    ),
+    QuestLand(
+      id: 'pairadise',
+      name: 'Pairadise',
+      subtitle: 'The Land of Pairs',
+      sortOrder: 2,
+      totalLevels: 10,
+      unlockStarsRequired: 25,
+    ),
+  ];
 
   // ---------------------------------------------------------------------------
   // Static Level Definitions for Balands
@@ -294,6 +350,63 @@ class QuestMapProvider extends ChangeNotifier {
       levelNumber: 10,
       difficulty: 10,
       description: 'Expert challenge',
+    ),
+  ];
+
+  // ---------------------------------------------------------------------------
+  // Static Level Definitions for Pairadise (The Land of Pairs)
+  // ---------------------------------------------------------------------------
+
+  static const List<QuestLevelDefinition> _pairadiseLevelDefs = [
+    QuestLevelDefinition(
+      levelNumber: 1,
+      difficulty: 1,
+      description: 'Twin Introductions',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 2,
+      difficulty: 2,
+      description: 'Simple Pairs',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 3,
+      difficulty: 3,
+      description: 'Paired Terms',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 4,
+      difficulty: 4,
+      description: 'Symmetric Islands',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 5,
+      difficulty: 5,
+      description: 'Mirror Equations',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 6,
+      difficulty: 6,
+      description: 'Twin Variables',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 7,
+      difficulty: 7,
+      description: 'Dual Step Pairs',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 8,
+      difficulty: 8,
+      description: 'Lagoon Symmetry',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 9,
+      difficulty: 9,
+      description: 'Advanced Twin Balance',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 10,
+      difficulty: 10,
+      description: 'Pairadise Summit Master',
     ),
   ];
 }

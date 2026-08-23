@@ -19,28 +19,37 @@ class FakeQuestRepository implements QuestRepository {
       unlockStarsRequired: 0,
     ),
     const QuestLand(
-      id: 'equatopia',
-      name: 'Equatopia',
-      subtitle: 'The Land of Systems',
+      id: 'pairadise',
+      name: 'Pairadise',
+      subtitle: 'The Land of Pairs',
       sortOrder: 2,
       totalLevels: 10,
       unlockStarsRequired: 25,
     ),
   ];
 
-  final Map<int, QuestLevelProgress> _progress = {};
+  final Map<String, Map<int, QuestLevelProgress>> _progressByLand = {
+    'balands': {},
+    'pairadise': {},
+  };
 
   @override
   Future<List<QuestLand>> fetchAllLands() async => _lands;
 
   @override
   Future<List<QuestLevelProgress>> fetchLandProgress(String landId) async {
-    return _progress.values.where((p) => p.landId == landId).toList();
+    return _progressByLand[landId]?.values.toList() ?? [];
   }
 
   @override
   Future<int> fetchTotalStars() async {
-    return _progress.values.fold<int>(0, (sum, p) => sum + p.starsEarned);
+    int sum = 0;
+    for (final landProgress in _progressByLand.values) {
+      for (final p in landProgress.values) {
+        sum += p.starsEarned;
+      }
+    }
+    return sum;
   }
 
   @override
@@ -51,7 +60,8 @@ class FakeQuestRepository implements QuestRepository {
     required int moveCount,
     required bool reasoningPassed,
   }) async {
-    final existing = _progress[levelNumber];
+    final landMap = _progressByLand.putIfAbsent(landId, () => {});
+    final existing = landMap[levelNumber];
     final bestStars = existing != null && existing.starsEarned > starsEarned
         ? existing.starsEarned
         : starsEarned;
@@ -59,7 +69,7 @@ class FakeQuestRepository implements QuestRepository {
         ? existing.bestMoves!
         : moveCount;
 
-    _progress[levelNumber] = QuestLevelProgress(
+    landMap[levelNumber] = QuestLevelProgress(
       userId: 'test-user',
       landId: landId,
       levelNumber: levelNumber,
@@ -306,10 +316,49 @@ void main() {
       expect(provider.currentLevel, 4);
       expect(provider.currentLandAndLevelLabel, 'Balands IV (Level 4)');
     });
+
+    test('Pairadise unlocking and land switching logic', () async {
+      await provider.loadQuestMap();
+
+      expect(provider.isPairadiseUnlocked, isFalse);
+      expect(provider.activeLandId, 'balands');
+      expect(provider.levelDefinitions.length, 10);
+      expect(provider.levelDefinitions[0].description, 'Simple addition');
+
+      // Earn 24 stars (8 levels * 3 stars) -> Pairadise still locked
+      for (int i = 1; i <= 8; i++) {
+        await provider.submitLevelResult(
+          levelNumber: i,
+          moveCount: 1,
+          optimalMoves: 1,
+          reasoningPassed: true,
+        );
+      }
+      expect(provider.totalStars, 24);
+      expect(provider.isPairadiseUnlocked, isFalse);
+
+      // Earn 3 more stars on Level 9 (total 27 stars >= 25) -> Pairadise unlocked!
+      await provider.submitLevelResult(
+        levelNumber: 9,
+        moveCount: 1,
+        optimalMoves: 1,
+        reasoningPassed: true,
+      );
+      expect(provider.totalStars, 27);
+      expect(provider.isPairadiseUnlocked, isTrue);
+
+      // Switch to Pairadise
+      await provider.switchLand('pairadise');
+      expect(provider.activeLandId, 'pairadise');
+      expect(provider.activeLand?.name, 'Pairadise');
+      expect(provider.levelDefinitions.length, 10);
+      expect(provider.levelDefinitions[0].description, 'Twin Introductions');
+      expect(provider.levelDefinitions[9].description, 'Pairadise Summit Master');
+    });
   });
 
   group('QuestMapScreen UI Widget Tests', () {
-    testWidgets('renders Balands header, HUD star capsule, and 10 level nodes with preview sheet', (
+    testWidgets('renders Balands header, HUD star capsule, portals, and level preview', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(430, 1200));
@@ -347,6 +396,94 @@ void main() {
       expect(find.text('Play Level 1 🚀'), findsOneWidget);
       expect(find.text('Simple addition'), findsOneWidget);
       expect(find.text('x + 3 = 7'), findsOneWidget);
+
+      // Close preview sheet
+      await tester.tap(find.text('Play Level 1 🚀'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('opens World Selector Sheet when tapping HUD Land Capsule', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(430, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final repo = FakeQuestRepository();
+      final questProvider = QuestMapProvider(repository: repo);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<QuestMapProvider>.value(value: questProvider),
+          ],
+          child: const MaterialApp(
+            home: QuestMapScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap Land Header
+      await tester.tap(find.text('BALANDS'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Explore Algebria Realms'), findsOneWidget);
+      expect(find.text('Balands'), findsOneWidget);
+      expect(find.text('Pairadise'), findsOneWidget);
+      expect(find.text('🔒 REQUIRES 25 ⭐ (0/25)'), findsOneWidget);
+    });
+
+    testWidgets('unlocked Pairadise shows celebration dialog and switches map theme', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(430, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final repo = FakeQuestRepository();
+      // Seed 27 stars across levels
+      for (int i = 1; i <= 9; i++) {
+        await repo.saveLevelResult(
+          landId: 'balands',
+          levelNumber: i,
+          starsEarned: 3,
+          moveCount: 1,
+          reasoningPassed: true,
+        );
+      }
+
+      final questProvider = QuestMapProvider(repository: repo);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<QuestMapProvider>.value(value: questProvider),
+          ],
+          child: const MaterialApp(
+            home: QuestMapScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap Portal to Pairadise (portal icon in summit disc)
+      expect(find.byIcon(Icons.auto_awesome_rounded), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.auto_awesome_rounded));
+      await tester.pumpAndSettle();
+
+      // Congratulatory Scene
+      expect(find.text('Balands Conquered! 🎉'), findsOneWidget);
+      expect(find.text('27 Stars Acquired ⭐'), findsOneWidget);
+      expect(find.text('Enter Pairadise ➔'), findsOneWidget);
+
+      // Enter Pairadise
+      await tester.tap(find.text('Enter Pairadise ➔'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('PAIRADISE'), findsOneWidget);
+      expect(find.text('The Land of Pairs'), findsOneWidget);
+      expect(find.text('↩️ BALANDS ⚖️'), findsOneWidget);
     });
   });
 }

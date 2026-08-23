@@ -278,7 +278,7 @@ void main() {
         fetchProgress: (_) async => [
           _progress('user_1', stepIndex: 6, completed: true),
         ],
-        record: _defaultRecord,
+        record: (call) async => _result(call, totalXp: 50),
       );
       final provider = LessonProvider(repository: repository);
       provider.bindAccount('user_1');

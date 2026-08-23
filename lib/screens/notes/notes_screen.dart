@@ -25,7 +25,7 @@ class NotesScreen extends StatelessWidget {
     if (created == true && context.mounted) {
       showAlgebrixSnackBar(
         context,
-        message: 'Study note created!',
+        message: 'Study note created.',
         icon: Icons.check_circle_rounded,
       );
     }
@@ -199,7 +199,7 @@ class _NotesBodyState extends State<_NotesBody> {
                   child: ListView.separated(
                     key: const PageStorageKey('study-notes-list'),
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 96),
                     itemCount: displayNotes.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {

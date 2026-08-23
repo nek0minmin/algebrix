@@ -59,8 +59,6 @@ class RootPageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewportWidth = MediaQuery.sizeOf(context).width;
     final useCompactAction = viewportWidth < 560;
-
-    // Generous, prominent mascot sizing matching design
     final mascotSize = viewportWidth < 360 ? 92.0 : 108.0;
 
     return Center(
@@ -77,7 +75,7 @@ class RootPageHeader extends StatelessWidget {
                   supportingText: subtitle,
                   mascotAsset: _resolveMascotAsset(),
                   mascotSize: mascotSize,
-                  titleSize: viewportWidth < 360 ? 24 : 26,
+                  titleSize: 26,
                   supportingTextSize: 14.5,
                   searchBar: searchBar,
                   searchPlaceholder: searchPlaceholder,
@@ -85,11 +83,11 @@ class RootPageHeader extends StatelessWidget {
                   searchController: searchController,
                 ),
               ),
-              if (trailing != null) ...[
+              if (trailing != null || compactTrailing != null) ...[
                 const SizedBox(width: 8),
                 if (useCompactAction && compactTrailing != null)
                   compactTrailing!
-                else
+                else if (trailing != null)
                   trailing!,
               ],
             ],
@@ -215,23 +213,31 @@ class _PageHeaderIdentity extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        if (mascotAsset != null) ...[
-          XyMascot(
-            asset: mascotAsset!,
-            imageKey: const Key('page-header-xy'),
-            size: mascotSize,
-            shadowBlur: 5.0,
-            shadowOpacity: 0.22,
-          ),
-          const SizedBox(width: 14),
-        ],
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tight = constraints.maxWidth < (mascotSize + 60);
+        final effectiveMascotSize = tight
+            ? (constraints.maxWidth * 0.42).clamp(36.0, mascotSize)
+            : mascotSize;
+        final spacing = tight ? 8.0 : 14.0;
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (mascotAsset != null) ...[
+              XyMascot(
+                asset: mascotAsset!,
+                imageKey: const Key('page-header-xy'),
+                size: effectiveMascotSize,
+                shadowBlur: 5.0,
+                shadowOpacity: 0.22,
+              ),
+              SizedBox(width: spacing),
+            ],
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
@@ -273,6 +279,8 @@ class _PageHeaderIdentity extends StatelessWidget {
           ),
         ),
       ],
+    );
+      },
     );
   }
 }

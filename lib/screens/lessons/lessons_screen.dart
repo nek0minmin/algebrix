@@ -46,7 +46,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
             onSearchChanged: (q) => setState(() => _searchQuery = q.trim().toLowerCase()),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
             child: Column(
               children: [
                 if (_searchQuery.isNotEmpty) ...[
