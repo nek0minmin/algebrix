@@ -1181,8 +1181,8 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     // Stacked Toy Blocks (1, 2, 3) near Start on the right
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.84, size.height * 0.94),
-      size: 34,
+      center: Offset(size.width * 0.82, size.height * 0.94),
+      size: 38,
       label: '1',
       color: AppColors.pink,
       textColor: Colors.white,
@@ -1190,15 +1190,15 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     _draw3DMathBlock(
       canvas,
       center: Offset(size.width * 0.90, size.height * 0.91),
-      size: 34,
+      size: 38,
       label: '2',
       color: AppColors.yellow,
       textColor: const Color(0xFF7B5A00),
     );
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.86, size.height * 0.86),
-      size: 32,
+      center: Offset(size.width * 0.86, size.height * 0.85),
+      size: 36,
       label: '3',
       color: AppColors.purple,
       textColor: Colors.white,
@@ -1208,7 +1208,7 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     _draw3DMathBlock(
       canvas,
       center: Offset(size.width * 0.88, size.height * 0.78),
-      size: 40,
+      size: 44,
       label: '+3',
       color: AppColors.pink,
       textColor: Colors.white,
@@ -1217,8 +1217,8 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     // [ = ] Golden Block near Level 5
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.80, size.height * 0.58),
-      size: 38,
+      center: Offset(size.width * 0.82, size.height * 0.58),
+      size: 42,
       label: '=',
       color: AppColors.yellow,
       textColor: const Color(0xFF7B5A00),
@@ -1227,8 +1227,8 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     // [ 2x ] Purple Block near Level 6
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.12, size.height * 0.52),
-      size: 42,
+      center: Offset(size.width * 0.14, size.height * 0.52),
+      size: 46,
       label: '2x',
       color: AppColors.purple,
       textColor: Colors.white,
@@ -1237,8 +1237,8 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     // [ −5 ] Pink Block near Level 8
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.84, size.height * 0.36),
-      size: 40,
+      center: Offset(size.width * 0.86, size.height * 0.34),
+      size: 44,
       label: '−5',
       color: AppColors.pink,
       textColor: Colors.white,
@@ -1247,8 +1247,8 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     // [ ÷2 ] Mint Block near Level 9
     _draw3DMathBlock(
       canvas,
-      center: Offset(size.width * 0.86, size.height * 0.24),
-      size: 40,
+      center: Offset(size.width * 0.84, size.height * 0.22),
+      size: 44,
       label: '÷2',
       color: AppColors.mint,
       textColor: const Color(0xFF0F7263),
@@ -1269,63 +1269,96 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     required Color color,
     required Color textColor,
   }) {
-    final half = size / 2;
-    final depth = size * 0.28;
+    final cornerRadius = size * 0.28;
+    final innerSize = size * 0.72;
+    final innerRadius = size * 0.20;
 
-    // Drop shadow
+    // 1. Ambient Drop Shadow underneath
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(center.dx, center.dy + half + 6), width: size * 1.3, height: 12),
+      Rect.fromCenter(
+        center: Offset(center.dx, center.dy + size * 0.50),
+        width: size * 1.15,
+        height: size * 0.28,
+      ),
       Paint()..color = Colors.black.withValues(alpha: 0.10),
     );
 
-    // 3D Right Side Depth Face (Darker)
-    final rightFace = Path()
-      ..moveTo(center.dx + half, center.dy - half)
-      ..lineTo(center.dx + half + depth, center.dy - half - depth * 0.6)
-      ..lineTo(center.dx + half + depth, center.dy + half - depth * 0.6)
-      ..lineTo(center.dx + half, center.dy + half)
-      ..close();
-    canvas.drawPath(
-      rightFace,
-      Paint()..color = _darken(color, 0.25),
-    );
-
-    // 3D Top Depth Face (Lighter)
-    final topFace = Path()
-      ..moveTo(center.dx - half, center.dy - half)
-      ..lineTo(center.dx - half + depth, center.dy - half - depth * 0.6)
-      ..lineTo(center.dx + half + depth, center.dy - half - depth * 0.6)
-      ..lineTo(center.dx + half, center.dy - half)
-      ..close();
-    canvas.drawPath(
-      topFace,
-      Paint()..color = _lighten(color, 0.20),
-    );
-
-    // Front Face
-    final frontRect = Rect.fromCenter(center: center, width: size, height: size);
+    // 2. 3D Rounded Base / Bottom-Left Depth Layer
+    final depthOffset = Offset(-size * 0.04, size * 0.06);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(frontRect, Radius.circular(size * 0.2)),
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: center + depthOffset,
+          width: size,
+          height: size,
+        ),
+        Radius.circular(cornerRadius),
+      ),
+      Paint()..color = _darken(color, 0.22),
+    );
+
+    // 3. Main Outer Rounded Squircle Face
+    final outerRect = Rect.fromCenter(
+      center: center,
+      width: size,
+      height: size,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(outerRect, Radius.circular(cornerRadius)),
       Paint()..color = color,
     );
 
-    // Front Face Border
+    // 4. Subtle Outer Border / Rim
     canvas.drawRRect(
-      RRect.fromRectAndRadius(frontRect, Radius.circular(size * 0.2)),
+      RRect.fromRectAndRadius(outerRect, Radius.circular(cornerRadius)),
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.6)
+        ..color = Colors.white.withValues(alpha: 0.65)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
+        ..strokeWidth = 1.6,
     );
 
-    // Label Text
+    // 5. Inset Creamy / Pastel Raised Center Tile
+    final innerRect = Rect.fromCenter(
+      center: center,
+      width: innerSize,
+      height: innerSize,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(innerRect, Radius.circular(innerRadius)),
+      Paint()..color = _lighten(color, 0.72),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(innerRect, Radius.circular(innerRadius)),
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
+    );
+
+    // 6. Glossy Specular Corner Pill Highlight (as in reference image)
+    final shinePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.80)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: Offset(center.dx + size * 0.26, center.dy - size * 0.28),
+          width: size * 0.18,
+          height: size * 0.08,
+        ),
+        Radius.circular(size * 0.04),
+      ),
+      shinePaint,
+    );
+
+    // 7. Bold Dark Charcoal Number Typography
     final textPainter = TextPainter(
       text: TextSpan(
         text: label,
         style: GoogleFonts.nunito(
-          fontSize: size * 0.44,
+          fontSize: innerSize * 0.58,
           fontWeight: FontWeight.w900,
-          color: textColor,
+          color: const Color(0xFF2B2438), // Soft dark charcoal
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -1333,7 +1366,10 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
 
     textPainter.paint(
       canvas,
-      Offset(center.dx - textPainter.width / 2, center.dy - textPainter.height / 2),
+      Offset(
+        center.dx - textPainter.width / 2,
+        center.dy - textPainter.height / 2,
+      ),
     );
   }
 
