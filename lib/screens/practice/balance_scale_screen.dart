@@ -6,7 +6,6 @@ import 'package:algebrix/core/providers/balance_scale_provider.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/services/math_api_service.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
-import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/secondary_button.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
@@ -237,6 +236,10 @@ class _BalanceScaleScreenState extends State<BalanceScaleScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<BalanceScaleProvider>();
     final problem = provider.currentProblem;
+    final questProvider = context.watch<QuestMapProvider>();
+    final landName = questProvider.activeLand?.name ?? 'Balands';
+    final starsEarned = questProvider.activeLandStars;
+    final maxStars = questProvider.activeLand?.maxStars ?? 30;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndShowModal(provider);
@@ -244,98 +247,290 @@ class _BalanceScaleScreenState extends State<BalanceScaleScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const SecondaryPageAppBar(
-        title: 'Balance Scale',
-        supportingText: 'Isolate x by dragging operations onto the scale.',
-      ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Xy Companion & Target Equation Header
-              if (problem != null) ...[
-                _EquationAndMascotHeader(
-                  problem: problem,
-                  moveCount: provider.moveCount,
-                  optimalMoves: provider.optimalMoves,
-                  isSolved: provider.isSolved,
-                  onReset: () {
-                    _lastPresentedProblemId = null;
-                    provider.resetCurrentProblem();
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
+        child: Column(
+          children: [
+            // BADLANDS (LEVEL) (MODE) Clean HUD Header matching Badlands Landing Page
+            _BalanceScaleGameHeader(
+              landName: landName,
+              levelNumber: _currentLevelNumber,
+              isQuestMode: _currentLevelNumber != null,
+              starsEarned: starsEarned,
+              maxStars: maxStars,
+              onBack: () => Navigator.of(context).pop(),
+            ),
 
-              // Drag & Tap Instructions Banner
-              _DragInstructionsBanner(),
-              const SizedBox(height: 18),
+            // Scrollable scale interactive puzzle content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Xy Companion & Target Equation Header
+                    if (problem != null) ...[
+                      _EquationAndMascotHeader(
+                        problem: problem,
+                        moveCount: provider.moveCount,
+                        optimalMoves: provider.optimalMoves,
+                        isSolved: provider.isSolved,
+                        onReset: () {
+                          _lastPresentedProblemId = null;
+                          provider.resetCurrentProblem();
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ],
 
-              // Authentic Physical Tilting Scale with Pans & Center Drop
-              _AnimatedBalanceScale(
-                leftExpr: provider.leftExpr,
-                rightExpr: provider.rightExpr,
-                isSolved: provider.isSolved,
-                isLoading: provider.isLoading,
-                onApply: (op, val, isVar, targetSide) =>
-                    provider.applyOperation(
-                  op,
-                  val,
-                  isVariable: isVar,
-                  targetSide: targetSide,
+                    // Drag & Tap Instructions Banner
+                    _DragInstructionsBanner(),
+                    const SizedBox(height: 18),
+
+                    // Authentic Physical Tilting Scale with Pans & Center Drop
+                    _AnimatedBalanceScale(
+                      leftExpr: provider.leftExpr,
+                      rightExpr: provider.rightExpr,
+                      isSolved: provider.isSolved,
+                      isLoading: provider.isLoading,
+                      onApply: (op, val, isVar, targetSide) =>
+                          provider.applyOperation(
+                        op,
+                        val,
+                        isVariable: isVar,
+                        targetSide: targetSide,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Tactile Colored Number & Variable Block Chips (Consistently 8 tiles in 2x4 Grid)
+                    _NumberBlockPalette(
+                      isLoading: provider.isLoading,
+                      isSolved: provider.isSolved,
+                      dynamicOps: provider.dynamicOps,
+                      onApply: (op, val, isVar, targetSide) =>
+                          provider.applyOperation(
+                        op,
+                        val,
+                        isVariable: isVar,
+                        targetSide: targetSide,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Step History
+                    if (provider.history.isNotEmpty) ...[
+                      Text(
+                        'Steps (${provider.moveCount} move${provider.moveCount == 1 ? '' : 's'})',
+                        style: AppTextStyles.subtitle1.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ...provider.history.asMap().entries.map(
+                            (entry) => _StepHistoryCard(
+                              index: entry.key + 1,
+                              step: entry.value,
+                            ),
+                          ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Reset / New Problem Button (Only shown in free practice arena)
+                    if (_currentLevelNumber == null) ...[
+                      SecondaryButton(
+                        label: 'New Random Problem',
+                        icon: Icons.casino_rounded,
+                        onPressed: () {
+                          _lastPresentedProblemId = null;
+                          provider.initNewProblem();
+                        },
+                      ),
+                    ],
+                    const SizedBox(height: 32),
+                  ],
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Tactile Colored Number & Variable Block Chips (Consistently 8 tiles in 2x4 Grid)
-              _NumberBlockPalette(
-                isLoading: provider.isLoading,
-                isSolved: provider.isSolved,
-                dynamicOps: provider.dynamicOps,
-                onApply: (op, val, isVar, targetSide) =>
-                    provider.applyOperation(
-                  op,
-                  val,
-                  isVariable: isVar,
-                  targetSide: targetSide,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Step History
-              if (provider.history.isNotEmpty) ...[
-                Text(
-                  'Steps (${provider.moveCount} move${provider.moveCount == 1 ? '' : 's'})',
-                  style: AppTextStyles.subtitle1.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ...provider.history.asMap().entries.map(
-                  (entry) => _StepHistoryCard(
-                    index: entry.key + 1,
-                    step: entry.value,
-                  ),
-                ),
-              ],
-
-              // Fallback action button if solved and dialog was closed
-              if (provider.isSolved && !_dialogOpen) ...[
-                const SizedBox(height: 24),
-                PrimaryButton(
-                  label: 'Next Equation →',
-                  onPressed: () {
-                    _lastPresentedProblemId = null;
-                    provider.initNewProblem();
-                  },
-                ),
-              ],
-              const SizedBox(height: 32),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+// ─── Game HUD Title Header (BADLANDS • LEVEL • MODE) ─────────────────────────
+
+class _BalanceScaleGameHeader extends StatelessWidget {
+  const _BalanceScaleGameHeader({
+    required this.landName,
+    required this.levelNumber,
+    required this.isQuestMode,
+    required this.starsEarned,
+    required this.maxStars,
+    required this.onBack,
+  });
+
+  final String landName;
+  final int? levelNumber;
+  final bool isQuestMode;
+  final int starsEarned;
+  final int maxStars;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = isQuestMode
+        ? 'Level $levelNumber • Balance Scale'
+        : 'Practice Arena • Balance Scale';
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+      child: Row(
+        children: [
+          // Circular Back Button
+          BouncyPressable(
+            shrinkFactor: 0.9,
+            enableHaptics: true,
+            onTap: onBack,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.pink.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.pink.withValues(alpha: 0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.pink,
+                size: 22,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+
+          // BADLANDS (LEVEL) (MODE) Clean Capsule
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: AppColors.purple.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.purple.withValues(alpha: 0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Singular color scale icon badge
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.lightPurple,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.purple.withValues(alpha: 0.25),
+                        width: 1,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.balance_rounded,
+                      color: AppColors.purple,
+                      size: 19,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          landName.toUpperCase(),
+                          style: GoogleFonts.fredoka(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.4,
+                            color: const Color(0xFF4A3E8F),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          subtitle,
+                          style: GoogleFonts.nunito(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textSecondary,
+                            letterSpacing: 0.2,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+
+          // Stars Capsule
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF9E6),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFFFE082), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.amber.withValues(alpha: 0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  AppAssets.star,
+                  width: 16,
+                  height: 16,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '$starsEarned/$maxStars',
+                  style: GoogleFonts.nunito(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.text,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
