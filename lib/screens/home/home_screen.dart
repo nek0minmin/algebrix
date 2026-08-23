@@ -27,6 +27,9 @@ import 'package:algebrix/screens/practice/balance_scale_screen.dart';
 import 'package:algebrix/screens/practice/quiz_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/screens/notes/note_detail_screen.dart';
+import 'package:algebrix/core/constants/app_assets.dart';
+import 'package:algebrix/core/providers/quest_map_provider.dart';
+import 'package:algebrix/screens/practice/quest_map_screen.dart';
 import 'package:algebrix/core/animations/app_page_route.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
 
@@ -47,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final authProvider = context.watch<AuthProvider>();
     final lessonProvider = context.watch<LessonProvider>();
     final notesProvider = context.watch<NotesProvider>();
+    final questMapProvider = context.watch<QuestMapProvider>();
 
     if (!authProvider.isAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -153,8 +157,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                   ],
+
+                  // Algebria Adventure Shortcut Banner
+                  _AlgebriaDashboardShortcut(
+                    landAndLevel: questMapProvider.currentLandAndLevelLabel,
+                    starsEarned: questMapProvider.activeLandStars,
+                    maxStars: 30,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(child: const QuestMapScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
 
                   // Quick Action Feature Grid
                   Text('Quick Practice & Features', style: AppTextStyles.heading3),
@@ -614,6 +631,160 @@ class _LearningTipCallout extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AlgebriaDashboardShortcut extends StatelessWidget {
+  const _AlgebriaDashboardShortcut({
+    required this.landAndLevel,
+    required this.starsEarned,
+    required this.maxStars,
+    required this.onTap,
+  });
+
+  final String landAndLevel;
+  final int starsEarned;
+  final int maxStars;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyPressable(
+      shrinkFactor: 0.97,
+      enableHaptics: true,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.pink.withValues(alpha: 0.35),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.pink.withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Left: Adventure cover artwork thumbnail
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.pink.withValues(alpha: 0.25),
+                  width: 1,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Image.asset(
+                AppAssets.algebria,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 14),
+
+            // Center: Location & Progress
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.extraLightPink,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '🗺️ ALGEBRIA QUEST',
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.pink,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            AppAssets.star,
+                            width: 14,
+                            height: 14,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            '$starsEarned/$maxStars',
+                            style: GoogleFonts.nunito(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    landAndLevel,
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.text,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Right: Play CTA icon pill
+            Container(
+              padding: const EdgeInsets.all(9),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF69B4), Color(0xFFFF4081)],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.pink.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.arrow_forward_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

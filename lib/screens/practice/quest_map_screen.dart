@@ -417,60 +417,66 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Stars & Best Moves Row
+              // Stars & Best Moves Row (Equal 50/50 Proportions)
               Row(
                 children: [
+                  // Left Pod: 3 Stars Rating
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      height: 54,
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFF9E6),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFFFE082)),
+                        border: Border.all(color: const Color(0xFFFFE082), width: 1.5),
                       ),
+                      alignment: Alignment.center,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(3, (i) {
                           final earned = i < starsEarned;
                           return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
                             child: Image.asset(
                               earned
                                   ? AppAssets.star
                                   : AppAssets.starSilhouette,
-                              width: 32,
-                              height: 32,
+                              width: 28,
+                              height: 28,
                             ),
                           );
                         }),
                       ),
                     ),
                   ),
-                  if (bestMoves != null) ...[
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.lightMint,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppColors.mint.withValues(alpha: 0.4),
-                          ),
+                  const SizedBox(width: 12),
+
+                  // Right Pod: Best Moves
+                  Expanded(
+                    child: Container(
+                      height: 54,
+                      decoration: BoxDecoration(
+                        color: AppColors.lightMint,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.mint.withValues(alpha: 0.4),
+                          width: 1.5,
                         ),
-                        child: Center(
-                          child: Text(
-                            'Best: $bestMoves moves',
-                            style: GoogleFonts.nunito(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              color: const Color(0xFF0F7263),
-                            ),
-                          ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        bestMoves != null
+                            ? 'Best: $bestMoves ${bestMoves == 1 ? 'move' : 'moves'}'
+                            : 'Best: --',
+                        style: GoogleFonts.nunito(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w900,
+                          color: bestMoves != null
+                              ? const Color(0xFF0F7263)
+                              : AppColors.textSecondary,
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ],
               ),
               const SizedBox(height: 24),

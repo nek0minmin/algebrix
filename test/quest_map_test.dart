@@ -272,6 +272,40 @@ void main() {
       expect(provider.starsForLevel(1), 3); // Still 3 stars!
       expect(provider.bestMovesForLevel(1), 1); // Still 1 move!
     });
+
+    test('currentLandAndLevelLabel tracks player frontier with Roman numerals', () async {
+      await provider.loadQuestMap();
+
+      // Initially on Level 1
+      expect(provider.currentLevel, 1);
+      expect(provider.currentLandAndLevelLabel, 'Balands I (Level 1)');
+
+      // Complete Level 1 -> frontier is Level 2
+      await provider.submitLevelResult(
+        levelNumber: 1,
+        moveCount: 1,
+        optimalMoves: 1,
+        reasoningPassed: true,
+      );
+      expect(provider.currentLevel, 2);
+      expect(provider.currentLandAndLevelLabel, 'Balands II (Level 2)');
+
+      // Complete Level 2 and 3 -> frontier is Level 4
+      await provider.submitLevelResult(
+        levelNumber: 2,
+        moveCount: 1,
+        optimalMoves: 1,
+        reasoningPassed: true,
+      );
+      await provider.submitLevelResult(
+        levelNumber: 3,
+        moveCount: 1,
+        optimalMoves: 1,
+        reasoningPassed: true,
+      );
+      expect(provider.currentLevel, 4);
+      expect(provider.currentLandAndLevelLabel, 'Balands IV (Level 4)');
+    });
   });
 
   group('QuestMapScreen UI Widget Tests', () {

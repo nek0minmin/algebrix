@@ -82,6 +82,41 @@ class QuestMapProvider extends ChangeNotifier {
     return _levelProgress[levelNumber]?.bestMoves;
   }
 
+  /// The player's current frontier level (first uncompleted level 1-10).
+  int get currentLevel {
+    for (int i = 1; i <= 10; i++) {
+      final progress = _levelProgress[i];
+      if (progress == null || progress.starsEarned == 0) {
+        return i;
+      }
+    }
+    return 10;
+  }
+
+  /// Formatted land and level display string, e.g. "Balands IV (Level 4)".
+  String get currentLandAndLevelLabel {
+    final landName = activeLand?.name ?? 'Balands';
+    final lvl = currentLevel;
+    final roman = _toRoman(lvl);
+    return '$landName $roman (Level $lvl)';
+  }
+
+  static String _toRoman(int n) {
+    const map = {
+      10: 'X',
+      9: 'IX',
+      8: 'VIII',
+      7: 'VII',
+      6: 'VI',
+      5: 'V',
+      4: 'IV',
+      3: 'III',
+      2: 'II',
+      1: 'I',
+    };
+    return map[n] ?? '$n';
+  }
+
   // ---------------------------------------------------------------------------
   // Actions
   // ---------------------------------------------------------------------------
