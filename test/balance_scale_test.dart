@@ -1,9 +1,41 @@
 import 'package:algebrix/core/providers/balance_scale_provider.dart';
+import 'package:algebrix/core/providers/quest_map_provider.dart';
+import 'package:algebrix/models/quest_map_model.dart';
 import 'package:algebrix/screens/practice/practice_screen.dart';
 import 'package:algebrix/services/math_api_service.dart';
+import 'package:algebrix/services/quest_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+
+class _FakeQuestRepository implements QuestRepository {
+  @override
+  Future<List<QuestLand>> fetchAllLands() async => [
+        const QuestLand(
+          id: 'balands',
+          name: 'Balands',
+          subtitle: 'The Land of Balancing',
+          sortOrder: 1,
+          totalLevels: 10,
+          unlockStarsRequired: 0,
+        ),
+      ];
+
+  @override
+  Future<List<QuestLevelProgress>> fetchLandProgress(String landId) async => [];
+
+  @override
+  Future<int> fetchTotalStars() async => 0;
+
+  @override
+  Future<void> saveLevelResult({
+    required String landId,
+    required int levelNumber,
+    required int starsEarned,
+    required int moveCount,
+    required bool reasoningPassed,
+  }) async {}
+}
 
 void main() {
   group('MathApiService Tests', () {
@@ -53,7 +85,7 @@ void main() {
       expect(provider.history, hasLength(1));
     });
 
-    test('star rating tiers based on move count', () async {
+    test('star rating tiers based on move count and reasoning', () async {
       final provider = BalanceScaleProvider();
       // Star rating is 0 before solving
       expect(provider.starRating, 0);
@@ -81,17 +113,22 @@ void main() {
   });
 
   group('PracticeScreen UI Tests', () {
-    testWidgets('renders 3 practice mode cards and navigates to Balance Scale', (
+    testWidgets('renders 3 practice mode cards and navigates to Quest Map', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(430, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final provider = BalanceScaleProvider();
+      final scaleProvider = BalanceScaleProvider();
+      final questRepo = _FakeQuestRepository();
+      final questProvider = QuestMapProvider(repository: questRepo);
 
       await tester.pumpWidget(
-        ChangeNotifierProvider.value(
-          value: provider,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<BalanceScaleProvider>.value(value: scaleProvider),
+            ChangeNotifierProvider<QuestMapProvider>.value(value: questProvider),
+          ],
           child: const MaterialApp(home: PracticeScreen()),
         ),
       );
@@ -106,8 +143,9 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
 
-      expect(find.text('Solve for x'), findsOneWidget);
-      expect(find.text('Number Blocks'), findsOneWidget);
+      expect(find.text('Balands'), findsOneWidget);
+      expect(find.text('The Land of Balancing'), findsOneWidget);
+      expect(find.text('Level 1'), findsOneWidget);
     });
   });
 }

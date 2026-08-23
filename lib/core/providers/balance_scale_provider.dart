@@ -63,14 +63,23 @@ class BalanceScaleProvider extends ChangeNotifier {
   /// Optimal number of moves for the current problem.
   int get optimalMoves => _currentProblem?.optimalMoves ?? 2;
 
-  /// Star rating based on moves vs optimal.
-  /// 3★ = solved in optimal moves or fewer
-  /// 2★ = solved in optimal + 1 or + 2 moves
-  /// 1★ = solved in more than optimal + 2 moves
+  /// Star rating using the combined moves × reasoning rubric:
+  /// 3★ = solved within optimal moves AND reasoning correct
+  /// 2★ = solved within optimal moves but reasoning wrong/skipped
+  ///      OR reasoning correct but exceeded optimal moves
+  /// 1★ = exceeded optimal moves AND reasoning wrong/skipped
   int get starRating {
     if (!_isSolved) return 0;
-    if (moveCount <= optimalMoves) return 3;
-    if (moveCount <= optimalMoves + 2) return 2;
+    return calculateStars(_reasoningPassed);
+  }
+
+  /// Calculate stars for a given reasoning result.
+  /// Used by QuestMapProvider to compute stars before persisting.
+  int calculateStars(bool reasoningCorrect) {
+    if (!_isSolved) return 0;
+    final withinMoves = moveCount <= optimalMoves;
+    if (withinMoves && reasoningCorrect) return 3;
+    if (withinMoves || reasoningCorrect) return 2;
     return 1;
   }
 
@@ -87,6 +96,23 @@ class BalanceScaleProvider extends ChangeNotifier {
     _reasoningPassed = false;
     _showReasoningCheck = false;
     _dynamicOps = _apiService.generateOpsForProblem(nextProb);
+    notifyListeners();
+  }
+
+  /// Initialize a specific quest level problem (1-indexed).
+  void initLevelProblem(int levelNumber) {
+    final prob = _apiService.getLevelProblem(levelNumber);
+    _currentProblem = prob;
+    _leftExpr = prob.leftExpr;
+    _rightExpr = prob.rightExpr;
+    _history = [];
+    _isLoading = false;
+    _isSolved = false;
+    _errorMessage = null;
+    _xpEarned = 0;
+    _reasoningPassed = false;
+    _showReasoningCheck = false;
+    _dynamicOps = _apiService.generateOpsForProblem(prob);
     notifyListeners();
   }
 

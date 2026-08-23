@@ -3,6 +3,7 @@ import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/balance_scale_provider.dart';
+import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/services/math_api_service.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
@@ -98,7 +99,10 @@ String _labelForOp(String op, num value) {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 class BalanceScaleScreen extends StatefulWidget {
-  const BalanceScaleScreen({super.key});
+  const BalanceScaleScreen({super.key, this.questLevelNumber});
+
+  /// When non-null, loads a specific quest level problem instead of a random one.
+  final int? questLevelNumber;
 
   @override
   State<BalanceScaleScreen> createState() => _BalanceScaleScreenState();
@@ -107,6 +111,19 @@ class BalanceScaleScreen extends StatefulWidget {
 class _BalanceScaleScreenState extends State<BalanceScaleScreen> {
   String? _lastPresentedProblemId;
   bool _dialogOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.questLevelNumber != null) {
+      // Load the specific level problem for quest mode.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<BalanceScaleProvider>().initLevelProblem(
+              widget.questLevelNumber!,
+            );
+      });
+    }
+  }
 
   void _checkAndShowModal(BalanceScaleProvider provider) {
     final problem = provider.currentProblem;
@@ -128,10 +145,25 @@ class _BalanceScaleScreenState extends State<BalanceScaleScreen> {
             value: provider,
             child: _ReasoningAndCelebrationDialog(
               problem: problem,
+              isQuestMode: widget.questLevelNumber != null,
               onDismissAndNext: () {
                 _dialogOpen = false;
                 Navigator.of(dialogCtx).pop();
-                provider.initNewProblem();
+
+                if (widget.questLevelNumber != null) {
+                  // Quest mode: report result and go back to map.
+                  final questProvider = context.read<QuestMapProvider>();
+                  questProvider.submitLevelResult(
+                    levelNumber: widget.questLevelNumber!,
+                    moveCount: provider.moveCount,
+                    optimalMoves: provider.optimalMoves,
+                    reasoningPassed: provider.reasoningPassed,
+                  );
+                  Navigator.of(context).pop(); // Back to quest map
+                } else {
+                  // Sandbox mode: load next random problem.
+                  provider.initNewProblem();
+                }
               },
             ),
           ),
@@ -1484,10 +1516,12 @@ class _ReasoningAndCelebrationDialog extends StatefulWidget {
   const _ReasoningAndCelebrationDialog({
     required this.problem,
     required this.onDismissAndNext,
+    this.isQuestMode = false,
   });
 
   final BalanceScaleProblem problem;
   final VoidCallback onDismissAndNext;
+  final bool isQuestMode;
 
   @override
   State<_ReasoningAndCelebrationDialog> createState() =>
@@ -1931,9 +1965,9 @@ class _ReasoningAndCelebrationDialogState
           ),
           const SizedBox(height: 20),
 
-          // Next Equation Button
+          // Next Equation / Back to Map Button
           PrimaryButton(
-            label: 'Next Equation →',
+            label: widget.isQuestMode ? 'Back to Map 🗺️' : 'Next Equation →',
             onPressed: widget.onDismissAndNext,
           ),
         ],

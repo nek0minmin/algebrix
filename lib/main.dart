@@ -9,13 +9,16 @@ import 'core/providers/auth_provider.dart';
 import 'core/providers/balance_scale_provider.dart';
 import 'core/providers/lesson_provider.dart';
 import 'core/providers/notes_provider.dart';
+import 'core/providers/quest_map_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'models/lesson_progress_model.dart';
+import 'models/quest_map_model.dart';
 import 'models/study_note_model.dart';
 import 'services/ai_tutor_service.dart';
 import 'services/auth_service.dart';
 import 'services/notes_repository.dart';
 import 'services/progress_repository.dart';
+import 'services/quest_repository.dart';
 import 'screens/splash/splash_screen.dart';
 
 void main() async {
@@ -77,6 +80,7 @@ class AlgebrixApp extends StatelessWidget {
           create: (_) => _createProgressRepository(),
         ),
         Provider<NotesRepository>(create: (_) => _createNotesRepository()),
+        Provider<QuestRepository>(create: (_) => _createQuestRepository()),
         ChangeNotifierProxyProvider2<
           AuthProvider,
           ProgressRepository,
@@ -108,6 +112,11 @@ class AlgebrixApp extends StatelessWidget {
         ChangeNotifierProvider<BalanceScaleProvider>(
           create: (_) => BalanceScaleProvider(),
         ),
+        ChangeNotifierProvider<QuestMapProvider>(
+          create: (context) => QuestMapProvider(
+            repository: context.read<QuestRepository>(),
+          ),
+        ),
       ],
       child: MaterialApp(
         title: 'Algebrix',
@@ -132,6 +141,14 @@ NotesRepository _createNotesRepository() {
     return SupabaseNotesRepository();
   } catch (_) {
     return const _UnavailableNotesRepository();
+  }
+}
+
+QuestRepository _createQuestRepository() {
+  try {
+    return SupabaseQuestRepository();
+  } catch (_) {
+    return const _UnavailableQuestRepository();
   }
 }
 
@@ -189,4 +206,37 @@ class _UnavailableNotesRepository implements NotesRepository {
     required String title,
     required String content,
   }) => Future<StudyNote>.error(_error);
+}
+
+class _UnavailableQuestRepository implements QuestRepository {
+  const _UnavailableQuestRepository();
+
+  @override
+  Future<List<QuestLand>> fetchAllLands() => Future.value([
+        const QuestLand(
+          id: 'balands',
+          name: 'Balands',
+          subtitle: 'The Land of Balancing',
+          sortOrder: 1,
+          totalLevels: 10,
+          unlockStarsRequired: 0,
+        ),
+      ]);
+
+  @override
+  Future<List<QuestLevelProgress>> fetchLandProgress(String landId) =>
+      Future.value([]);
+
+  @override
+  Future<int> fetchTotalStars() => Future.value(0);
+
+  @override
+  Future<void> saveLevelResult({
+    required String landId,
+    required int levelNumber,
+    required int starsEarned,
+    required int moveCount,
+    required bool reasoningPassed,
+  }) =>
+      Future.value();
 }

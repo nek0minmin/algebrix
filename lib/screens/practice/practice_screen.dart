@@ -1,9 +1,10 @@
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
+import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
-import 'package:algebrix/screens/practice/balance_scale_screen.dart';
+import 'package:algebrix/screens/practice/quest_map_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
@@ -11,6 +12,7 @@ import 'package:algebrix/core/animations/app_page_route.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 /// Practice Arena Screen with 3 Interactive Options.
 class PracticeScreen extends StatelessWidget {
@@ -33,22 +35,28 @@ class PracticeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Mode 1: Balance Scale
-                    _PracticeModeCard(
-                      key: const Key('practice-mode-balance-scale'),
-                      icon: Icons.scale_rounded,
-                      title: 'Balance Scale',
-                      subtitle: 'Find x through scale balancing',
-                      description:
-                          'Apply equal operations to both sides of the scale to isolate x step-by-step.',
-                      isPrimary: true,
-                      badgeText: 'FEATURED MODE',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          AppPageRoute(
-                            child: const BalanceScaleScreen(),
-                          ),
+                    // Mode 1: Balance Scale — Quest Map
+                    Builder(
+                      builder: (context) {
+                        final questStars =
+                            context.watch<QuestMapProvider>().activeLandStars;
+                        return _PracticeModeCard(
+                          key: const Key('practice-mode-balance-scale'),
+                          icon: Icons.scale_rounded,
+                          title: 'Balance Scale',
+                          subtitle: '★ $questStars/30 • Balands',
+                          description:
+                              'Embark on a 10-level quest to master equation balancing through progressively harder challenges.',
+                          isPrimary: true,
+                          badgeText: 'QUEST MAP',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              AppPageRoute(
+                                child: const QuestMapScreen(),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
