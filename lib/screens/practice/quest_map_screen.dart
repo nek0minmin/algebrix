@@ -1403,34 +1403,15 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     _drawMiniStar(canvas, Offset(-starInset, starInset), color, starRadius);
     _drawMiniStar(canvas, Offset(starInset, starInset), color, starRadius);
 
-    // ── 6. 3D Raised Embossed Number in Center ──────────────────────────────
+    // ── 6. Crisp Clear Number in Center ─────────────────────────────────────
     final fontSize = innerH * 0.62;
-    // Number drop shadow
-    final shadowPainter = TextPainter(
-      text: TextSpan(
-        text: label,
-        style: GoogleFonts.nunito(
-          fontSize: fontSize,
-          fontWeight: FontWeight.w900,
-          color: _darken(color, 0.28),
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    shadowPainter.paint(
-      canvas,
-      Offset(-shadowPainter.width / 2 + 1.8, -shadowPainter.height / 2 + 2.2),
-    );
-
-    // Main 3D Number
     final numPainter = TextPainter(
       text: TextSpan(
         text: label,
         style: GoogleFonts.nunito(
           fontSize: fontSize,
           fontWeight: FontWeight.w900,
-          color: color,
+          color: _darken(color, 0.06),
         ),
       ),
       textDirection: TextDirection.ltr,
