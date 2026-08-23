@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:algebrix/models/quest_map_model.dart';
 import 'package:algebrix/services/quest_repository.dart';
@@ -20,6 +21,7 @@ class QuestMapProvider extends ChangeNotifier {
   // State
   // ---------------------------------------------------------------------------
 
+  String? _accountId;
   List<QuestLand> _lands = [];
   Map<int, QuestLevelProgress> _levelProgress = {}; // keyed by levelNumber
   int _totalStars = 0;
@@ -31,6 +33,7 @@ class QuestMapProvider extends ChangeNotifier {
   // Getters
   // ---------------------------------------------------------------------------
 
+  String? get accountId => _accountId;
   List<QuestLand> get lands => List.unmodifiable(_lands);
   Map<int, QuestLevelProgress> get levelProgress =>
       Map.unmodifiable(_levelProgress);
@@ -82,6 +85,22 @@ class QuestMapProvider extends ChangeNotifier {
   // ---------------------------------------------------------------------------
   // Actions
   // ---------------------------------------------------------------------------
+
+  /// Binds the current authenticated user account and loads their specific progress.
+  void bindAccount(String? accountId) {
+    if (_accountId == accountId) return;
+    _accountId = accountId;
+
+    if (accountId == null) {
+      _levelProgress = {};
+      _totalStars = 0;
+      _activeLandId = null;
+      notifyListeners();
+      return;
+    }
+
+    unawaited(loadQuestMap());
+  }
 
   /// Load all lands and progress for the first (or given) land.
   Future<void> loadQuestMap({String landId = 'balands'}) async {

@@ -112,10 +112,20 @@ class AlgebrixApp extends StatelessWidget {
         ChangeNotifierProvider<BalanceScaleProvider>(
           create: (_) => BalanceScaleProvider(),
         ),
-        ChangeNotifierProvider<QuestMapProvider>(
+        ChangeNotifierProxyProvider2<
+          AuthProvider,
+          QuestRepository,
+          QuestMapProvider
+        >(
           create: (context) => QuestMapProvider(
             repository: context.read<QuestRepository>(),
           ),
+          update: (context, authProvider, repository, questMapProvider) {
+            final provider =
+                questMapProvider ?? QuestMapProvider(repository: repository);
+            provider.bindAccount(authProvider.currentUser?.id);
+            return provider;
+          },
         ),
       ],
       child: MaterialApp(
