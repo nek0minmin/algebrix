@@ -275,7 +275,7 @@ void main() {
   });
 
   group('QuestMapScreen UI Widget Tests', () {
-    testWidgets('renders Balands header, star banner, and 10 level nodes', (
+    testWidgets('renders Balands header, HUD star capsule, and 10 level nodes with preview sheet', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(430, 1200));
@@ -301,11 +301,18 @@ void main() {
 
       expect(find.text('Balands'), findsOneWidget);
       expect(find.text('The Land of Balancing'), findsOneWidget);
-      expect(find.text('0 / 30 Stars'), findsOneWidget);
+      expect(find.text('0/30'), findsOneWidget);
+      expect(find.byKey(const Key('quest-level-node-1')), findsOneWidget);
+      expect(find.byKey(const Key('quest-level-node-10')), findsOneWidget);
+
+      // Tap Level 1 to open Level Preview Bottom Sheet
+      await tester.tap(find.byKey(const Key('quest-level-node-1')));
+      await tester.pumpAndSettle();
+
       expect(find.text('Level 1'), findsOneWidget);
-      expect(find.text('Level 10'), findsOneWidget);
+      expect(find.text('Play Level 1 🚀'), findsOneWidget);
       expect(find.text('Simple addition'), findsOneWidget);
-      expect(find.text('Expert challenge'), findsOneWidget);
+      expect(find.text('x + 3 = 7'), findsOneWidget);
     });
   });
 }

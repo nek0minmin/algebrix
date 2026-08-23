@@ -145,7 +145,7 @@ void main() {
 
       expect(find.text('Balands'), findsOneWidget);
       expect(find.text('The Land of Balancing'), findsOneWidget);
-      expect(find.text('Level 1'), findsOneWidget);
+      expect(find.byKey(const Key('quest-level-node-1')), findsOneWidget);
     });
   });
 }
