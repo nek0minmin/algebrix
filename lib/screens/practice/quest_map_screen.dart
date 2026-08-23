@@ -121,10 +121,10 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                                 ),
                               ),
 
-                              // ── Mascot Xy Waypoint 1 (Lower-Left Valley Beside L2-L4) ──
+                              // ── Mascot Xy Waypoint 1 (Lower Valley Meadow - Pic 1) ──────────
                               Positioned(
-                                left: mapWidth * 0.08,
-                                top: _mapCanvasHeight * 0.67,
+                                left: mapWidth * 0.10,
+                                top: _mapCanvasHeight * 0.58,
                                 child: _MapMascotWaypoint(
                                   asset: AppAssets.xySitPencil,
                                   size: 140,
@@ -133,10 +133,10 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                                 ),
                               ),
 
-                              // ── Mascot Xy Waypoint 2 (Mid-Right Highlands Beside L5-L7) ─
+                              // ── Mascot Xy Waypoint 2 (Mid-Highlands Meadow - Pic 2) ─────────
                               Positioned(
-                                right: mapWidth * 0.06,
-                                top: _mapCanvasHeight * 0.43,
+                                right: mapWidth * 0.08,
+                                top: _mapCanvasHeight * 0.35,
                                 child: _MapMascotWaypoint(
                                   asset: AppAssets.xyBalance,
                                   size: 145,
@@ -145,10 +145,10 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                                 ),
                               ),
 
-                              // ── Mascot Xy Waypoint 3 (Upper-Left Summit Beside L8-L10) ──
+                              // ── Mascot Xy Waypoint 3 (Upper-Left Summit Meadow - Pic 3) ────
                               Positioned(
                                 left: mapWidth * 0.08,
-                                top: _mapCanvasHeight * 0.16,
+                                top: _mapCanvasHeight * 0.10,
                                 child: _MapMascotWaypoint(
                                   asset: AppAssets.xyAndChemie,
                                   size: 145,
@@ -1177,81 +1177,89 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
       Offset(size.width * 0.70, size.height * 0.07),
     );
 
-    // ── 2. 3D Isometric Math Blocks across the map ───────────────────────────
+    // ── 2. 3D Isometric Pastel Toy Blocks across the map ───────────────────
     // Stacked Toy Blocks (1, 2, 3) near Start on the right
-    _draw3DMathBlock(
+    _drawToyAlphabetBlock(
       canvas,
-      center: Offset(size.width * 0.82, size.height * 0.94),
-      size: 38,
+      center: Offset(size.width * 0.80, size.height * 0.94),
+      size: 44,
       label: '1',
-      color: AppColors.pink,
-      textColor: Colors.white,
+      color: const Color(0xFFEDA0D8), // Pastel Pink (Block 1 in ref)
+      faceLeft: false,
+      rotation: -0.06,
     );
-    _draw3DMathBlock(
+    _drawToyAlphabetBlock(
       canvas,
-      center: Offset(size.width * 0.90, size.height * 0.91),
-      size: 38,
+      center: Offset(size.width * 0.90, size.height * 0.90),
+      size: 44,
       label: '2',
-      color: AppColors.yellow,
-      textColor: const Color(0xFF7B5A00),
+      color: const Color(0xFFF6C774), // Pastel Yellow (Block 4 in ref)
+      faceLeft: true,
+      rotation: 0.08,
     );
-    _draw3DMathBlock(
+    _drawToyAlphabetBlock(
       canvas,
-      center: Offset(size.width * 0.86, size.height * 0.85),
-      size: 36,
-      label: '3',
-      color: AppColors.purple,
-      textColor: Colors.white,
-    );
-
-    // [ +3 ] Pink Block near Level 3
-    _draw3DMathBlock(
-      canvas,
-      center: Offset(size.width * 0.88, size.height * 0.78),
-      size: 44,
-      label: '+3',
-      color: AppColors.pink,
-      textColor: Colors.white,
-    );
-
-    // [ = ] Golden Block near Level 5
-    _draw3DMathBlock(
-      canvas,
-      center: Offset(size.width * 0.82, size.height * 0.58),
+      center: Offset(size.width * 0.84, size.height * 0.84),
       size: 42,
-      label: '=',
-      color: AppColors.yellow,
-      textColor: const Color(0xFF7B5A00),
+      label: '3',
+      color: const Color(0xFF64C7E8), // Sky Blue (Block 5 in ref)
+      faceLeft: false,
+      rotation: -0.04,
     );
 
-    // [ 2x ] Purple Block near Level 6
-    _draw3DMathBlock(
+    // [ +3 ] Pastel Yellow Block near Level 3 (Right)
+    _drawToyAlphabetBlock(
       canvas,
-      center: Offset(size.width * 0.14, size.height * 0.52),
-      size: 46,
+      center: Offset(size.width * 0.88, size.height * 0.77),
+      size: 48,
+      label: '+3',
+      color: const Color(0xFFF6C774),
+      faceLeft: false,
+      rotation: 0.07,
+    );
+
+    // [ 2x ] Purple Block near Level 4 (Left - below Waypoint 1)
+    _drawToyAlphabetBlock(
+      canvas,
+      center: Offset(size.width * 0.12, size.height * 0.76),
+      size: 48,
       label: '2x',
-      color: AppColors.purple,
-      textColor: Colors.white,
+      color: const Color(0xFFC7A2E7),
+      faceLeft: true,
+      rotation: -0.08,
     );
 
-    // [ −5 ] Pink Block near Level 8
-    _draw3DMathBlock(
+    // [ = ] Mint Green Block near Level 5 (Right)
+    _drawToyAlphabetBlock(
       canvas,
-      center: Offset(size.width * 0.86, size.height * 0.34),
-      size: 44,
+      center: Offset(size.width * 0.82, size.height * 0.56),
+      size: 46,
+      label: '=',
+      color: const Color(0xFF86E0B4), // Pastel Mint (Block N in ref)
+      faceLeft: false,
+      rotation: -0.05,
+    );
+
+    // [ −5 ] Pink Block near Level 7 (Right - above Waypoint 2)
+    _drawToyAlphabetBlock(
+      canvas,
+      center: Offset(size.width * 0.86, size.height * 0.26),
+      size: 48,
       label: '−5',
-      color: AppColors.pink,
-      textColor: Colors.white,
+      color: const Color(0xFFEDA0D8),
+      faceLeft: true,
+      rotation: 0.09,
     );
 
-    // [ ÷2 ] Mint Block near Level 9
-    _draw3DMathBlock(
+    // [ ÷2 ] Sky Blue Block near Summit (Right)
+    _drawToyAlphabetBlock(
       canvas,
-      center: Offset(size.width * 0.84, size.height * 0.22),
-      size: 44,
+      center: Offset(size.width * 0.84, size.height * 0.18),
+      size: 46,
       label: '÷2',
-      color: AppColors.mint,
-      textColor: const Color(0xFF0F7263),
+      color: const Color(0xFF64C7E8),
+      faceLeft: false,
+      rotation: -0.07,
     );
 
     // ── 3. Floating Pastel Clouds ───────────────────────────────────────────
@@ -1261,116 +1269,199 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     _drawFluffyCloud(canvas, Offset(size.width * 0.10, size.height * 0.86), 42);
   }
 
-  void _draw3DMathBlock(
+  void _drawToyAlphabetBlock(
     Canvas canvas, {
     required Offset center,
     required double size,
     required String label,
     required Color color,
-    required Color textColor,
+    required bool faceLeft, // true: right face visible, false: left face visible
+    double rotation = 0.0,
   }) {
-    final cornerRadius = size * 0.28;
-    final innerSize = size * 0.72;
-    final innerRadius = size * 0.20;
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    if (rotation != 0.0) {
+      canvas.rotate(rotation);
+    }
 
-    // 1. Ambient Drop Shadow underneath
+    final sideDir = faceLeft ? 1.0 : -1.0;
+    final w = size * 0.86;
+    final h = size * 0.86;
+    final extX = sideDir * size * 0.28;
+    final extY = -size * 0.24;
+
+    // ── 1. Soft Ground Shadow ───────────────────────────────────────────────
+    final shadowOffset = Offset(extX * 0.35, h * 0.52 + 3);
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(center.dx, center.dy + size * 0.50),
-        width: size * 1.15,
-        height: size * 0.28,
+        center: shadowOffset,
+        width: size * 1.35,
+        height: size * 0.38,
       ),
-      Paint()..color = Colors.black.withValues(alpha: 0.10),
+      Paint()..color = Colors.black.withValues(alpha: 0.12),
     );
 
-    // 2. 3D Rounded Base / Bottom-Left Depth Layer
-    final depthOffset = Offset(-size * 0.04, size * 0.06);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(
-          center: center + depthOffset,
-          width: size,
-          height: size,
-        ),
-        Radius.circular(cornerRadius),
-      ),
-      Paint()..color = _darken(color, 0.22),
-    );
+    // ── 2. Top Face ─────────────────────────────────────────────────────────
+    final topFacePath = Path()
+      ..moveTo(-w / 2, -h / 2)
+      ..lineTo(w / 2, -h / 2)
+      ..lineTo(w / 2 + extX, -h / 2 + extY)
+      ..lineTo(-w / 2 + extX, -h / 2 + extY)
+      ..close();
+    canvas.drawPath(topFacePath, Paint()..color = _lighten(color, 0.28));
 
-    // 3. Main Outer Rounded Squircle Face
-    final outerRect = Rect.fromCenter(
-      center: center,
-      width: size,
-      height: size,
-    );
+    // Top Face Inset Cream Panel
+    final topInnerInset = 0.72;
+    final topInnerPath = Path()
+      ..moveTo(
+        (-w / 2) * topInnerInset + extX * (1 - topInnerInset) * 0.5,
+        -h / 2 + extY * 0.14,
+      )
+      ..lineTo(
+        (w / 2) * topInnerInset + extX * (1 - topInnerInset) * 0.5,
+        -h / 2 + extY * 0.14,
+      )
+      ..lineTo((w / 2) * topInnerInset + extX * 0.86, -h / 2 + extY * 0.86)
+      ..lineTo((-w / 2) * topInnerInset + extX * 0.86, -h / 2 + extY * 0.86)
+      ..close();
+    canvas.drawPath(topInnerPath, Paint()..color = const Color(0xFFFFFDF2));
+
+    // ── 3. Side Face (Left or Right) ────────────────────────────────────────
+    final sideFacePath = Path();
+    if (sideDir == -1.0) {
+      // Left Face
+      sideFacePath
+        ..moveTo(-w / 2, -h / 2)
+        ..lineTo(-w / 2, h / 2)
+        ..lineTo(-w / 2 + extX, h / 2 + extY)
+        ..lineTo(-w / 2 + extX, -h / 2 + extY)
+        ..close();
+    } else {
+      // Right Face
+      sideFacePath
+        ..moveTo(w / 2, -h / 2)
+        ..lineTo(w / 2, h / 2)
+        ..lineTo(w / 2 + extX, h / 2 + extY)
+        ..lineTo(w / 2 + extX, -h / 2 + extY)
+        ..close();
+    }
+    canvas.drawPath(sideFacePath, Paint()..color = _darken(color, 0.18));
+
+    // Side Face Inset Cream/Beige Panel
+    final sideInnerPath = Path();
+    if (sideDir == -1.0) {
+      sideInnerPath
+        ..moveTo(-w / 2 + extX * 0.14, (-h / 2) * 0.72)
+        ..lineTo(-w / 2 + extX * 0.14, (h / 2) * 0.72)
+        ..lineTo(-w / 2 + extX * 0.86, (h / 2) * 0.72 + extY * 0.72)
+        ..lineTo(-w / 2 + extX * 0.86, (-h / 2) * 0.72 + extY * 0.72)
+        ..close();
+    } else {
+      sideInnerPath
+        ..moveTo(w / 2 + extX * 0.14, (-h / 2) * 0.72)
+        ..lineTo(w / 2 + extX * 0.14, (h / 2) * 0.72)
+        ..lineTo(w / 2 + extX * 0.86, (h / 2) * 0.72 + extY * 0.72)
+        ..lineTo(w / 2 + extX * 0.86, (-h / 2) * 0.72 + extY * 0.72)
+        ..close();
+    }
+    canvas.drawPath(sideInnerPath, Paint()..color = const Color(0xFFEFE8D8));
+
+    // ── 4. Front Face Outer Frame ───────────────────────────────────────────
+    final frontRect = Rect.fromCenter(center: Offset.zero, width: w, height: h);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(outerRect, Radius.circular(cornerRadius)),
+      RRect.fromRectAndRadius(frontRect, const Radius.circular(5)),
       Paint()..color = color,
     );
 
-    // 4. Subtle Outer Border / Rim
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(outerRect, Radius.circular(cornerRadius)),
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.65)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6,
-    );
-
-    // 5. Inset Creamy / Pastel Raised Center Tile
+    // Front Face Inset Cream Panel
+    final innerW = w * 0.70;
+    final innerH = h * 0.70;
     final innerRect = Rect.fromCenter(
-      center: center,
-      width: innerSize,
-      height: innerSize,
+      center: Offset.zero,
+      width: innerW,
+      height: innerH,
     );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(innerRect, Radius.circular(innerRadius)),
-      Paint()..color = _lighten(color, 0.72),
+      RRect.fromRectAndRadius(innerRect, const Radius.circular(3)),
+      Paint()..color = const Color(0xFFFFFDF2),
     );
+
+    // Front Face Inner Border
     canvas.drawRRect(
-      RRect.fromRectAndRadius(innerRect, Radius.circular(innerRadius)),
+      RRect.fromRectAndRadius(innerRect, const Radius.circular(3)),
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.9)
+        ..color = color.withValues(alpha: 0.3)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2,
+        ..strokeWidth = 1.0,
     );
 
-    // 6. Glossy Specular Corner Pill Highlight (as in reference image)
-    final shinePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.80)
-      ..style = PaintingStyle.fill;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(
-          center: Offset(center.dx + size * 0.26, center.dy - size * 0.28),
-          width: size * 0.18,
-          height: size * 0.08,
-        ),
-        Radius.circular(size * 0.04),
-      ),
-      shinePaint,
-    );
+    // ── 5. Corner Sparkle Stars on Front Cream Panel ─────────────────────────
+    final starRadius = innerW * 0.055;
+    final starInset = innerW * 0.36;
+    _drawMiniStar(canvas, Offset(-starInset, -starInset), color, starRadius);
+    _drawMiniStar(canvas, Offset(starInset, -starInset), color, starRadius);
+    _drawMiniStar(canvas, Offset(-starInset, starInset), color, starRadius);
+    _drawMiniStar(canvas, Offset(starInset, starInset), color, starRadius);
 
-    // 7. Bold Dark Charcoal Number Typography
-    final textPainter = TextPainter(
+    // ── 6. 3D Raised Embossed Number in Center ──────────────────────────────
+    final fontSize = innerH * 0.62;
+    // Number drop shadow
+    final shadowPainter = TextPainter(
       text: TextSpan(
         text: label,
         style: GoogleFonts.nunito(
-          fontSize: innerSize * 0.58,
+          fontSize: fontSize,
           fontWeight: FontWeight.w900,
-          color: const Color(0xFF2B2438), // Soft dark charcoal
+          color: _darken(color, 0.28),
         ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
 
-    textPainter.paint(
+    shadowPainter.paint(
       canvas,
-      Offset(
-        center.dx - textPainter.width / 2,
-        center.dy - textPainter.height / 2,
-      ),
+      Offset(-shadowPainter.width / 2 + 1.8, -shadowPainter.height / 2 + 2.2),
     );
+
+    // Main 3D Number
+    final numPainter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: GoogleFonts.nunito(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w900,
+          color: color,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    numPainter.paint(
+      canvas,
+      Offset(-numPainter.width / 2, -numPainter.height / 2),
+    );
+
+    canvas.restore();
+  }
+
+  void _drawMiniStar(Canvas canvas, Offset center, Color color, double r) {
+    final path = Path();
+    for (int i = 0; i < 5; i++) {
+      final double outerAngle = -math.pi / 2 + i * (2 * math.pi / 5);
+      final double innerAngle = outerAngle + math.pi / 5;
+      final double x1 = center.dx + r * math.cos(outerAngle);
+      final double y1 = center.dy + r * math.sin(outerAngle);
+      final double x2 = center.dx + (r * 0.45) * math.cos(innerAngle);
+      final double y2 = center.dy + (r * 0.45) * math.sin(innerAngle);
+      if (i == 0) {
+        path.moveTo(x1, y1);
+      } else {
+        path.lineTo(x1, y1);
+      }
+      path.lineTo(x2, y2);
+    }
+    path.close();
+    canvas.drawPath(path, Paint()..color = color.withValues(alpha: 0.85));
   }
 
   void _drawGiantBalanceScaleMonument(Canvas canvas, Offset center) {
@@ -1435,23 +1526,23 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     );
 
     // Block [x] inside left dish!
-    _draw3DMathBlock(
+    _drawToyAlphabetBlock(
       canvas,
-      center: Offset(center.dx - 26, center.dy - 2),
-      size: 16,
+      center: Offset(center.dx - 26, center.dy - 4),
+      size: 18,
       label: 'x',
-      color: AppColors.mint,
-      textColor: const Color(0xFF0F7263),
+      color: const Color(0xFF86E0B4),
+      faceLeft: false,
     );
 
     // Weights [5] inside right dish!
-    _draw3DMathBlock(
+    _drawToyAlphabetBlock(
       canvas,
-      center: Offset(center.dx + 26, center.dy - 2),
-      size: 16,
+      center: Offset(center.dx + 26, center.dy - 4),
+      size: 18,
       label: '5',
-      color: AppColors.pink,
-      textColor: Colors.white,
+      color: const Color(0xFFF6C774),
+      faceLeft: true,
     );
   }
 
