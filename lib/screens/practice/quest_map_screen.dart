@@ -675,49 +675,72 @@ class _FloatingGameHud extends StatelessWidget {
           ),
           const SizedBox(width: 12),
 
-          // Land Title Capsule
+          // Land Title Capsule (Centered + Eye-Catching Font + Singular Icon Color)
           Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(22),
                 border: Border.all(
-                  color: AppColors.purple.withValues(alpha: 0.25),
+                  color: AppColors.purple.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.purple.withValues(alpha: 0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
+                    color: AppColors.purple.withValues(alpha: 0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('⚖️', style: TextStyle(fontSize: 18)),
-                  const SizedBox(width: 8),
-                  Expanded(
+                  // Singular color scale icon badge
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.lightPurple,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.purple.withValues(alpha: 0.25),
+                        width: 1,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.balance_rounded,
+                      color: AppColors.purple,
+                      size: 19,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+
+                  // Centered Text with Stylized Eye-Catching Font
+                  Flexible(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          landName,
-                          style: GoogleFonts.nunito(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.text,
+                          landName.toUpperCase(),
+                          style: GoogleFonts.fredoka(
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
+                            color: const Color(0xFF4A3E8F),
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           landSubtitle,
                           style: GoogleFonts.nunito(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
                             color: AppColors.textSecondary,
+                            letterSpacing: 0.2,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),

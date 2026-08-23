@@ -333,7 +333,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Balands'), findsOneWidget);
+      expect(find.text('BALANDS'), findsOneWidget);
       expect(find.text('The Land of Balancing'), findsOneWidget);
       expect(find.text('0/30'), findsOneWidget);
       expect(find.byKey(const Key('quest-level-node-1')), findsOneWidget);

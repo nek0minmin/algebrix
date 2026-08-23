@@ -208,7 +208,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
 
-      expect(find.text('Balands'), findsOneWidget);
+      expect(find.text('BALANDS'), findsOneWidget);
       expect(find.text('The Land of Balancing'), findsOneWidget);
       expect(find.byKey(const Key('quest-level-node-1')), findsOneWidget);
     });
