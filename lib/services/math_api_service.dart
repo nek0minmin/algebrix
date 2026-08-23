@@ -342,25 +342,27 @@ class MathApiService {
   }
 
   /// Evaluates balance scale step using deterministic linear algebra engine.
+  /// Evaluates balance scale step using deterministic linear algebra engine.
   Future<ScaleStepResult> evaluateScaleOperation({
     required String leftExpr,
     required String rightExpr,
     required String op, // '+', '-', '*', '/'
     required num value,
+    bool isVariable = false,
     String targetSide = 'both', // 'both', 'left', 'right'
   }) async {
     final leftOp = (targetSide == 'both' || targetSide == 'left')
-        ? _buildExpr(leftExpr, op, value)
+        ? _buildExpr(leftExpr, op, value, isVariable: isVariable)
         : leftExpr;
     final rightOp = (targetSide == 'both' || targetSide == 'right')
-        ? _buildExpr(rightExpr, op, value)
+        ? _buildExpr(rightExpr, op, value, isVariable: isVariable)
         : rightExpr;
 
     final leftSimplified = (targetSide == 'both' || targetSide == 'left')
-        ? _localStepSimplify(leftExpr, op, value)
+        ? _localStepSimplify(leftExpr, op, value, isVariable: isVariable)
         : leftExpr;
     final rightSimplified = (targetSide == 'both' || targetSide == 'right')
-        ? _localStepSimplify(rightExpr, op, value)
+        ? _localStepSimplify(rightExpr, op, value, isVariable: isVariable)
         : rightExpr;
 
     return ScaleStepResult(
@@ -390,24 +392,52 @@ class MathApiService {
   int get totalQuestLevels => _levelProblems.length;
 
   /// Generates dynamic operation chips from a problem's coefficients,
-  /// consistently returning exactly 8 unique, high-yield operation options.
+  /// consistently returning exactly 8 unique, high-yield operation options
+  /// (including variable blocks like -2x when equations have variables on both sides).
   List<Map<String, dynamic>> generateOpsForProblem(BalanceScaleProblem problem) {
     final rng = Random();
     final uniqueSet = <String>{};
     final ops = <Map<String, dynamic>>[];
 
-    void addOp(String op, num value) {
+    void addOp(String op, num value, {bool isVariable = false}) {
       if (value <= 0) return;
-      final key = '$op-$value';
+      final key = '$op-$value-${isVariable ? 'var' : 'num'}';
       if (!uniqueSet.contains(key) && ops.length < 8) {
         uniqueSet.add(key);
-        ops.add({'op': op, 'value': value});
+        ops.add({
+          'op': op,
+          'value': value,
+          'isVariable': isVariable,
+        });
       }
     }
 
     final constVal = problem.constantLeft.abs();
     final coeff = problem.coefficientX;
     final target = problem.targetX;
+
+    // Check if right side has variable terms (e.g. 2x in 3x + 5 = 2x + 12)
+    final rightParsed = _LinearExpr.parse(problem.rightExpr);
+    final hasRightVariable = rightParsed.coeff.abs() > 1e-9;
+    final rightVarCoeff = rightParsed.coeff.round();
+
+    if (hasRightVariable) {
+      // 1. Correct variable move: Subtract right-side variable term
+      if (rightVarCoeff > 0) {
+        addOp('-', rightVarCoeff.abs(), isVariable: true);
+      } else {
+        addOp('+', rightVarCoeff.abs(), isVariable: true);
+      }
+
+      // 2. Variable Distractors
+      addOp('+', rightVarCoeff.abs(), isVariable: true);
+      if (coeff.abs() > 0 && coeff.abs() != rightVarCoeff.abs()) {
+        addOp('-', coeff.abs(), isVariable: true);
+      }
+      if (rightVarCoeff.abs() > 1) {
+        addOp('-', 1, isVariable: true);
+      }
+    }
 
     // 1. Correct Step 1: Inverse constant operation
     if (problem.constantLeft > 0) {
@@ -416,13 +446,15 @@ class MathApiService {
       addOp('+', constVal);
     }
 
-    // 2. Correct Step 2: Divide by coefficient
-    addOp('/', coeff);
+    // 2. Correct Step 2: Divide by coefficient (if > 1)
+    if (coeff > 1) {
+      addOp('/', coeff);
+    }
 
     // 3. Common Distractor: Same operation on constant (wrong sign)
     if (problem.constantLeft > 0) {
       addOp('+', constVal);
-    } else {
+    } else if (problem.constantLeft < 0) {
       addOp('-', constVal);
     }
 
@@ -432,8 +464,10 @@ class MathApiService {
     }
 
     // 5. Common Distractor: Subtract / Add coefficient
-    addOp('-', coeff);
-    addOp('+', coeff);
+    if (coeff > 1) {
+      addOp('-', coeff);
+      addOp('+', coeff);
+    }
 
     // 6. Tempting Distractor: Multiply by coefficient or 2
     addOp('*', 2);
@@ -450,21 +484,25 @@ class MathApiService {
 
     // 8. Fill remaining slots up to 8 with smart relevant math operators
     final candidates = [
-      {'op': '-', 'value': 2},
-      {'op': '+', 'value': 2},
-      {'op': '-', 'value': 1},
-      {'op': '+', 'value': 1},
-      {'op': '/', 'value': 2},
-      {'op': '*', 'value': 3},
-      {'op': '-', 'value': 5},
-      {'op': '+', 'value': 3},
-      {'op': '/', 'value': 4},
-      {'op': '/', 'value': 5},
+      {'op': '-', 'value': 2, 'isVariable': false},
+      {'op': '+', 'value': 2, 'isVariable': false},
+      {'op': '-', 'value': 1, 'isVariable': false},
+      {'op': '+', 'value': 1, 'isVariable': false},
+      {'op': '/', 'value': 2, 'isVariable': false},
+      {'op': '*', 'value': 3, 'isVariable': false},
+      {'op': '-', 'value': 5, 'isVariable': false},
+      {'op': '+', 'value': 3, 'isVariable': false},
+      {'op': '/', 'value': 4, 'isVariable': false},
+      {'op': '/', 'value': 5, 'isVariable': false},
     ];
 
     for (final cand in candidates) {
       if (ops.length >= 8) break;
-      addOp(cand['op'] as String, cand['value'] as num);
+      addOp(
+        cand['op'] as String,
+        cand['value'] as num,
+        isVariable: cand['isVariable'] as bool,
+      );
     }
 
     // Fallback if still under 8
@@ -479,8 +517,15 @@ class MathApiService {
     return ops.take(8).toList();
   }
 
-  String _buildExpr(String baseExpr, String op, num value) {
-    final valStr = value.toString().replaceAll('.0', '');
+  String _buildExpr(
+    String baseExpr,
+    String op,
+    num value, {
+    bool isVariable = false,
+  }) {
+    final valStr = isVariable
+        ? (value == 1 ? 'x' : '${value.toString().replaceAll('.0', '')}x')
+        : value.toString().replaceAll('.0', '');
     if (op == '+') return '($baseExpr) + $valStr';
     if (op == '-') return '($baseExpr) - $valStr';
     if (op == '*') return '($baseExpr) * $valStr';
@@ -496,13 +541,21 @@ class MathApiService {
     }
   }
 
-  String _localStepSimplify(String expr, String op, num val) {
+  String _localStepSimplify(
+    String expr,
+    String op,
+    num val, {
+    bool isVariable = false,
+  }) {
     try {
       final parsed = _LinearExpr.parse(expr);
-      final applied = parsed.apply(op, val);
+      final applied = parsed.apply(op, val, isVariable: isVariable);
       return applied.format();
     } catch (_) {
-      return '$expr $op $val';
+      final valStr = isVariable
+          ? (val == 1 ? 'x' : '${val}x')
+          : '$val';
+      return '$expr $op $valStr';
     }
   }
 }
@@ -550,17 +603,25 @@ class _LinearExpr {
     return _LinearExpr(totalCoeff, totalConst);
   }
 
-  _LinearExpr apply(String op, num val) {
+  _LinearExpr apply(String op, num val, {bool isVariable = false}) {
     final v = val.toDouble();
-    if (op == '+') {
-      return _LinearExpr(coeff, constant + v);
-    } else if (op == '-') {
-      return _LinearExpr(coeff, constant - v);
-    } else if (op == '*') {
-      return _LinearExpr(coeff * v, constant * v);
-    } else if (op == '/') {
-      if (v.abs() > 1e-9) {
-        return _LinearExpr(coeff / v, constant / v);
+    if (isVariable) {
+      if (op == '+') {
+        return _LinearExpr(coeff + v, constant);
+      } else if (op == '-') {
+        return _LinearExpr(coeff - v, constant);
+      }
+    } else {
+      if (op == '+') {
+        return _LinearExpr(coeff, constant + v);
+      } else if (op == '-') {
+        return _LinearExpr(coeff, constant - v);
+      } else if (op == '*') {
+        return _LinearExpr(coeff * v, constant * v);
+      } else if (op == '/') {
+        if (v.abs() > 1e-9) {
+          return _LinearExpr(coeff / v, constant / v);
+        }
       }
     }
     return this;

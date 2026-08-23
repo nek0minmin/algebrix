@@ -20,6 +20,7 @@ class ScaleOp {
   const ScaleOp({
     required this.op,
     required this.value,
+    this.isVariable = false,
     required this.label,
     required this.color,
     required this.lightColor,
@@ -28,6 +29,7 @@ class ScaleOp {
 
   final String op;
   final num value;
+  final bool isVariable;
   final String label;
   final Color color;
   final Color lightColor;
@@ -36,7 +38,10 @@ class ScaleOp {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-Color _colorForOp(String op) {
+Color _colorForOp(String op, {bool isVariable = false}) {
+  if (isVariable) {
+    return op == '-' ? const Color(0xFFFF5252) : const Color(0xFF7C4DFF);
+  }
   switch (op) {
     case '-':
       return AppColors.pink;
@@ -51,7 +56,10 @@ Color _colorForOp(String op) {
   }
 }
 
-Color _lightColorForOp(String op) {
+Color _lightColorForOp(String op, {bool isVariable = false}) {
+  if (isVariable) {
+    return op == '-' ? const Color(0xFFFFEBEE) : const Color(0xFFEDE7F6);
+  }
   switch (op) {
     case '-':
       return AppColors.extraLightPink;
@@ -81,8 +89,10 @@ IconData _iconForOp(String op) {
   }
 }
 
-String _labelForOp(String op, num value) {
-  final valStr = value.toString().replaceAll('.0', '');
+String _labelForOp(String op, num value, {bool isVariable = false}) {
+  final valStr = isVariable
+      ? (value == 1 ? 'x' : '${value.toString().replaceAll('.0', '')}x')
+      : value.toString().replaceAll('.0', '');
   switch (op) {
     case '-':
       return '− $valStr';
@@ -269,18 +279,28 @@ class _BalanceScaleScreenState extends State<BalanceScaleScreen> {
                 rightExpr: provider.rightExpr,
                 isSolved: provider.isSolved,
                 isLoading: provider.isLoading,
-                onApply: (op, val, targetSide) =>
-                    provider.applyOperation(op, val, targetSide: targetSide),
+                onApply: (op, val, isVar, targetSide) =>
+                    provider.applyOperation(
+                  op,
+                  val,
+                  isVariable: isVar,
+                  targetSide: targetSide,
+                ),
               ),
               const SizedBox(height: 24),
 
-              // Tactile Colored Number Block Chips (Consistently 8 tiles in 2x4 Grid)
+              // Tactile Colored Number & Variable Block Chips (Consistently 8 tiles in 2x4 Grid)
               _NumberBlockPalette(
                 isLoading: provider.isLoading,
                 isSolved: provider.isSolved,
                 dynamicOps: provider.dynamicOps,
-                onApply: (op, val, targetSide) =>
-                    provider.applyOperation(op, val, targetSide: targetSide),
+                onApply: (op, val, isVar, targetSide) =>
+                    provider.applyOperation(
+                  op,
+                  val,
+                  isVariable: isVar,
+                  targetSide: targetSide,
+                ),
               ),
               const SizedBox(height: 20),
 
@@ -581,7 +601,7 @@ class _AnimatedBalanceScale extends StatefulWidget {
   final String rightExpr;
   final bool isSolved;
   final bool isLoading;
-  final Function(String op, num val, String targetSide) onApply;
+  final Function(String op, num val, bool isVariable, String targetSide) onApply;
 
   @override
   State<_AnimatedBalanceScale> createState() => _AnimatedBalanceScaleState();
@@ -699,7 +719,7 @@ class _AnimatedBalanceScaleState extends State<_AnimatedBalanceScale>
                 onWillAcceptWithDetails: (d) =>
                     !widget.isLoading && !widget.isSolved,
                 onAcceptWithDetails: (d) {
-                  widget.onApply(d.data.op, d.data.value, 'both');
+                  widget.onApply(d.data.op, d.data.value, d.data.isVariable, 'both');
                 },
                 builder: (ctx, candidateData, rejectedData) {
                   final isHovered = candidateData.isNotEmpty;
@@ -809,7 +829,7 @@ class _PhysicalScaleStructure extends StatelessWidget {
   final String rightExpr;
   final bool isSolved;
   final bool isLoading;
-  final Function(String op, num val, String targetSide) onApply;
+  final Function(String op, num val, bool isVariable, String targetSide) onApply;
 
   @override
   Widget build(BuildContext context) {
@@ -826,7 +846,7 @@ class _PhysicalScaleStructure extends StatelessWidget {
                 child: DragTarget<ScaleOp>(
                   onWillAcceptWithDetails: (d) => !isLoading && !isSolved,
                   onAcceptWithDetails: (d) {
-                    onApply(d.data.op, d.data.value, 'left');
+                    onApply(d.data.op, d.data.value, d.data.isVariable, 'left');
                   },
                   builder: (ctx, candidateData, rejectedData) {
                     final isHovered = candidateData.isNotEmpty;
@@ -900,7 +920,7 @@ class _PhysicalScaleStructure extends StatelessWidget {
                 child: DragTarget<ScaleOp>(
                   onWillAcceptWithDetails: (d) => !isLoading && !isSolved,
                   onAcceptWithDetails: (d) {
-                    onApply(d.data.op, d.data.value, 'right');
+                    onApply(d.data.op, d.data.value, d.data.isVariable, 'right');
                   },
                   builder: (ctx, candidateData, rejectedData) {
                     final isHovered = candidateData.isNotEmpty;
@@ -1128,6 +1148,8 @@ class _FulcrumPainter extends CustomPainter {
 
 // ─── Number Block Palette ────────────────────────────────────────────────────
 
+// ─── Number Block Palette ────────────────────────────────────────────────────
+
 class _NumberBlockPalette extends StatelessWidget {
   const _NumberBlockPalette({
     required this.isLoading,
@@ -1139,19 +1161,24 @@ class _NumberBlockPalette extends StatelessWidget {
   final bool isLoading;
   final bool isSolved;
   final List<Map<String, dynamic>> dynamicOps;
-  final Function(String op, num val, String targetSide) onApply;
+  final Function(String op, num val, bool isVariable, String targetSide) onApply;
 
   @override
   Widget build(BuildContext context) {
+    final hasVariableBlocks =
+        dynamicOps.any((m) => (m['isVariable'] as bool?) ?? false);
+
     final chips = dynamicOps.map((m) {
       final op = m['op'] as String;
       final value = m['value'] as num;
+      final isVariable = (m['isVariable'] as bool?) ?? false;
       return ScaleOp(
         op: op,
         value: value,
-        label: _labelForOp(op, value),
-        color: _colorForOp(op),
-        lightColor: _lightColorForOp(op),
+        isVariable: isVariable,
+        label: _labelForOp(op, value, isVariable: isVariable),
+        color: _colorForOp(op, isVariable: isVariable),
+        lightColor: _lightColorForOp(op, isVariable: isVariable),
         icon: _iconForOp(op),
       );
     }).toList();
@@ -1166,7 +1193,7 @@ class _NumberBlockPalette extends StatelessWidget {
         Row(
           children: [
             Text(
-              'Number Blocks',
+              hasVariableBlocks ? 'Number & Variable Blocks' : 'Number Blocks',
               style: AppTextStyles.subtitle1.copyWith(
                 fontWeight: FontWeight.w900,
                 color: AppColors.text,
@@ -1225,8 +1252,12 @@ class _NumberBlockPalette extends StatelessWidget {
                           tileHeight: tileHeight,
                           fontSize: fontSize,
                           iconSize: iconSize,
-                          onTap: () =>
-                              onApply(scaleOp.op, scaleOp.value, 'both'),
+                          onTap: () => onApply(
+                            scaleOp.op,
+                            scaleOp.value,
+                            scaleOp.isVariable,
+                            'both',
+                          ),
                         ),
                       );
                     }).toList(),
@@ -1247,8 +1278,12 @@ class _NumberBlockPalette extends StatelessWidget {
                             tileHeight: tileHeight,
                             fontSize: fontSize,
                             iconSize: iconSize,
-                            onTap: () =>
-                                onApply(scaleOp.op, scaleOp.value, 'both'),
+                            onTap: () => onApply(
+                              scaleOp.op,
+                              scaleOp.value,
+                              scaleOp.isVariable,
+                              'both',
+                            ),
                           ),
                         );
                       }).toList(),
@@ -1417,6 +1452,12 @@ class _NumberBlockWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final valueText = scaleOp.isVariable
+        ? (scaleOp.value == 1
+            ? 'x'
+            : '${scaleOp.value.toString().replaceAll('.0', '')}x')
+        : scaleOp.value.toString().replaceAll('.0', '');
+
     return Container(
       width: tileWidth,
       height: tileHeight,
@@ -1451,11 +1492,15 @@ class _NumberBlockWidget extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              scaleOp.value.toString().replaceAll('.0', ''),
+              valueText,
               style: GoogleFonts.nunito(
                 fontSize: fontSize,
                 fontWeight: FontWeight.w900,
-                color: AppColors.text,
+                color: scaleOp.isVariable
+                    ? (scaleOp.op == '-'
+                        ? const Color(0xFFC62828)
+                        : const Color(0xFF4527A0))
+                    : AppColors.text,
               ),
             ),
           ),

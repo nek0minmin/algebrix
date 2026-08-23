@@ -125,6 +125,35 @@ void main() {
       expect(provider.showReasoningCheck, isTrue);
     });
 
+    test('solving Level 8 (3x + 5 = 2x + 12) in 2 moves using numeric (-5) and variable (-2x) blocks', () async {
+      final provider = BalanceScaleProvider();
+      provider.initLevelProblem(8);
+
+      expect(provider.leftExpr, '3x + 5');
+      expect(provider.rightExpr, '2x + 12');
+      expect(provider.isSolved, isFalse);
+
+      // Verify that dynamicOps includes the -2x variable block
+      final hasMinus2x = provider.dynamicOps.any(
+        (op) => op['op'] == '-' && op['value'] == 2 && op['isVariable'] == true,
+      );
+      expect(hasMinus2x, isTrue);
+
+      // Step 1: Subtract 5 from both sides
+      await provider.applyOperation('-', 5, targetSide: 'both');
+      expect(provider.leftExpr, '3x');
+      expect(provider.rightExpr, '2x + 7');
+      expect(provider.isSolved, isFalse);
+
+      // Step 2: Subtract 2x from both sides (variable operation)
+      await provider.applyOperation('-', 2, isVariable: true, targetSide: 'both');
+      expect(provider.leftExpr, 'x');
+      expect(provider.rightExpr, '7');
+      expect(provider.isSolved, isTrue);
+      expect(provider.moveCount, 2);
+      expect(provider.showReasoningCheck, isTrue);
+    });
+
     test('star rating tiers based on move count and reasoning', () async {
       // Case 1: Exceeded moves + wrong reasoning = 1 star & 10 XP
       final provider1 = BalanceScaleProvider();

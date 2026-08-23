@@ -116,7 +116,12 @@ class BalanceScaleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> applyOperation(String op, num val, {String targetSide = 'both'}) async {
+  Future<void> applyOperation(
+    String op,
+    dynamic val, {
+    bool isVariable = false,
+    String targetSide = 'both', // 'both', 'left', 'right'
+  }) async {
     if (_isSolved || _isLoading) return;
 
     _isLoading = true;
@@ -124,15 +129,20 @@ class BalanceScaleProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final numVal =
+          val is num ? val : (double.tryParse(val.toString()) ?? 0);
       final res = await _apiService.evaluateScaleOperation(
         leftExpr: _leftExpr,
         rightExpr: _rightExpr,
         op: op,
-        value: val,
+        value: numVal,
+        isVariable: isVariable,
         targetSide: targetSide,
       );
 
-      final valStr = val.toString().replaceAll('.0', '');
+      final valStr = isVariable
+          ? (numVal == 1 ? 'x' : '${numVal.toString().replaceAll('.0', '')}x')
+          : numVal.toString().replaceAll('.0', '');
       final targetLabel = targetSide == 'both'
           ? 'both sides'
           : (targetSide == 'left' ? 'left side' : 'right side');
