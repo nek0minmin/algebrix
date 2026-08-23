@@ -121,37 +121,37 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                                 ),
                               ),
 
-                              // ── Mascot Xy Waypoint 1 (Lower-Left Valley) ──
+                              // ── Mascot Xy Waypoint 1 (Lower-Left Valley Beside L2-L4) ──
                               Positioned(
-                                left: mapWidth * 0.10,
-                                top: _mapCanvasHeight * 0.74,
+                                left: mapWidth * 0.08,
+                                top: _mapCanvasHeight * 0.67,
                                 child: _MapMascotWaypoint(
                                   asset: AppAssets.xySitPencil,
-                                  size: 96,
+                                  size: 140,
                                   bubbleText: 'Equation balancing! ✏️',
                                   bubbleColor: AppColors.pink,
                                 ),
                               ),
 
-                              // ── Mascot Xy Waypoint 2 (Mid-Right Highlands) ─
+                              // ── Mascot Xy Waypoint 2 (Mid-Right Highlands Beside L5-L7) ─
                               Positioned(
-                                right: mapWidth * 0.08,
-                                top: _mapCanvasHeight * 0.46,
+                                right: mapWidth * 0.06,
+                                top: _mapCanvasHeight * 0.43,
                                 child: _MapMascotWaypoint(
                                   asset: AppAssets.xyBalance,
-                                  size: 102,
+                                  size: 145,
                                   bubbleText: 'Keep it balanced! ⚖️',
                                   bubbleColor: AppColors.purple,
                                 ),
                               ),
 
-                              // ── Mascot Xy Waypoint 3 (Upper-Left Summit) ──
+                              // ── Mascot Xy Waypoint 3 (Upper-Left Summit Beside L8-L10) ──
                               Positioned(
-                                left: mapWidth * 0.10,
-                                top: _mapCanvasHeight * 0.20,
+                                left: mapWidth * 0.08,
+                                top: _mapCanvasHeight * 0.16,
                                 child: _MapMascotWaypoint(
                                   asset: AppAssets.xyAndChemie,
-                                  size: 98,
+                                  size: 145,
                                   bubbleText: 'Summit Master! 🧪✨',
                                   bubbleColor: AppColors.mint,
                                 ),
@@ -531,39 +531,39 @@ class _MapMascotWaypoint extends StatelessWidget {
       children: [
         // Speech Dialogue Bubble
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: bubbleColor.withValues(alpha: 0.35),
-              width: 1.5,
+              color: bubbleColor.withValues(alpha: 0.4),
+              width: 1.8,
             ),
             boxShadow: [
               BoxShadow(
-                color: bubbleColor.withValues(alpha: 0.12),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+                color: bubbleColor.withValues(alpha: 0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Text(
             bubbleText,
             style: GoogleFonts.nunito(
-              fontSize: 10.5,
+              fontSize: 12.5,
               fontWeight: FontWeight.w900,
               color: AppColors.text,
             ),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
 
         // Mascot with Soft Shadow Aura
         XyMascot(
           asset: asset,
           size: size,
-          shadowBlur: 8.0,
-          shadowOpacity: 0.22,
+          shadowBlur: 10.0,
+          shadowOpacity: 0.24,
         ),
       ],
     );
@@ -1177,13 +1177,7 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
       Offset(size.width * 0.70, size.height * 0.07),
     );
 
-    // ── 2. Mid-Mountain Balance Scale Milestone (Between Level 4 & 5) ────────
-    _drawMiniBalanceScale(
-      canvas,
-      Offset(size.width * 0.22, size.height * 0.60),
-    );
-
-    // ── 3. 3D Isometric Math Blocks across the map ───────────────────────────
+    // ── 2. 3D Isometric Math Blocks across the map ───────────────────────────
     // Stacked Toy Blocks (1, 2, 3) near Start on the right
     _draw3DMathBlock(
       canvas,
@@ -1260,17 +1254,11 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
       textColor: const Color(0xFF0F7263),
     );
 
-    // ── 4. Floating Pastel Clouds & Star Sparkles ────────────────────────────
+    // ── 3. Floating Pastel Clouds ───────────────────────────────────────────
     _drawFluffyCloud(canvas, Offset(size.width * 0.82, size.height * 0.12), 48);
     _drawFluffyCloud(canvas, Offset(size.width * 0.16, size.height * 0.10), 40);
     _drawFluffyCloud(canvas, Offset(size.width * 0.88, size.height * 0.40), 44);
     _drawFluffyCloud(canvas, Offset(size.width * 0.10, size.height * 0.86), 42);
-
-    // Star Sparkles
-    _drawSparkle(canvas, Offset(size.width * 0.50, size.height * 0.14), const Color(0xFFFFB300), 10);
-    _drawSparkle(canvas, Offset(size.width * 0.88, size.height * 0.05), AppColors.pink, 12);
-    _drawSparkle(canvas, Offset(size.width * 0.25, size.height * 0.42), AppColors.mint, 9);
-    _drawSparkle(canvas, Offset(size.width * 0.70, size.height * 0.70), const Color(0xFFFFB300), 11);
   }
 
   void _draw3DMathBlock(
@@ -1431,43 +1419,6 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
     );
   }
 
-  void _drawMiniBalanceScale(Canvas canvas, Offset center) {
-    final goldBeam = const Color(0xFFFFB300);
-
-    // Base
-    final fulcrumPath = Path()
-      ..moveTo(center.dx, center.dy - 8)
-      ..lineTo(center.dx - 12, center.dy + 12)
-      ..lineTo(center.dx + 12, center.dy + 12)
-      ..close();
-    canvas.drawPath(fulcrumPath, Paint()..color = AppColors.pink);
-
-    // Crossbar
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(center.dx, center.dy - 8), width: 44, height: 4),
-        const Radius.circular(2),
-      ),
-      Paint()..color = goldBeam,
-    );
-
-    // Dishes
-    canvas.drawArc(
-      Rect.fromCenter(center: Offset(center.dx - 18, center.dy + 2), width: 14, height: 9),
-      0,
-      math.pi,
-      false,
-      Paint()..color = const Color(0xFFFFD54F),
-    );
-    canvas.drawArc(
-      Rect.fromCenter(center: Offset(center.dx + 18, center.dy + 2), width: 14, height: 9),
-      0,
-      math.pi,
-      false,
-      Paint()..color = const Color(0xFFFFD54F),
-    );
-  }
-
   void _drawFluffyCloud(Canvas canvas, Offset center, double width) {
     final cloudPaint = Paint()..color = Colors.white.withValues(alpha: 0.85);
 
@@ -1488,18 +1439,6 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
       ),
       cloudPaint,
     );
-  }
-
-  void _drawSparkle(Canvas canvas, Offset center, Color color, double radius) {
-    final path = Path()
-      ..moveTo(center.dx, center.dy - radius)
-      ..quadraticBezierTo(center.dx, center.dy, center.dx + radius, center.dy)
-      ..quadraticBezierTo(center.dx, center.dy, center.dx, center.dy + radius)
-      ..quadraticBezierTo(center.dx, center.dy, center.dx - radius, center.dy)
-      ..quadraticBezierTo(center.dx, center.dy, center.dx - radius, center.dy)
-      ..close();
-
-    canvas.drawPath(path, Paint()..color = color);
   }
 
   Color _darken(Color c, [double percent = 0.2]) {
