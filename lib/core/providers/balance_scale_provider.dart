@@ -195,10 +195,21 @@ class BalanceScaleProvider extends ChangeNotifier {
   bool submitReasoningAnswer(int selectedIndex) {
     if (_currentProblem == null) return false;
     final isCorrect = selectedIndex == _currentProblem!.correctReasoningIndex;
-    if (isCorrect) {
-      _reasoningPassed = true;
-      _showReasoningCheck = false;
+    _reasoningPassed = isCorrect;
+    _showReasoningCheck = false;
+
+    // Update XP earned based on final star rating
+    switch (starRating) {
+      case 3:
+        _xpEarned = 30;
+        break;
+      case 2:
+        _xpEarned = 20;
+        break;
+      default:
+        _xpEarned = 10;
     }
+
     notifyListeners();
     return isCorrect;
   }

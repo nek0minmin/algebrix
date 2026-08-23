@@ -126,29 +126,54 @@ void main() {
     });
 
     test('star rating tiers based on move count and reasoning', () async {
-      final provider = BalanceScaleProvider();
-      // Star rating is 0 before solving
-      expect(provider.starRating, 0);
-    });
+      // Case 1: Exceeded moves + wrong reasoning = 1 star & 10 XP
+      final provider1 = BalanceScaleProvider();
+      provider1.initLevelProblem(1); // optimal moves = 1
+      await provider1.applyOperation('+', 2, targetSide: 'both'); // extra move 1
+      await provider1.applyOperation('-', 2, targetSide: 'both'); // extra move 2
+      await provider1.applyOperation('-', 3, targetSide: 'both'); // solve move
+      expect(provider1.moveCount, 3);
+      expect(provider1.isSolved, isTrue);
+      final wrongIdx1 = (provider1.currentProblem!.correctReasoningIndex + 1) % 3;
+      provider1.submitReasoningAnswer(wrongIdx1);
+      expect(provider1.reasoningPassed, isFalse);
+      expect(provider1.starRating, 1);
+      expect(provider1.xpEarned, 10);
 
-    test('reasoning check flow works', () {
-      final provider = BalanceScaleProvider();
-      final problem = provider.currentProblem!;
+      // Case 2: Optimal moves + wrong reasoning = 2 stars & 20 XP
+      final provider2 = BalanceScaleProvider();
+      provider2.initLevelProblem(1);
+      await provider2.applyOperation('-', 3, targetSide: 'both'); // optimal move 1
+      expect(provider2.moveCount, 1);
+      expect(provider2.isSolved, isTrue);
+      final wrongIdx2 = (provider2.currentProblem!.correctReasoningIndex + 1) % 3;
+      provider2.submitReasoningAnswer(wrongIdx2);
+      expect(provider2.reasoningPassed, isFalse);
+      expect(provider2.starRating, 2);
+      expect(provider2.xpEarned, 20);
 
-      // Initially, reasoning not passed
-      expect(provider.reasoningPassed, isFalse);
-      expect(provider.showReasoningCheck, isFalse);
+      // Case 3: Exceeded moves + correct reasoning = 2 stars & 20 XP
+      final provider3 = BalanceScaleProvider();
+      provider3.initLevelProblem(1);
+      await provider3.applyOperation('+', 1, targetSide: 'both'); // extra move
+      await provider3.applyOperation('-', 4, targetSide: 'both'); // solve move
+      expect(provider3.moveCount, 2);
+      expect(provider3.isSolved, isTrue);
+      provider3.submitReasoningAnswer(provider3.currentProblem!.correctReasoningIndex);
+      expect(provider3.reasoningPassed, isTrue);
+      expect(provider3.starRating, 2);
+      expect(provider3.xpEarned, 20);
 
-      // Wrong answer
-      final wrongIdx = (problem.correctReasoningIndex + 1) % 3;
-      final isCorrect = provider.submitReasoningAnswer(wrongIdx);
-      expect(isCorrect, isFalse);
-      expect(provider.reasoningPassed, isFalse);
-
-      // Correct answer
-      final correct = provider.submitReasoningAnswer(problem.correctReasoningIndex);
-      expect(correct, isTrue);
-      expect(provider.reasoningPassed, isTrue);
+      // Case 4: Optimal moves + correct reasoning = 3 stars & 30 XP
+      final provider4 = BalanceScaleProvider();
+      provider4.initLevelProblem(1);
+      await provider4.applyOperation('-', 3, targetSide: 'both'); // optimal move 1
+      expect(provider4.moveCount, 1);
+      expect(provider4.isSolved, isTrue);
+      provider4.submitReasoningAnswer(provider4.currentProblem!.correctReasoningIndex);
+      expect(provider4.reasoningPassed, isTrue);
+      expect(provider4.starRating, 3);
+      expect(provider4.xpEarned, 30);
     });
   });
 

@@ -1587,7 +1587,9 @@ class _ReasoningAndCelebrationDialogState
     extends State<_ReasoningAndCelebrationDialog>
     with TickerProviderStateMixin {
   int? _selectedIndex;
+  bool _isAnswering = false;
   bool _showError = false;
+  bool _showSuccess = false;
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
 
@@ -1637,23 +1639,38 @@ class _ReasoningAndCelebrationDialogState
   }
 
   void _onOptionTap(int index) {
+    if (_isAnswering) return;
+    _isAnswering = true;
+
     final provider = context.read<BalanceScaleProvider>();
+    final isCorrect = index == widget.problem.correctReasoningIndex;
+
     setState(() {
       _selectedIndex = index;
-      _showError = false;
+      _showError = !isCorrect;
+      _showSuccess = isCorrect;
     });
 
-    final isCorrect = provider.submitReasoningAnswer(index);
     if (!isCorrect) {
-      setState(() => _showError = true);
       _shakeController.forward(from: 0);
       showAlgebrixSnackBar(
         context,
-        message: 'Not quite! Think about what keeps the equation balanced. 🤔',
+        message:
+            'Not quite! Option ${String.fromCharCode(65 + widget.problem.correctReasoningIndex)} is the correct reasoning. 🤔',
         isError: true,
       );
+
+      // Brief delay to let learner observe the correct answer, then proceed with reasoningPassed = false
+      Future.delayed(const Duration(milliseconds: 1400), () {
+        if (!mounted) return;
+        provider.submitReasoningAnswer(index);
+      });
     } else {
-      _triggerStars(provider.starRating);
+      // Correct answer! Short satisfying delay, then celebrate
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (!mounted) return;
+        provider.submitReasoningAnswer(index);
+      });
     }
   }
 
@@ -1759,29 +1776,44 @@ class _ReasoningAndCelebrationDialogState
               final idx = entry.key;
               final text = entry.value;
               final isSelected = _selectedIndex == idx;
+              final isCorrectOption = idx == widget.problem.correctReasoningIndex;
               final isWrong = isSelected && _showError;
+              final isHighlightedCorrect = _showError && isCorrectOption;
+              final isSuccess = isSelected && _showSuccess;
+
+              Color bgColor = AppColors.background;
+              Color borderColor = AppColors.border;
+              double borderWidth = 1.5;
+
+              if (isWrong) {
+                bgColor = AppColors.error.withValues(alpha: 0.08);
+                borderColor = AppColors.error;
+                borderWidth = 2.0;
+              } else if (isSuccess || isHighlightedCorrect) {
+                bgColor = AppColors.mint.withValues(alpha: 0.12);
+                borderColor = AppColors.mint;
+                borderWidth = 2.0;
+              } else if (isSelected) {
+                bgColor = AppColors.lightPurple;
+                borderColor = AppColors.purple;
+                borderWidth = 2.0;
+              }
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: BouncyPressable(
                   shrinkFactor: 0.97,
                   enableHaptics: true,
-                  onTap: () => _onOptionTap(idx),
+                  onTap: _isAnswering ? null : () => _onOptionTap(idx),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: isWrong
-                          ? AppColors.error.withValues(alpha: 0.06)
-                          : (isSelected
-                              ? AppColors.lightPurple
-                              : AppColors.background),
+                      color: bgColor,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: isWrong
-                            ? AppColors.error
-                            : (isSelected ? AppColors.purple : AppColors.border),
-                        width: isSelected ? 2 : 1.5,
+                        color: borderColor,
+                        width: borderWidth,
                       ),
                     ),
                     child: Row(
@@ -1792,10 +1824,12 @@ class _ReasoningAndCelebrationDialogState
                           height: 26,
                           decoration: BoxDecoration(
                             color: isWrong
-                                ? AppColors.error.withValues(alpha: 0.1)
-                                : (isSelected
-                                    ? AppColors.purple.withValues(alpha: 0.15)
-                                    : AppColors.border.withValues(alpha: 0.5)),
+                                ? AppColors.error.withValues(alpha: 0.15)
+                                : ((isSuccess || isHighlightedCorrect)
+                                    ? AppColors.mint.withValues(alpha: 0.2)
+                                    : (isSelected
+                                        ? AppColors.purple.withValues(alpha: 0.15)
+                                        : AppColors.border.withValues(alpha: 0.5))),
                             shape: BoxShape.circle,
                           ),
                           alignment: Alignment.center,
@@ -1806,9 +1840,11 @@ class _ReasoningAndCelebrationDialogState
                               fontWeight: FontWeight.w900,
                               color: isWrong
                                   ? AppColors.error
-                                  : (isSelected
-                                      ? AppColors.purple
-                                      : AppColors.textSecondary),
+                                  : ((isSuccess || isHighlightedCorrect)
+                                      ? AppColors.mint
+                                      : (isSelected
+                                          ? AppColors.purple
+                                          : AppColors.textSecondary)),
                             ),
                           ),
                         ),
@@ -1828,7 +1864,13 @@ class _ReasoningAndCelebrationDialogState
                           const Icon(
                             Icons.close_rounded,
                             color: AppColors.error,
-                            size: 18,
+                            size: 20,
+                          )
+                        else if (isSuccess || isHighlightedCorrect)
+                          const Icon(
+                            Icons.check_rounded,
+                            color: AppColors.mint,
+                            size: 20,
                           ),
                       ],
                     ),
@@ -1843,7 +1885,7 @@ class _ReasoningAndCelebrationDialogState
   }
 
   Widget _buildCelebrationView(BalanceScaleProvider provider) {
-    final starLabels = ['Completed!', 'Great Job! 🎉', 'Great Job! 🎉', 'Perfect! ⭐'];
+    final starLabels = ['Completed!', 'Good Effort! 👍', 'Great Job! 🎉', 'Perfect! ⭐'];
     final label = starLabels[provider.starRating.clamp(0, 3)];
 
     return Container(
