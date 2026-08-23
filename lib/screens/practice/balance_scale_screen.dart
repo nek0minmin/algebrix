@@ -1848,17 +1848,15 @@ class _ReasoningAndCelebrationDialogState
                   animation: _starAnimations[i],
                   builder: (ctx, child) {
                     return Transform.scale(
-                      scale: earned ? _starAnimations[i].value : 0.65,
+                      scale: earned ? _starAnimations[i].value : 0.85,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Icon(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Image.asset(
                           earned
-                              ? Icons.star_rounded
-                              : Icons.star_outline_rounded,
-                          size: 38,
-                          color: earned
-                              ? const Color(0xFFFFB300)
-                              : const Color(0xFFBDBDBD),
+                              ? AppAssets.star
+                              : AppAssets.starSilhouette,
+                          width: 44,
+                          height: 44,
                         ),
                       ),
                     );

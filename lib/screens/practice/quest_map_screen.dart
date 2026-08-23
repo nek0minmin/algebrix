@@ -433,15 +433,13 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                         children: List.generate(3, (i) {
                           final earned = i < starsEarned;
                           return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: Icon(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Image.asset(
                               earned
-                                  ? Icons.star_rounded
-                                  : Icons.star_outline_rounded,
-                              size: 26,
-                              color: earned
-                                  ? const Color(0xFFFFB300)
-                                  : const Color(0xFFBDBDBD),
+                                  ? AppAssets.star
+                                  : AppAssets.starSilhouette,
+                              width: 32,
+                              height: 32,
                             ),
                           );
                         }),
@@ -747,12 +745,12 @@ class _FloatingGameHud extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.star_rounded,
-                  color: Color(0xFFFFB300),
-                  size: 22,
+                Image.asset(
+                  AppAssets.star,
+                  width: 22,
+                  height: 22,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 5),
                 Text(
                   '$starsEarned/$maxStars',
                   style: GoogleFonts.nunito(
@@ -916,21 +914,10 @@ class _AlgebrixLevelNode extends StatelessWidget {
         angle: rotation,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 1.5),
-          child: Icon(
-            earned ? Icons.star_rounded : Icons.star_rounded,
-            size: 18,
-            color: earned
-                ? const Color(0xFFFFB300)
-                : const Color(0xFFE0E0E0),
-            shadows: earned
-                ? const [
-                    Shadow(
-                      color: Color(0x60FF8F00),
-                      blurRadius: 4,
-                      offset: Offset(0, 1),
-                    ),
-                  ]
-                : null,
+          child: Image.asset(
+            earned ? AppAssets.star : AppAssets.starSilhouette,
+            width: 22,
+            height: 22,
           ),
         ),
       ),

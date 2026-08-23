@@ -38,6 +38,8 @@ class AppAssets {
   // ── Icons & Branding ─────────────────────────────────────────────────────
   static const String logo = 'assets/icons/algebrix_logo.png';
   static const String googleLogo = 'assets/icons/google_logo.png';
+  static const String star = 'assets/mascot/star.png';
+  static const String starSilhouette = 'assets/mascot/star-silhouette.png';
 
   // ── Images ────────────────────────────────────────────────────────────────
   // (Lesson illustrations, backgrounds, etc. will be added here)
