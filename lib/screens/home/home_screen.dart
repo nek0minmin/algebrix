@@ -717,7 +717,7 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
-                          '🗺️ ALGEBRIA QUEST',
+                          'ALGEBRIA QUEST',
                           style: GoogleFonts.nunito(
                             fontSize: 10,
                             fontWeight: FontWeight.w900,

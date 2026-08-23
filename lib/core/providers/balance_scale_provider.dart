@@ -163,6 +163,14 @@ class BalanceScaleProvider extends ChangeNotifier {
       _rightExpr = res.rightSimplified;
       _providerUsed = res.providerUsed;
 
+      if (_currentProblem != null) {
+        _dynamicOps = _apiService.generateOpsForCurrentState(
+          leftExpr: _leftExpr,
+          rightExpr: _rightExpr,
+          baseProblem: _currentProblem!,
+        );
+      }
+
       _checkIfSolved();
     } catch (e) {
       _errorMessage = 'Failed to evaluate operation: $e';
@@ -241,6 +249,11 @@ class BalanceScaleProvider extends ChangeNotifier {
     _xpEarned = 0;
     _reasoningPassed = false;
     _showReasoningCheck = false;
+    _dynamicOps = _apiService.generateOpsForCurrentState(
+      leftExpr: _leftExpr,
+      rightExpr: _rightExpr,
+      baseProblem: _currentProblem!,
+    );
     notifyListeners();
   }
 }

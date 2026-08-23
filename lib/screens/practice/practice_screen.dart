@@ -352,63 +352,14 @@ class _ExploreAlgebriaHeroCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('🗺️', style: TextStyle(fontSize: 12)),
-                          const SizedBox(width: 5),
-                          Text(
-                            'QUEST MAP',
-                            style: GoogleFonts.nunito(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.pink,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Top-Right Live Star Capsule
-                  Positioned(
-                    top: 14,
-                    right: 14,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF9E6).withValues(alpha: 0.95),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFFFE082)),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            AppAssets.star,
-                            width: 16,
-                            height: 16,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '$starsEarned/$maxStars',
-                            style: GoogleFonts.nunito(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.text,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'QUEST MAP',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.pink,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                   ),
@@ -444,6 +395,46 @@ class _ExploreAlgebriaHeroCard extends StatelessWidget {
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.pink,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Right-most Star Count Pill
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              const Color(0xFFFFF9E6).withValues(alpha: 0.95),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFFFE082)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.amber.withValues(alpha: 0.15),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              AppAssets.star,
+                              width: 16,
+                              height: 16,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              '$starsEarned/$maxStars',
+                              style: GoogleFonts.nunito(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.text,
                               ),
                             ),
                           ],
@@ -489,7 +480,7 @@ class _ExploreAlgebriaHeroCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Start Quest 🗺️',
+                          'Start Quest',
                           style: GoogleFonts.nunito(
                             fontSize: 15,
                             fontWeight: FontWeight.w900,

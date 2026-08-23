@@ -391,10 +391,22 @@ class MathApiService {
   /// Total number of quest levels available.
   int get totalQuestLevels => _levelProblems.length;
 
-  /// Generates dynamic operation chips from a problem's coefficients,
-  /// consistently returning exactly 8 unique, high-yield operation options
-  /// (including variable blocks like -2x when equations have variables on both sides).
+  /// Generates dynamic operation chips for a problem at its initial state.
   List<Map<String, dynamic>> generateOpsForProblem(BalanceScaleProblem problem) {
+    return generateOpsForCurrentState(
+      leftExpr: problem.leftExpr,
+      rightExpr: problem.rightExpr,
+      baseProblem: problem,
+    );
+  }
+
+  /// Generates dynamic operation chips adapted to the CURRENT live equation state
+  /// so intermediate operations (like /2 when 2x = 12) are ALWAYS available.
+  List<Map<String, dynamic>> generateOpsForCurrentState({
+    required String leftExpr,
+    required String rightExpr,
+    required BalanceScaleProblem baseProblem,
+  }) {
     final rng = Random();
     final uniqueSet = <String>{};
     final ops = <Map<String, dynamic>>[];
@@ -412,85 +424,86 @@ class MathApiService {
       }
     }
 
-    final constVal = problem.constantLeft.abs();
-    final coeff = problem.coefficientX;
-    final target = problem.targetX;
+    final leftParsed = _LinearExpr.parse(leftExpr);
+    final rightParsed = _LinearExpr.parse(rightExpr);
 
-    // Check if right side has variable terms (e.g. 2x in 3x + 5 = 2x + 12)
-    final rightParsed = _LinearExpr.parse(problem.rightExpr);
-    final hasRightVariable = rightParsed.coeff.abs() > 1e-9;
-    final rightVarCoeff = rightParsed.coeff.round();
+    final leftCoeff = leftParsed.coeff;
+    final leftConst = leftParsed.constant;
+    final rightCoeff = rightParsed.coeff;
 
-    if (hasRightVariable) {
-      // 1. Correct variable move: Subtract right-side variable term
-      if (rightVarCoeff > 0) {
-        addOp('-', rightVarCoeff.abs(), isVariable: true);
+    // 1. Variable elimination: If right side has variable terms (e.g. 2x in 4x = 2x + 12), offer elimination
+    if (rightCoeff.abs() > 1e-9) {
+      final rCoeffRound = rightCoeff.round();
+      if (rCoeffRound > 0) {
+        addOp('-', rCoeffRound.abs(), isVariable: true);
       } else {
-        addOp('+', rightVarCoeff.abs(), isVariable: true);
+        addOp('+', rCoeffRound.abs(), isVariable: true);
       }
-
-      // 2. Variable Distractors
-      addOp('+', rightVarCoeff.abs(), isVariable: true);
-      if (coeff.abs() > 0 && coeff.abs() != rightVarCoeff.abs()) {
-        addOp('-', coeff.abs(), isVariable: true);
+      // Distractors
+      addOp('+', rCoeffRound.abs(), isVariable: true);
+      if (leftCoeff.abs() > 0 && leftCoeff.abs().round() != rCoeffRound.abs()) {
+        addOp('-', leftCoeff.abs().round(), isVariable: true);
       }
-      if (rightVarCoeff.abs() > 1) {
+      if (rCoeffRound.abs() > 1) {
         addOp('-', 1, isVariable: true);
       }
     }
 
-    // 1. Correct Step 1: Inverse constant operation
-    if (problem.constantLeft > 0) {
-      addOp('-', constVal);
-    } else if (problem.constantLeft < 0) {
-      addOp('+', constVal);
+    // 2. Current constant elimination: If left side has non-zero constant (e.g. -3 in 4x - 3 = 12)
+    if (leftConst.abs() > 1e-9) {
+      final cVal = leftConst.abs().round();
+      if (leftConst > 0) {
+        addOp('-', cVal);
+        addOp('+', cVal);
+      } else {
+        addOp('+', cVal);
+        addOp('-', cVal);
+      }
     }
 
-    // 2. Correct Step 2: Divide by coefficient (if > 1)
-    if (coeff > 1) {
-      addOp('/', coeff);
+    // 3. Current coefficient division: If left side has coefficient > 1 (e.g. 2x = 12 -> /2)
+    if (leftCoeff.abs() > 1 + 1e-9) {
+      final cRound = leftCoeff.abs().round();
+      addOp('/', cRound);
     }
 
-    // 3. Common Distractor: Same operation on constant (wrong sign)
-    if (problem.constantLeft > 0) {
-      addOp('+', constVal);
-    } else if (problem.constantLeft < 0) {
-      addOp('-', constVal);
+    // 4. Reduced coefficient & base coefficients from original problem
+    final reducedBase =
+        (baseProblem.coefficientX - rightParsed.coeff.round()).abs();
+    if (reducedBase > 1) {
+      addOp('/', reducedBase);
+    }
+    if (baseProblem.coefficientX > 1) {
+      addOp('/', baseProblem.coefficientX);
+    }
+    if (baseProblem.constantLeft != 0) {
+      final baseConst = baseProblem.constantLeft.abs();
+      if (baseProblem.constantLeft > 0) {
+        addOp('-', baseConst);
+      } else {
+        addOp('+', baseConst);
+      }
     }
 
-    // 4. Common Distractor: Divide by constant
-    if (constVal > 1 && constVal != coeff) {
-      addOp('/', constVal);
+    // 5. Common mathematical factors & distractors
+    if (baseProblem.targetX > 1 &&
+        baseProblem.targetX != baseProblem.coefficientX &&
+        baseProblem.targetX != baseProblem.constantLeft.abs()) {
+      addOp('-', baseProblem.targetX);
+      addOp('+', baseProblem.targetX);
     }
 
-    // 5. Common Distractor: Subtract / Add coefficient
-    if (coeff > 1) {
-      addOp('-', coeff);
-      addOp('+', coeff);
-    }
-
-    // 6. Tempting Distractor: Multiply by coefficient or 2
-    addOp('*', 2);
-    if (coeff > 2) {
-      addOp('*', coeff);
-    }
-
-    // 7. Solution-based Distractor: Operations with targetX
-    if (target > 1 && target != coeff && target != constVal) {
-      addOp('-', target);
-      addOp('+', target);
-      addOp('/', target);
-    }
-
-    // 8. Fill remaining slots up to 8 with smart relevant math operators
+    // 6. High-yield candidate operators
     final candidates = [
+      {'op': '/', 'value': 2, 'isVariable': false},
+      {'op': '/', 'value': 3, 'isVariable': false},
       {'op': '-', 'value': 2, 'isVariable': false},
       {'op': '+', 'value': 2, 'isVariable': false},
       {'op': '-', 'value': 1, 'isVariable': false},
       {'op': '+', 'value': 1, 'isVariable': false},
-      {'op': '/', 'value': 2, 'isVariable': false},
+      {'op': '*', 'value': 2, 'isVariable': false},
       {'op': '*', 'value': 3, 'isVariable': false},
-      {'op': '-', 'value': 5, 'isVariable': false},
+      {'op': '-', 'value': 3, 'isVariable': false},
       {'op': '+', 'value': 3, 'isVariable': false},
       {'op': '/', 'value': 4, 'isVariable': false},
       {'op': '/', 'value': 5, 'isVariable': false},
@@ -506,7 +519,7 @@ class MathApiService {
     }
 
     // Fallback if still under 8
-    int extra = 6;
+    int extra = 4;
     while (ops.length < 8) {
       addOp('-', extra);
       addOp('+', extra);

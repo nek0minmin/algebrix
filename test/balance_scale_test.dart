@@ -154,6 +154,40 @@ void main() {
       expect(provider.showReasoningCheck, isTrue);
     });
 
+    test('solving Level 9 (4x - 3 = 2x + 9) in 3 moves ensures /2 is available at 2x = 12', () async {
+      final provider = BalanceScaleProvider();
+      provider.initLevelProblem(9);
+
+      expect(provider.leftExpr, '4x - 3');
+      expect(provider.rightExpr, '2x + 9');
+
+      // Step 1: Add 3 to both sides
+      await provider.applyOperation('+', 3, targetSide: 'both');
+      expect(provider.leftExpr, '4x');
+      expect(provider.rightExpr, '2x + 12');
+      expect(provider.isSolved, isFalse);
+
+      // Step 2: Subtract 2x from both sides
+      await provider.applyOperation('-', 2, isVariable: true, targetSide: 'both');
+      expect(provider.leftExpr, '2x');
+      expect(provider.rightExpr, '12');
+      expect(provider.isSolved, isFalse);
+
+      // Verify that at 2x = 12, / 2 is dynamically available in the palette!
+      final hasDivideBy2 = provider.dynamicOps.any(
+        (op) => op['op'] == '/' && op['value'] == 2 && (op['isVariable'] ?? false) == false,
+      );
+      expect(hasDivideBy2, isTrue);
+
+      // Step 3: Divide by 2
+      await provider.applyOperation('/', 2, targetSide: 'both');
+      expect(provider.leftExpr, 'x');
+      expect(provider.rightExpr, '6');
+      expect(provider.isSolved, isTrue);
+      expect(provider.moveCount, 3);
+      expect(provider.showReasoningCheck, isTrue);
+    });
+
     test('star rating tiers based on move count and reasoning', () async {
       // Case 1: Exceeded moves + wrong reasoning = 1 star & 10 XP
       final provider1 = BalanceScaleProvider();
