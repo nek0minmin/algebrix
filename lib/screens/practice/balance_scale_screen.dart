@@ -1756,7 +1756,10 @@ class _ReasoningAndCelebrationDialogState
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(22),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(28),
@@ -1772,158 +1775,316 @@ class _ReasoningAndCelebrationDialogState
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Mascot + Header
-            Row(
-              children: [
-                XyMascot(
-                  asset: _showError
-                      ? AppAssets.xyExplaining
-                      : AppAssets.xyQuestion,
-                  size: 68,
-                  shadowBlur: 4.0,
-                  shadowOpacity: 0.2,
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Reasoning Check 🧠',
-                        style: GoogleFonts.nunito(
-                          fontSize: 19,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.purple,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'WHY does this solution work?',
-                        style: GoogleFonts.nunito(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Mascot + Header
+              Row(
+                children: [
+                  XyMascot(
+                    asset: _showError
+                        ? AppAssets.xyExplaining
+                        : AppAssets.xyQuestion,
+                    size: 58,
+                    shadowBlur: 4.0,
+                    shadowOpacity: 0.2,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-
-            // Reasoning options
-            ...widget.problem.reasoningOptions.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final text = entry.value;
-              final isSelected = _selectedIndex == idx;
-              final isCorrectOption = idx == widget.problem.correctReasoningIndex;
-              final isWrong = isSelected && _showError;
-              final isHighlightedCorrect = _showError && isCorrectOption;
-              final isSuccess = isSelected && _showSuccess;
-
-              Color bgColor = AppColors.background;
-              Color borderColor = AppColors.border;
-              double borderWidth = 1.5;
-
-              if (isWrong) {
-                bgColor = AppColors.error.withValues(alpha: 0.08);
-                borderColor = AppColors.error;
-                borderWidth = 2.0;
-              } else if (isSuccess || isHighlightedCorrect) {
-                bgColor = AppColors.mint.withValues(alpha: 0.12);
-                borderColor = AppColors.mint;
-                borderWidth = 2.0;
-              } else if (isSelected) {
-                bgColor = AppColors.lightPurple;
-                borderColor = AppColors.purple;
-                borderWidth = 2.0;
-              }
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: BouncyPressable(
-                  shrinkFactor: 0.97,
-                  enableHaptics: true,
-                  onTap: _isAnswering ? null : () => _onOptionTap(idx),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: borderColor,
-                        width: borderWidth,
-                      ),
-                    ),
-                    child: Row(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 26,
-                          height: 26,
-                          decoration: BoxDecoration(
-                            color: isWrong
-                                ? AppColors.error.withValues(alpha: 0.15)
-                                : ((isSuccess || isHighlightedCorrect)
-                                    ? AppColors.mint.withValues(alpha: 0.2)
-                                    : (isSelected
-                                        ? AppColors.purple.withValues(alpha: 0.15)
-                                        : AppColors.border.withValues(alpha: 0.5))),
-                            shape: BoxShape.circle,
+                        Text(
+                          'Reasoning Check 🧠',
+                          style: GoogleFonts.nunito(
+                            fontSize: 18.5,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.purple,
                           ),
-                          alignment: Alignment.center,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'WHY does this solution work?',
+                          style: GoogleFonts.nunito(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // ── Recognition Over Recall: Solved Equation & Steps Recap Card ──
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.lightPurple.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.purple.withValues(alpha: 0.25),
+                    width: 1.2,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Solved Equation Row
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.purple,
+                            borderRadius: BorderRadius.circular(7),
+                          ),
                           child: Text(
-                            String.fromCharCode(65 + idx),
+                            'SOLVED',
+                            style: GoogleFonts.nunito(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            widget.problem.equation,
+                            style: GoogleFonts.nunito(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.text,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.lightMint,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.mint),
+                          ),
+                          child: Text(
+                            'x = ${widget.problem.targetX}',
                             style: GoogleFonts.nunito(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w900,
+                              color: const Color(0xFF0F7263),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Your Moves Timeline
+                    if (provider.history.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        height: 1,
+                        color: AppColors.purple.withValues(alpha: 0.15),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Your Moves:',
+                            style: GoogleFonts.nunito(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children:
+                                    provider.history.asMap().entries.map((e) {
+                                  final stepIdx = e.key + 1;
+                                  final step = e.value;
+                                  final cleanOp =
+                                      step.operationText.split(' (').first;
+                                  final isLast =
+                                      e.key == provider.history.length - 1;
+
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 7,
+                                          vertical: 2.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: AppColors.purple
+                                                .withValues(alpha: 0.3),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '$stepIdx. $cleanOp',
+                                          style: GoogleFonts.nunito(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w900,
+                                            color: AppColors.purple,
+                                          ),
+                                        ),
+                                      ),
+                                      if (!isLast) ...[
+                                        const SizedBox(width: 4),
+                                        const Icon(
+                                          Icons.arrow_forward_rounded,
+                                          size: 11,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                        const SizedBox(width: 4),
+                                      ],
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // Reasoning options
+              ...widget.problem.reasoningOptions.asMap().entries.map((entry) {
+                final idx = entry.key;
+                final text = entry.value;
+                final isSelected = _selectedIndex == idx;
+                final isCorrectOption =
+                    idx == widget.problem.correctReasoningIndex;
+                final isWrong = isSelected && _showError;
+                final isHighlightedCorrect = _showError && isCorrectOption;
+                final isSuccess = isSelected && _showSuccess;
+
+                Color bgColor = AppColors.background;
+                Color borderColor = AppColors.border;
+                double borderWidth = 1.5;
+
+                if (isWrong) {
+                  bgColor = AppColors.error.withValues(alpha: 0.08);
+                  borderColor = AppColors.error;
+                  borderWidth = 2.0;
+                } else if (isSuccess || isHighlightedCorrect) {
+                  bgColor = AppColors.mint.withValues(alpha: 0.12);
+                  borderColor = AppColors.mint;
+                  borderWidth = 2.0;
+                } else if (isSelected) {
+                  bgColor = AppColors.lightPurple;
+                  borderColor = AppColors.purple;
+                  borderWidth = 2.0;
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: BouncyPressable(
+                    shrinkFactor: 0.97,
+                    enableHaptics: true,
+                    onTap: _isAnswering ? null : () => _onOptionTap(idx),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: bgColor,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: borderColor,
+                          width: borderWidth,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(
                               color: isWrong
+                                  ? AppColors.error.withValues(alpha: 0.15)
+                                  : ((isSuccess || isHighlightedCorrect)
+                                      ? AppColors.mint.withValues(alpha: 0.2)
+                                      : (isSelected
+                                          ? AppColors.purple
+                                              .withValues(alpha: 0.15)
+                                          : AppColors.border
+                                              .withValues(alpha: 0.5))),
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              String.fromCharCode(65 + idx),
+                              style: GoogleFonts.nunito(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w900,
+                                color: isWrong
                                   ? AppColors.error
                                   : ((isSuccess || isHighlightedCorrect)
                                       ? AppColors.mint
                                       : (isSelected
                                           ? AppColors.purple
                                           : AppColors.textSecondary)),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            text,
-                            style: GoogleFonts.nunito(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.text,
-                              height: 1.4,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              text,
+                              style: GoogleFonts.nunito(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.text,
+                                height: 1.4,
+                              ),
                             ),
                           ),
-                        ),
-                        if (isWrong)
-                          const Icon(
-                            Icons.close_rounded,
-                            color: AppColors.error,
-                            size: 20,
-                          )
-                        else if (isSuccess || isHighlightedCorrect)
-                          const Icon(
-                            Icons.check_rounded,
-                            color: AppColors.mint,
-                            size: 20,
-                          ),
-                      ],
+                          if (isWrong)
+                            const Icon(
+                              Icons.close_rounded,
+                              color: AppColors.error,
+                              size: 20,
+                            )
+                          else if (isSuccess || isHighlightedCorrect)
+                            const Icon(
+                              Icons.check_rounded,
+                              color: AppColors.mint,
+                              size: 20,
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            }),
-          ],
+                );
+              }),
+            ],
+          ),
         ),
       ),
     );
