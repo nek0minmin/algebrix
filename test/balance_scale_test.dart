@@ -85,6 +85,45 @@ void main() {
       expect(provider.history, hasLength(1));
     });
 
+    test('solving Level 1 (x + 3 = 7) with -3 isolates x and triggers reasoning check', () async {
+      final provider = BalanceScaleProvider();
+      provider.initLevelProblem(1);
+
+      expect(provider.leftExpr, 'x + 3');
+      expect(provider.rightExpr, '7');
+      expect(provider.isSolved, isFalse);
+      expect(provider.showReasoningCheck, isFalse);
+
+      // Apply -3 on both sides
+      await provider.applyOperation('-', 3, targetSide: 'both');
+
+      expect(provider.leftExpr, 'x');
+      expect(provider.rightExpr, '4');
+      expect(provider.isSolved, isTrue);
+      expect(provider.showReasoningCheck, isTrue);
+    });
+
+    test('solving Level 4 (2x + 4 = 12) with -4 then /2 isolates x and triggers reasoning check', () async {
+      final provider = BalanceScaleProvider();
+      provider.initLevelProblem(4);
+
+      expect(provider.leftExpr, '2x + 4');
+      expect(provider.rightExpr, '12');
+
+      // Step 1: -4
+      await provider.applyOperation('-', 4, targetSide: 'both');
+      expect(provider.leftExpr, '2x');
+      expect(provider.rightExpr, '8');
+      expect(provider.isSolved, isFalse);
+
+      // Step 2: /2
+      await provider.applyOperation('/', 2, targetSide: 'both');
+      expect(provider.leftExpr, 'x');
+      expect(provider.rightExpr, '4');
+      expect(provider.isSolved, isTrue);
+      expect(provider.showReasoningCheck, isTrue);
+    });
+
     test('star rating tiers based on move count and reasoning', () async {
       final provider = BalanceScaleProvider();
       // Star rating is 0 before solving

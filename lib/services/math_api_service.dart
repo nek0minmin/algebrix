@@ -62,7 +62,6 @@ class MathApiService {
 
   final http.Client _client;
 
-  static const String _mathJsApiUrl = 'https://api.mathjs.org/v4/';
   static const String _newtonApiUrl = 'https://newton.vercel.app/api/v2/simplify/';
 
   /// Sample pool of linear equations for Balance Scale mode.
@@ -342,7 +341,7 @@ class MathApiService {
     return _localSimplify(expression);
   }
 
-  /// HTTP POST Request: Evaluates balance scale step via MathJS API.
+  /// Evaluates balance scale step using deterministic linear algebra engine.
   Future<ScaleStepResult> evaluateScaleOperation({
     required String leftExpr,
     required String rightExpr,
@@ -357,53 +356,19 @@ class MathApiService {
         ? _buildExpr(rightExpr, op, value)
         : rightExpr;
 
-    try {
-      final url = Uri.parse(_mathJsApiUrl);
-      final body = jsonEncode({
-        'expr': [leftOp, rightOp],
-        'precision': 14,
-      });
+    final leftSimplified = (targetSide == 'both' || targetSide == 'left')
+        ? _localStepSimplify(leftExpr, op, value)
+        : leftExpr;
+    final rightSimplified = (targetSide == 'both' || targetSide == 'right')
+        ? _localStepSimplify(rightExpr, op, value)
+        : rightExpr;
 
-      final response = await _client
-          .post(
-            url,
-            headers: {'Content-Type': 'application/json'},
-            body: body,
-          )
-          .timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final results = (data['result'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList();
-
-        if (results != null && results.length >= 2) {
-          return ScaleStepResult(
-            newLeftExpr: leftOp,
-            newRightExpr: rightOp,
-            leftSimplified: _cleanMathJsOutput(results[0]),
-            rightSimplified: _cleanMathJsOutput(results[1]),
-            providerUsed: 'MathJS API (HTTP POST)',
-            isSuccess: true,
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('MathJS API HTTP POST Error: $e');
-    }
-
-    // Offline fallback if network is slow or unavailable
     return ScaleStepResult(
       newLeftExpr: leftOp,
       newRightExpr: rightOp,
-      leftSimplified: (targetSide == 'both' || targetSide == 'left')
-          ? _localStepSimplify(leftExpr, op, value)
-          : leftExpr,
-      rightSimplified: (targetSide == 'both' || targetSide == 'right')
-          ? _localStepSimplify(rightExpr, op, value)
-          : rightExpr,
-      providerUsed: 'Offline Math Engine',
+      leftSimplified: leftSimplified,
+      rightSimplified: rightSimplified,
+      providerUsed: 'Algebrix Math Engine',
       isSuccess: true,
     );
   }
@@ -523,57 +488,116 @@ class MathApiService {
     return baseExpr;
   }
 
-  String _cleanMathJsOutput(String raw) {
-    return raw
-        .replaceAll(' * ', '')
-        .replaceAll(' / ', ' / ')
-        .replaceAll(' + ', ' + ')
-        .replaceAll(' - ', ' - ');
-  }
-
   String _localSimplify(String expr) {
-    if (expr.contains('2x + 6')) return '2x = 12';
-    if (expr.contains('3x + 4')) return '3x = 12';
-    if (expr.contains('4x - 5')) return '4x = 16';
-    return expr;
+    try {
+      return _LinearExpr.parse(expr).format();
+    } catch (_) {
+      return expr;
+    }
   }
 
   String _localStepSimplify(String expr, String op, num val) {
-    final v = val.toInt();
-    if (expr.contains('2x + 6') && op == '-' && v == 6) return '2x';
-    if (expr == '18' && op == '-' && v == 6) return '12';
-    if (expr == '2x' && op == '/' && v == 2) return 'x';
-    if (expr == '12' && op == '/' && v == 2) return '6';
+    try {
+      final parsed = _LinearExpr.parse(expr);
+      final applied = parsed.apply(op, val);
+      return applied.format();
+    } catch (_) {
+      return '$expr $op $val';
+    }
+  }
+}
 
-    if (expr.contains('3x + 4') && op == '-' && v == 4) return '3x';
-    if (expr == '16' && op == '-' && v == 4) return '12';
-    if (expr == '3x' && op == '/' && v == 3) return 'x';
-    if (expr == '12' && op == '/' && v == 3) return '4';
+/// Internal deterministic linear algebraic expression parser & simplifier.
+class _LinearExpr {
+  final double coeff;
+  final double constant;
 
-    if (expr.contains('4x - 5') && op == '+' && v == 5) return '4x';
-    if (expr == '11' && op == '+' && v == 5) return '16';
-    if (expr == '4x' && op == '/' && v == 4) return 'x';
-    if (expr == '16' && op == '/' && v == 4) return '4';
+  const _LinearExpr(this.coeff, this.constant);
 
-    if (expr.contains('2x + 8') && op == '-' && v == 8) return '2x';
-    if (expr == '20' && op == '-' && v == 8) return '12';
-    if (expr == '2x' && op == '/' && v == 2) return 'x';
-    if (expr == '12' && op == '/' && v == 2) return '6';
+  static _LinearExpr parse(String raw) {
+    final s = raw.replaceAll('(', '').replaceAll(')', '').trim();
+    if (s.isEmpty) return const _LinearExpr(0, 0);
 
-    if (expr.contains('5x + 3') && op == '-' && v == 3) return '5x';
-    if (expr == '23' && op == '-' && v == 3) return '20';
-    if (expr == '5x' && op == '/' && v == 5) return 'x';
-    if (expr == '20' && op == '/' && v == 5) return '4';
+    double totalCoeff = 0;
+    double totalConst = 0;
 
-    // Simple numeric calculation fallback
-    final numVal = double.tryParse(expr);
-    if (numVal != null) {
-      if (op == '+') return (numVal + val).toStringAsFixed(0);
-      if (op == '-') return (numVal - val).toStringAsFixed(0);
-      if (op == '*') return (numVal * val).toStringAsFixed(0);
-      if (op == '/') return (numVal / val).toStringAsFixed(0);
+    // Matches signed terms e.g. "+3x", "-2x", "x", "-x", "+5", "-8", "18"
+    final termRegex = RegExp(
+      r'([+-]?\s*(?:\d*\.?\d*x|\d+\.?\d*))',
+      caseSensitive: false,
+    );
+    final cleanStr = s.replaceAll(' ', '');
+    final matches = termRegex.allMatches(cleanStr);
+
+    for (final match in matches) {
+      final term = match.group(0)!.trim();
+      if (term.isEmpty) continue;
+
+      if (term.toLowerCase().contains('x')) {
+        final coeffPart = term.toLowerCase().replaceAll('x', '');
+        if (coeffPart.isEmpty || coeffPart == '+') {
+          totalCoeff += 1.0;
+        } else if (coeffPart == '-') {
+          totalCoeff -= 1.0;
+        } else {
+          totalCoeff += double.tryParse(coeffPart) ?? 0.0;
+        }
+      } else {
+        totalConst += double.tryParse(term) ?? 0.0;
+      }
     }
 
-    return '$expr $op $val';
+    return _LinearExpr(totalCoeff, totalConst);
+  }
+
+  _LinearExpr apply(String op, num val) {
+    final v = val.toDouble();
+    if (op == '+') {
+      return _LinearExpr(coeff, constant + v);
+    } else if (op == '-') {
+      return _LinearExpr(coeff, constant - v);
+    } else if (op == '*') {
+      return _LinearExpr(coeff * v, constant * v);
+    } else if (op == '/') {
+      if (v.abs() > 1e-9) {
+        return _LinearExpr(coeff / v, constant / v);
+      }
+    }
+    return this;
+  }
+
+  String format() {
+    String formatNum(double d) {
+      if ((d - d.roundToDouble()).abs() < 1e-9) {
+        return d.round().toString();
+      }
+      return d.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
+    }
+
+    final isZeroCoeff = coeff.abs() < 1e-9;
+    final isZeroConst = constant.abs() < 1e-9;
+
+    if (isZeroCoeff) {
+      return formatNum(constant);
+    }
+
+    String coeffStr;
+    if ((coeff - 1.0).abs() < 1e-9) {
+      coeffStr = 'x';
+    } else if ((coeff + 1.0).abs() < 1e-9) {
+      coeffStr = '-x';
+    } else {
+      coeffStr = '${formatNum(coeff)}x';
+    }
+
+    if (isZeroConst) {
+      return coeffStr;
+    }
+
+    if (constant > 0) {
+      return '$coeffStr + ${formatNum(constant)}';
+    } else {
+      return '$coeffStr - ${formatNum(constant.abs())}';
+    }
   }
 }
