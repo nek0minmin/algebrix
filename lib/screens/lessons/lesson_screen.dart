@@ -17,6 +17,7 @@ import 'package:algebrix/widgets/lesson/activities/classification_activity.dart'
 import 'package:algebrix/widgets/lesson/activities/ordering_activity.dart';
 import 'package:algebrix/widgets/lesson/activities/term_selection_activity.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
+import 'package:algebrix/widgets/page_headers.dart';
 
 /// Main Lesson Viewer — the core interactive learning experience.
 ///
@@ -129,23 +130,13 @@ class _LessonScreenState extends State<LessonScreen> {
       return const Scaffold(body: Center(child: Text('No lesson loaded.')));
     }
 
+    final moduleTitle = lessonProvider.currentModule?.title ?? 'Lesson';
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: AppColors.text),
-          onPressed: () => _showExitDialog(context),
-        ),
-        title: Text(
-          lesson.title,
-          style: AppTextStyles.subtitle1.copyWith(
-            color: AppColors.text,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        centerTitle: true,
+      appBar: AlgebrixAppBar(
+        title: '$moduleTitle: ${lesson.title}',
+        onBack: () => _showExitDialog(context),
       ),
       body: Stack(
         children: [

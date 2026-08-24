@@ -14,6 +14,7 @@ import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/widgets/search_bar_widget.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
 import 'package:algebrix/core/animations/app_page_route.dart';
+import 'package:algebrix/widgets/page_headers.dart';
 
 /// Module Overview screen showing the module intro and lesson list with progressive unlocking.
 class ModuleOverviewScreen extends StatefulWidget {
@@ -61,21 +62,9 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
       return const Scaffold(body: Center(child: Text('No module selected.')));
     }
 
-    final appBar = AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.text),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
-      title: Text(
-        'Module Overview',
-        style: AppTextStyles.subtitle1.copyWith(
-          color: AppColors.text,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      centerTitle: true,
+    final appBar = AlgebrixAppBar(
+      title: 'Module Overview',
+      onBack: () => Navigator.of(context).pop(),
     );
 
     if (lessonProvider.isHydrating) {

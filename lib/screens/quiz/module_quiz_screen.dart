@@ -11,6 +11,7 @@ import 'package:algebrix/services/module_quiz_service.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
+import 'package:algebrix/widgets/page_headers.dart';
 
 /// Interactive AI-Powered 15-Question Module Quiz with progressive difficulty and mascot feedback.
 class ModuleQuizScreen extends StatefulWidget {
@@ -171,22 +172,9 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: AppColors.text),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          '${widget.module.title} Quiz',
-          style: GoogleFonts.nunito(
-            color: AppColors.text,
-            fontWeight: FontWeight.w800,
-            fontSize: 17,
-          ),
-        ),
-        centerTitle: true,
+      appBar: AlgebrixAppBar(
+        title: '${widget.module.title} Quiz',
+        onBack: () => Navigator.of(context).pop(),
       ),
       body: SafeArea(
         child: _isLoading

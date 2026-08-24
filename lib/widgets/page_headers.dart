@@ -354,3 +354,87 @@ class _HeaderPillSearchBar extends StatelessWidget {
     );
   }
 }
+
+/// Standard top App Bar across all sub-pages (Modules, Lessons, Quizzes, Notes)
+/// matching the signature Algebrix circular pink back-button and bold title style.
+class AlgebrixAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const AlgebrixAppBar({
+    super.key,
+    required this.title,
+    this.onBack,
+    this.icon = Icons.arrow_back_rounded,
+    this.actions,
+    this.toolbarHeight = 64,
+  });
+
+  final String title;
+  final VoidCallback? onBack;
+  final IconData icon;
+  final List<Widget>? actions;
+  final double toolbarHeight;
+
+  @override
+  Size get preferredSize => Size.fromHeight(toolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    void handleBack() {
+      if (onBack != null) {
+        onBack!();
+      } else {
+        Navigator.of(context).maybePop();
+      }
+    }
+
+    return AppBar(
+      automaticallyImplyLeading: false,
+      toolbarHeight: toolbarHeight,
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      titleSpacing: 0,
+      title: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          children: [
+            Semantics(
+              button: true,
+              label: 'Back',
+              child: IconButton(
+                onPressed: handleBack,
+                icon: Icon(icon),
+                style: IconButton.styleFrom(
+                  minimumSize: const Size.square(44),
+                  maximumSize: const Size.square(44),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  backgroundColor: AppColors.extraLightPink,
+                  foregroundColor: AppColors.darkPink,
+                  side: const BorderSide(color: AppColors.lightPink),
+                  shape: const CircleBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.nunito(
+                  color: AppColors.text,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 20,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (actions case final actions?) ...[
+              const SizedBox(width: 8),
+              ...actions,
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
