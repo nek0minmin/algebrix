@@ -16,8 +16,8 @@ import 'package:algebrix/widgets/bouncy_pressable.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
 
-/// Dedicated Quiz Hub & Analytics Screen displaying all module quizzes,
-/// unlock status, high scores, accuracy statistics, and domain mastery breakdown.
+/// Dedicated Quiz Hub & Mastery Screen featuring rich Xy hero artwork (xy-quiz.png),
+/// aggregated performance analytics, and module quiz progression without heavy gray buttons.
 class QuizHubScreen extends StatelessWidget {
   const QuizHubScreen({super.key});
 
@@ -29,153 +29,273 @@ class QuizHubScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.text),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Quizzes & Mastery',
-          style: GoogleFonts.nunito(
-            color: AppColors.text,
-            fontWeight: FontWeight.w900,
-            fontSize: 18,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ── 1. Top Navigation Bar with Back Button ────────────────
+                  Row(
+                    children: [
+                      Semantics(
+                        button: true,
+                        label: 'Back',
+                        child: IconButton(
+                          key: const Key('quiz-hub-back-button'),
+                          onPressed: () => Navigator.of(context).maybePop(),
+                          icon: const Icon(Icons.arrow_back_rounded),
+                          style: IconButton.styleFrom(
+                            minimumSize: const Size.square(44),
+                            maximumSize: const Size.square(44),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            backgroundColor: AppColors.extraLightPink,
+                            foregroundColor: AppColors.darkPink,
+                            side: const BorderSide(color: AppColors.lightPink),
+                            shape: const CircleBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Quizzes & Mastery',
+                        style: GoogleFonts.nunito(
+                          color: AppColors.text,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── 2. Hero Mascot Banner Card (xy-quiz.png) ──────────────
+                  _QuizHeroBannerCard(),
+                  const SizedBox(height: 20),
+
+                  // ── 3. Performance Analytics Dashboard Card ───────────────
+                  _AnalyticsSummaryCard(analytics: analytics),
+                  const SizedBox(height: 24),
+
+                  // ── 4. Section Header ─────────────────────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Module Quizzes',
+                        style: GoogleFonts.nunito(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.text,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.lightPurple,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '60% to pass',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.purple,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ── 5. Module 1 Quiz Card ─────────────────────────────────
+                  _ModuleQuizHubCard(
+                    module: module1,
+                    moduleNumber: 1,
+                    accentColor: AppColors.pink,
+                    isUnlocked: quizProvider.isQuizUnlocked('module1', lessonProvider),
+                    progress: quizProvider.getQuizProgress('module1'),
+                    completedLessons: lessonProvider.completedLessonsInModule('module1'),
+                    totalLessons: module1.lessons.length,
+                    unlockRequirement: 'Complete all 6 Module 1 lessons',
+                    onStart: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: ModuleQuizScreen(module: module1),
+                        ),
+                      );
+                    },
+                    onGoToLessons: () {
+                      lessonProvider.startModule(module1);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const ModuleOverviewScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── 6. Module 2 Quiz Card ─────────────────────────────────
+                  _ModuleQuizHubCard(
+                    module: module2,
+                    moduleNumber: 2,
+                    accentColor: AppColors.purple,
+                    isUnlocked: quizProvider.isQuizUnlocked('module2', lessonProvider),
+                    progress: quizProvider.getQuizProgress('module2'),
+                    completedLessons: lessonProvider.completedLessonsInModule('module2'),
+                    totalLessons: module2.lessons.length,
+                    unlockRequirement: !quizProvider.isModuleUnlocked('module2')
+                        ? 'Score ≥60% on Module 1 Quiz'
+                        : 'Complete all 7 Module 2 lessons',
+                    onStart: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: ModuleQuizScreen(module: module2),
+                        ),
+                      );
+                    },
+                    onGoToLessons: () {
+                      if (!quizProvider.isModuleUnlocked('module2')) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Pass the Module 1 Quiz first with at least 60% to unlock Module 2!'),
+                            backgroundColor: AppColors.pink,
+                          ),
+                        );
+                        return;
+                      }
+                      lessonProvider.startModule(module2);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const ModuleOverviewScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── 7. Future Module Quizzes (Locked Previews) ────────────
+                  _LockedFutureQuizCard(
+                    moduleNumber: 3,
+                    title: 'Solving Equations Quiz',
+                    prerequisite: 'Pass Module 2 Quiz (≥60%)',
+                    accentColor: AppColors.mint,
+                  ),
+                  const SizedBox(height: 12),
+                  _LockedFutureQuizCard(
+                    moduleNumber: 4,
+                    title: 'Inequalities Quiz',
+                    prerequisite: 'Pass Module 3 Quiz (≥60%)',
+                    accentColor: AppColors.yellow,
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── 1. Hero Analytics Dashboard Card ─────────────────────────────
-            _AnalyticsSummaryCard(analytics: analytics),
-            const SizedBox(height: 24),
-
-            // ── 2. Section Header ─────────────────────────────────────────────
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Module Quizzes',
-                  style: GoogleFonts.nunito(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.text,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.lightPurple,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '60% to pass',
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.purple,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // ── 3. Module 1 Quiz Card ─────────────────────────────────────────
-            _ModuleQuizHubCard(
-              module: module1,
-              moduleNumber: 1,
-              accentColor: AppColors.pink,
-              isUnlocked: quizProvider.isQuizUnlocked('module1', lessonProvider),
-              progress: quizProvider.getQuizProgress('module1'),
-              completedLessons: lessonProvider.completedLessonsInModule('module1'),
-              totalLessons: module1.lessons.length,
-              unlockRequirement: 'Complete all 6 Module 1 lessons',
-              onStart: () {
-                Navigator.of(context).push(
-                  AppPageRoute(
-                    child: ModuleQuizScreen(module: module1),
-                  ),
-                );
-              },
-              onGoToLessons: () {
-                lessonProvider.startModule(module1);
-                Navigator.of(context).push(
-                  AppPageRoute(
-                    child: const ModuleOverviewScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // ── 4. Module 2 Quiz Card ─────────────────────────────────────────
-            _ModuleQuizHubCard(
-              module: module2,
-              moduleNumber: 2,
-              accentColor: AppColors.purple,
-              isUnlocked: quizProvider.isQuizUnlocked('module2', lessonProvider),
-              progress: quizProvider.getQuizProgress('module2'),
-              completedLessons: lessonProvider.completedLessonsInModule('module2'),
-              totalLessons: module2.lessons.length,
-              unlockRequirement: !quizProvider.isModuleUnlocked('module2')
-                  ? 'Score ≥60% on Module 1 Quiz'
-                  : 'Complete all 7 Module 2 lessons',
-              onStart: () {
-                Navigator.of(context).push(
-                  AppPageRoute(
-                    child: ModuleQuizScreen(module: module2),
-                  ),
-                );
-              },
-              onGoToLessons: () {
-                if (!quizProvider.isModuleUnlocked('module2')) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Pass the Module 1 Quiz first with at least 60% to unlock Module 2!'),
-                      backgroundColor: AppColors.pink,
-                    ),
-                  );
-                  return;
-                }
-                lessonProvider.startModule(module2);
-                Navigator.of(context).push(
-                  AppPageRoute(
-                    child: const ModuleOverviewScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // ── 5. Future Module Quizzes (Locked Previews) ────────────────────
-            _LockedFutureQuizCard(
-              moduleNumber: 3,
-              title: 'Solving Equations Quiz',
-              prerequisite: 'Pass Module 2 Quiz (≥60%)',
-              accentColor: AppColors.mint,
-            ),
-            const SizedBox(height: 12),
-            _LockedFutureQuizCard(
-              moduleNumber: 4,
-              title: 'Inequalities Quiz',
-              prerequisite: 'Pass Module 3 Quiz (≥60%)',
-              accentColor: AppColors.yellow,
-            ),
-          ],
         ),
       ),
     );
   }
 }
 
-/// Hero Analytics Overview Card
+/// Hero Banner featuring prominent Xy Quiz illustration
+class _QuizHeroBannerCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.extraLightPink,
+            AppColors.lightPurple.withValues(alpha: 0.7),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.lightPink, width: 1.5),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.lightPink),
+                  ),
+                  child: Text(
+                    'ALGEBRA MASTERY',
+                    style: GoogleFonts.nunito(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.darkPink,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Challenge\nYour Mind',
+                  style: GoogleFonts.nunito(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.text,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Earn stars, test your understanding, and unlock new worlds!',
+                  style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Large Xy Quiz Image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              AppAssets.xyQuiz,
+              height: 125,
+              width: 125,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const XyMascot(
+                asset: AppAssets.xyQuestion,
+                size: 110,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Hero Analytics Overview Card with prominent Xy artwork
 class _AnalyticsSummaryCard extends StatelessWidget {
   final dynamic analytics;
 
@@ -183,7 +303,8 @@ class _AnalyticsSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accuracy = analytics.overallAccuracyPercentage as double;
+    final rawAccuracy = (analytics.overallAccuracyPercentage as num).toDouble();
+    final accuracy = rawAccuracy.clamp(0.0, 100.0);
     final passedCount = analytics.totalQuizzesPassed as int;
     final attempts = analytics.totalAttempts as int;
     final mastery = analytics.masteryLevel as String;
@@ -209,7 +330,9 @@ class _AnalyticsSummaryCard extends StatelessWidget {
             children: [
               const XyMascot(
                 asset: AppAssets.xyIdea,
-                size: 54,
+                size: 68,
+                shadowBlur: 4,
+                shadowOpacity: 0.15,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -224,12 +347,20 @@ class _AnalyticsSummaryCard extends StatelessWidget {
                         color: AppColors.text,
                       ),
                     ),
-                    Text(
-                      mastery,
-                      style: GoogleFonts.nunito(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.purple,
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.lightPurple,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        mastery,
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.purple,
+                        ),
                       ),
                     ),
                   ],
@@ -293,12 +424,12 @@ class _MetricTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, color: color, size: 20),
+        Icon(icon, color: color, size: 22),
         const SizedBox(height: 4),
         Text(
           value,
           style: GoogleFonts.nunito(
-            fontSize: 16,
+            fontSize: 17,
             fontWeight: FontWeight.w900,
             color: AppColors.text,
           ),
@@ -307,7 +438,8 @@ class _MetricTile extends StatelessWidget {
           label,
           style: AppTextStyles.caption.copyWith(
             color: AppColors.textSecondary,
-            fontSize: 11,
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -315,7 +447,7 @@ class _MetricTile extends StatelessWidget {
   }
 }
 
-/// Interactive Module Quiz Card in the Quiz Hub
+/// Interactive Module Quiz Card (No heavy gray button on locked state)
 class _ModuleQuizHubCard extends StatelessWidget {
   final ModuleContent module;
   final int moduleNumber;
@@ -345,7 +477,7 @@ class _ModuleQuizHubCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasPassed = progress.passed as bool;
     final highScore = progress.highScore as int;
-    final bestPercent = progress.bestPercentage as double;
+    final bestPercent = (progress.bestPercentage as num).toDouble().clamp(0.0, 100.0);
     final attempts = progress.attemptsCount as int;
     final totalQ = progress.totalQuestions as int;
 
@@ -363,7 +495,7 @@ class _ModuleQuizHubCard extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadow,
-            blurRadius: 10,
+            blurRadius: 12,
             offset: Offset(0, 3),
           ),
         ],
@@ -374,8 +506,8 @@ class _ModuleQuizHubCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
                   color: isUnlocked ? accentColor.withValues(alpha: 0.12) : AppColors.divider,
                   borderRadius: BorderRadius.circular(14),
@@ -396,16 +528,16 @@ class _ModuleQuizHubCard extends StatelessWidget {
                       style: GoogleFonts.nunito(
                         fontSize: 11,
                         fontWeight: FontWeight.w900,
-                        color: accentColor,
+                        color: isUnlocked ? accentColor : AppColors.subtitle,
                         letterSpacing: 1.2,
                       ),
                     ),
                     Text(
                       module.title,
                       style: GoogleFonts.nunito(
-                        fontSize: 16,
+                        fontSize: 16.5,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.text,
+                        color: isUnlocked ? AppColors.text : AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -458,20 +590,27 @@ class _ModuleQuizHubCard extends StatelessWidget {
                     color: AppColors.divider,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    'Locked',
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.subtitle,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.lock_rounded, size: 12, color: AppColors.subtitle),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Locked',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.subtitle,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],
           ),
           const SizedBox(height: 14),
 
-          // High Score & Lesson Progress Info
+          // High Score & Attempts Info for unlocked quizzes
           if (isUnlocked && attempts > 0) ...[
             Row(
               children: [
@@ -487,7 +626,7 @@ class _ModuleQuizHubCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Best: $highScore / $totalQ (${bestPercent.round()}%)',
+                  'Best: ${highScore.clamp(0, totalQ)} / $totalQ (${bestPercent.round()}%)',
                   style: GoogleFonts.nunito(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
@@ -504,36 +643,7 @@ class _ModuleQuizHubCard extends StatelessWidget {
             const SizedBox(height: 14),
           ],
 
-          // Unlock details
-          if (!isUnlocked) ...[
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.subtitle),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      unlockRequirement,
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-          ],
-
-          // Action Buttons
+          // ── Action or Lock Status ─────────────────────────────────────────
           if (isUnlocked)
             PrimaryButton(
               label: hasPassed ? 'Retake Quiz' : (attempts > 0 ? 'Try Again' : 'Start 10-Item Quiz'),
@@ -541,13 +651,58 @@ class _ModuleQuizHubCard extends StatelessWidget {
               icon: Icons.play_arrow_rounded,
               onPressed: onStart,
             )
-          else
-            PrimaryButton(
-              label: 'Complete Lessons ($completedLessons/$totalLessons)',
-              backgroundColor: AppColors.subtitle,
-              icon: Icons.menu_book_rounded,
-              onPressed: onGoToLessons,
+          else ...[
+            // Clean lock requirement container (NO heavy gray button)
+            BouncyPressable(
+              onTap: onGoToLessons,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.extraLightPink.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.lightPink.withValues(alpha: 0.8)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.menu_book_rounded,
+                      size: 18,
+                      color: AppColors.pink,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            unlockRequirement,
+                            style: GoogleFonts.nunito(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.text,
+                            ),
+                          ),
+                          Text(
+                            'Tap to view lessons ($completedLessons/$totalLessons)',
+                            style: GoogleFonts.nunito(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.pink,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      size: 20,
+                      color: AppColors.pink,
+                    ),
+                  ],
+                ),
+              ),
             ),
+          ],
         ],
       ),
     );
@@ -571,7 +726,7 @@ class _LockedFutureQuizCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Opacity(
-      opacity: 0.6,
+      opacity: 0.65,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

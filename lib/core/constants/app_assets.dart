@@ -23,6 +23,7 @@ class AppAssets {
   static const String xySitPencil = 'assets/mascot/xy-sit-pencil.png';
   static const String xyBalance = 'assets/mascot/xy-balance.png';
   static const String xyAndChemie = 'assets/mascot/xy-and-chemie.png';
+  static const String xyQuiz = 'assets/mascot/xy-quiz.png';
 
   // Quiz countdown sequence
   static const String xyLoading = 'assets/mascot/xy-loading.png';

@@ -93,6 +93,6 @@ void main() {
 
     // Module 1 is locked because 0/6 lessons are completed
     expect(find.text('Complete all 6 Module 1 lessons'), findsOneWidget);
-    expect(find.text('Complete Lessons (0/6)'), findsOneWidget);
+    expect(find.text('Tap to view lessons (0/6)'), findsOneWidget);
   });
 }
