@@ -117,7 +117,7 @@ class QuizHubScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.lightPurple,
+                          color: AppColors.extraLightPink,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -125,7 +125,7 @@ class QuizHubScreen extends StatelessWidget {
                           style: GoogleFonts.nunito(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.purple,
+                            color: AppColors.darkPink,
                           ),
                         ),
                       ),
@@ -845,16 +845,14 @@ class _ModuleQuizHubCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isUnlocked
-              ? (hasPassed ? AppColors.mint : accentColor.withValues(alpha: 0.4))
-              : AppColors.border,
-          width: isUnlocked ? 1.5 : 1.0,
+          color: AppColors.border,
+          width: 1.0,
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 12,
-            offset: Offset(0, 3),
+            color: AppColors.shadow.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -864,16 +862,16 @@ class _ModuleQuizHubCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: isUnlocked ? accentColor.withValues(alpha: 0.12) : AppColors.divider,
+                  color: isUnlocked ? AppColors.extraLightPink : AppColors.divider,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
                   isUnlocked ? Icons.psychology_rounded : Icons.lock_outline_rounded,
-                  color: isUnlocked ? accentColor : AppColors.subtitle,
-                  size: 24,
+                  color: isUnlocked ? AppColors.pink : AppColors.subtitle,
+                  size: 22,
                 ),
               ),
               const SizedBox(width: 12),
@@ -886,8 +884,8 @@ class _ModuleQuizHubCard extends StatelessWidget {
                       style: GoogleFonts.nunito(
                         fontSize: 11,
                         fontWeight: FontWeight.w900,
-                        color: isUnlocked ? accentColor : AppColors.subtitle,
-                        letterSpacing: 1.2,
+                        color: isUnlocked ? AppColors.darkPink : AppColors.subtitle,
+                        letterSpacing: 1.1,
                       ),
                     ),
                     Text(
@@ -998,7 +996,7 @@ class _ModuleQuizHubCard extends StatelessWidget {
           if (isUnlocked)
             PrimaryButton(
               label: hasPassed ? 'Retake Quiz' : (attempts > 0 ? 'Try Again' : 'Start 10-Item Quiz'),
-              backgroundColor: hasPassed ? AppColors.purple : AppColors.pink,
+              backgroundColor: AppColors.pink,
               icon: Icons.play_arrow_rounded,
               onPressed: onStart,
             )
