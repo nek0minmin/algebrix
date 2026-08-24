@@ -160,6 +160,7 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
                     setState(() => _introSeen = true);
                   },
                 ),
+              ] else ...[
                 // Dynamic Module Hero Header Banner
                 _ModuleHeroHeaderBanner(
                   module: module,
