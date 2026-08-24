@@ -843,24 +843,17 @@ class _ModuleHeroHeaderBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            accentColor.withValues(alpha: 0.12),
-            Colors.white,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: accentColor.withValues(alpha: 0.22),
-          width: 1.5,
+          color: accentColor,
+          width: 1.8,
         ),
         boxShadow: [
           BoxShadow(
             color: accentColor.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -881,8 +874,12 @@ class _ModuleHeroHeaderBanner extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.15),
+                    color: accentColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.25),
+                      width: 1.0,
+                    ),
                   ),
                   child: Text(
                     'MODULE $moduleNum',
@@ -918,7 +915,7 @@ class _ModuleHeroHeaderBanner extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: progress,
                     minHeight: 6,
-                    backgroundColor: AppColors.border,
+                    backgroundColor: accentColor.withValues(alpha: 0.12),
                     valueColor: AlwaysStoppedAnimation<Color>(accentColor),
                   ),
                 ),
