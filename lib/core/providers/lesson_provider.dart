@@ -366,10 +366,14 @@ class LessonProvider extends ChangeNotifier {
     } catch (error) {
       if (_isCurrentAccount(accountId, generation)) {
         final errStr = error.toString().toLowerCase();
-        // If the step is uncataloged or cloud catalog is unmigrated, fallback to local tracking smoothly
+        // If the step is uncataloged, cloud catalog is unmigrated, or database permissions reject direct mutations, fallback to local tracking smoothly
         if (errStr.contains('unknown lesson step') ||
             errStr.contains('mismatched step index') ||
-            errStr.contains('22023')) {
+            errStr.contains('22023') ||
+            errStr.contains('permission denied') ||
+            errStr.contains('42501') ||
+            errStr.contains('p0001') ||
+            errStr.contains('postgrestexception')) {
           final localProgress = LessonProgress(
             userId: accountId,
             moduleId: lesson.moduleId,
