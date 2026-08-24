@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
@@ -197,32 +198,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'ALGEBRIX',
+                    'Create an Account',
                     textAlign: TextAlign.center,
-                    style: AppTextStyles.heading1.copyWith(
-                      color: AppColors.text,
+                    style: GoogleFonts.nunito(
+                      color: const Color(0xFF475569),
                       fontWeight: FontWeight.w900,
                       fontSize: 26,
-                      letterSpacing: 2.0,
+                      letterSpacing: 0.2,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Create your account to explore the whys!',
-                    style: AppTextStyles.subtitle2.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
 
-                  // Full Name Field
+                  // Username Field
                   AppInputField(
-                    label: 'Full Name',
-                    hintText: 'e.g., Alex Rivera',
+                    hintText: 'Username',
                     controller: _nameController,
-                    prefixIcon: Icons.person_outline_rounded,
+                    prefixIcon: Icons.person_rounded,
                     textInputAction: TextInputAction.next,
                     errorText: _nameError,
                     onChanged: (_) {
@@ -230,14 +222,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
 
                   // Email Address Field
                   AppInputField(
-                    label: 'Email Address',
-                    hintText: 'student@algebrix.org',
+                    hintText: 'Email',
                     controller: _emailController,
-                    prefixIcon: Icons.email_outlined,
+                    prefixIcon: Icons.mail_rounded,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     errorText: _emailError,
@@ -246,14 +237,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
 
-                  // Password Field
+                  // Create Password Field
                   AppInputField(
-                    label: 'Password',
-                    hintText: 'Enter your password',
+                    hintText: 'Create Password',
                     controller: _passwordController,
-                    prefixIcon: Icons.lock_outline_rounded,
+                    prefixIcon: Icons.lock_rounded,
                     isPassword: true,
                     textInputAction: TextInputAction.next,
                     errorText: _passwordError,
@@ -262,17 +252,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 8),
 
-                  // Password Criteria Live Checklist
+                  // Password Criteria Live Checklist (Matching Pic 3)
                   PasswordStrengthChecklist(password: _passwordController.text),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 8),
 
                   // Confirm Password Field
                   AppInputField(
-                    label: 'Confirm Password',
-                    hintText: 'Re-enter your password',
+                    hintText: 'Confirm Password',
                     controller: _confirmPasswordController,
-                    prefixIcon: Icons.lock_reset_rounded,
+                    prefixIcon: Icons.lock_rounded,
                     isPassword: true,
                     textInputAction: TextInputAction.done,
                     errorText: _confirmPasswordError,
@@ -286,9 +275,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Primary Sign Up Button
+                  // Primary Create Account Button
                   PrimaryButton(
-                    label: 'Sign Up',
+                    label: 'Create Account',
                     isLoading: authProvider.isLoading,
                     onPressed: _validateAndRegister,
                   ),

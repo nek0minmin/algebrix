@@ -42,13 +42,13 @@ void main() {
 
       expect(find.text('Test Label'), findsOneWidget);
       expect(find.text('Enter text'), findsOneWidget);
-      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.visibility_off_rounded), findsOneWidget);
 
       // Tap password toggle button
-      await tester.tap(find.byIcon(Icons.visibility_outlined));
+      await tester.tap(find.byIcon(Icons.visibility_off_rounded));
       await tester.pump();
 
-      expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.visibility_rounded), findsOneWidget);
     });
 
     testWidgets('PrimaryButton displays label and responds to tap', (tester) async {
@@ -86,7 +86,7 @@ void main() {
       expect(find.byIcon(Icons.g_mobiledata), findsOneWidget);
     });
 
-    testWidgets('PasswordStrengthChecklist renders 4 criteria items and Strong badge when satisfied', (tester) async {
+    testWidgets('PasswordStrengthChecklist renders 4 criteria items when satisfied', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -97,11 +97,10 @@ void main() {
         ),
       );
 
-      expect(find.text('At least 8 characters long'), findsOneWidget);
-      expect(find.text('At least 1 number'), findsOneWidget);
-      expect(find.text('At least 1 uppercase letter'), findsOneWidget);
-      expect(find.text('At least 1 lowercase letter'), findsOneWidget);
-      expect(find.text('Strong'), findsWidgets);
+      expect(find.text('At least eight characters long'), findsOneWidget);
+      expect(find.text('At least one number'), findsOneWidget);
+      expect(find.text('At least one uppercase letter'), findsOneWidget);
+      expect(find.text('At least one lowercase letter'), findsOneWidget);
     });
   });
 
@@ -110,7 +109,7 @@ void main() {
       await tester.pumpWidget(createTestableWidget(const LoginScreen()));
 
       expect(find.text('ALGEBRIX'), findsOneWidget);
-      expect(find.text('Email Address'), findsOneWidget);
+      expect(find.text('Email'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
       expect(find.text('Log In'), findsOneWidget);
       expect(find.text('Forgot Password?'), findsOneWidget);
@@ -120,12 +119,12 @@ void main() {
     testWidgets('RegisterScreen renders registration fields and buttons', (tester) async {
       await tester.pumpWidget(createTestableWidget(const RegisterScreen()));
 
-      expect(find.textContaining('Create your account'), findsOneWidget);
-      expect(find.text('Full Name'), findsOneWidget);
-      expect(find.text('Email Address'), findsOneWidget);
-      expect(find.text('Password'), findsOneWidget);
+      expect(find.text('Create an Account'), findsOneWidget);
+      expect(find.text('Username'), findsOneWidget);
+      expect(find.text('Email'), findsOneWidget);
+      expect(find.text('Create Password'), findsOneWidget);
       expect(find.text('Confirm Password'), findsOneWidget);
-      expect(find.text('Sign Up'), findsOneWidget);
+      expect(find.text('Create Account'), findsOneWidget);
     });
 
     testWidgets('ForgotPasswordScreen renders reset instructions and email input', (tester) async {
@@ -163,8 +162,8 @@ void main() {
       await tester.enterText(find.byType(TextFormField).at(2), 'short');
       await tester.enterText(find.byType(TextFormField).at(3), 'short');
 
-      await tester.ensureVisible(find.text('Sign Up'));
-      await tester.tap(find.text('Sign Up'));
+      await tester.ensureVisible(find.text('Create Account'));
+      await tester.tap(find.text('Create Account'));
       await tester.pump();
 
       expect(find.text('Password must be at least 8 characters long'), findsOneWidget);

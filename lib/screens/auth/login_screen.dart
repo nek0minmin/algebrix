@@ -127,12 +127,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 36),
 
-                  // Email Input Field (Fully Rounded Pill)
+                  // Email Input Field (Fully Rounded Pill with Pink Mail Icon)
                   AppInputField(
-                    label: 'Email Address',
-                    hintText: 'student@algebrix.org',
+                    hintText: 'Email',
                     controller: _emailController,
-                    prefixIcon: Icons.email_outlined,
+                    prefixIcon: Icons.mail_rounded,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     errorText: _emailError,
@@ -140,14 +139,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (_emailError != null) setState(() => _emailError = null);
                     },
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 16),
 
-                  // Password Input Field (Fully Rounded Pill)
+                  // Password Input Field (Fully Rounded Pill with Pink Lock Icon and Visibility Toggle)
                   AppInputField(
-                    label: 'Password',
-                    hintText: 'Enter your password',
+                    hintText: 'Password',
                     controller: _passwordController,
-                    prefixIcon: Icons.lock_outline_rounded,
+                    prefixIcon: Icons.lock_rounded,
                     isPassword: true,
                     textInputAction: TextInputAction.done,
                     errorText: _passwordError,
@@ -156,6 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (_passwordError != null) setState(() => _passwordError = null);
                     },
                   ),
+                  const SizedBox(height: 8),
 
                   // Remember Me & Forgot Password Bar
                   Row(

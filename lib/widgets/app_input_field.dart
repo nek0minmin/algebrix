@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 
-/// Clean, crisp rounded (pill-shaped) dynamic text input field widget for Algebrix.
+/// Clean, crisp rounded stadium pill text input field widget for Algebrix
+/// with pink icons, soft off-white fill, and drop shadow matching Figma designs.
 class AppInputField extends StatefulWidget {
   final String? label;
   final String? hintText;
@@ -48,7 +50,7 @@ class AppInputField extends StatefulWidget {
     this.activeFillColor,
     this.focusedBorderColor,
     this.maxLines = 1,
-    this.borderRadius = 30.0,
+    this.borderRadius = 36.0,
   });
 
   @override
@@ -94,16 +96,15 @@ class _AppInputFieldState extends State<AppInputField> {
   Widget build(BuildContext context) {
     final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
 
-    // Crisp white background fill instead of pink fill
     Color effectiveFill;
     if (!widget.enabled) {
       effectiveFill = AppColors.divider.withValues(alpha: 0.3);
     } else if (hasError) {
-      effectiveFill = AppColors.error.withValues(alpha: 0.03);
+      effectiveFill = const Color(0xFFFFF5F5);
     } else if (_isFocused) {
-      effectiveFill = widget.activeFillColor ?? const Color(0xFFFAFAFA);
+      effectiveFill = widget.activeFillColor ?? const Color(0xFFF7F8FA);
     } else {
-      effectiveFill = widget.fillColor ?? Colors.white;
+      effectiveFill = widget.fillColor ?? const Color(0xFFF7F8FA);
     }
 
     Color effectiveBorderColor;
@@ -112,7 +113,7 @@ class _AppInputFieldState extends State<AppInputField> {
     } else if (_isFocused) {
       effectiveBorderColor = widget.focusedBorderColor ?? AppColors.pink;
     } else {
-      effectiveBorderColor = AppColors.border;
+      effectiveBorderColor = const Color(0xFFE2E8F0);
     }
 
     return Column(
@@ -121,43 +122,39 @@ class _AppInputFieldState extends State<AppInputField> {
       children: [
         if (widget.label != null) ...[
           Padding(
-            padding: const EdgeInsets.only(left: 12.0),
+            padding: const EdgeInsets.only(left: 14.0),
             child: Text(
               widget.label!,
-              style: AppTextStyles.subtitle2.copyWith(
+              style: GoogleFonts.nunito(
                 color: hasError
                     ? AppColors.error
                     : (_isFocused ? AppColors.pink : AppColors.text),
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
+                fontSize: 13.5,
               ),
             ),
           ),
           const SizedBox(height: 6),
         ],
         AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 180),
           decoration: BoxDecoration(
             color: effectiveFill,
             borderRadius: BorderRadius.circular(widget.borderRadius),
             border: Border.all(
               color: effectiveBorderColor,
-              width: _isFocused || hasError ? 2.0 : 1.2,
+              width: _isFocused || hasError ? 1.8 : 1.2,
             ),
-            boxShadow: _isFocused
-                ? [
-                    BoxShadow(
-                      color: AppColors.pink.withValues(alpha: 0.12),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+            boxShadow: [
+              BoxShadow(
+                color: _isFocused
+                    ? AppColors.pink.withValues(alpha: 0.16)
+                    : const Color(0x14000000),
+                blurRadius: _isFocused ? 16 : 14,
+                offset: const Offset(0, 5),
+                spreadRadius: 0,
+              ),
+            ],
           ),
           child: TextFormField(
             controller: widget.controller,
@@ -171,20 +168,23 @@ class _AppInputFieldState extends State<AppInputField> {
             onChanged: widget.onChanged,
             onFieldSubmitted: widget.onFieldSubmitted,
             validator: widget.validator,
-            style: AppTextStyles.body1.copyWith(
+            style: GoogleFonts.nunito(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
               color: widget.enabled ? AppColors.text : AppColors.subtitle,
-              fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
               filled: false,
               fillColor: Colors.transparent,
               hintText: widget.hintText,
-              hintStyle: AppTextStyles.body1.copyWith(
-                color: AppColors.subtitle.withValues(alpha: 0.6),
+              hintStyle: GoogleFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF8E9BAE),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 20,
-                vertical: 14,
+                vertical: 16,
               ),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
@@ -193,25 +193,33 @@ class _AppInputFieldState extends State<AppInputField> {
               focusedErrorBorder: InputBorder.none,
               prefixIcon: widget.prefixWidget ??
                   (widget.prefixIcon != null
-                      ? Icon(
-                          widget.prefixIcon,
-                          color: hasError
-                              ? AppColors.error
-                              : (_isFocused ? AppColors.pink : AppColors.subtitle),
-                          size: 22,
+                      ? Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 12),
+                          child: Icon(
+                            widget.prefixIcon,
+                            color: hasError ? AppColors.error : AppColors.pink,
+                            size: 24,
+                          ),
                         )
                       : null),
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 52,
+                minHeight: 24,
+              ),
               suffixIcon: widget.isPassword
-                  ? IconButton(
-                      icon: Icon(
-                        _obscureText
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: _isFocused ? AppColors.pink : AppColors.subtitle,
-                        size: 22,
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: IconButton(
+                        icon: Icon(
+                          _obscureText
+                              ? Icons.visibility_off_rounded
+                              : Icons.visibility_rounded,
+                          color: hasError ? AppColors.error : AppColors.pink,
+                          size: 24,
+                        ),
+                        onPressed: _togglePasswordVisibility,
+                        tooltip: _obscureText ? 'Show password' : 'Hide password',
                       ),
-                      onPressed: _togglePasswordVisibility,
-                      tooltip: _obscureText ? 'Show password' : 'Hide password',
                     )
                   : widget.suffixIcon,
             ),
@@ -220,7 +228,7 @@ class _AppInputFieldState extends State<AppInputField> {
         if (hasError) ...[
           const SizedBox(height: 6),
           Padding(
-            padding: const EdgeInsets.only(left: 14),
+            padding: const EdgeInsets.only(left: 16),
             child: Row(
               children: [
                 const Icon(
