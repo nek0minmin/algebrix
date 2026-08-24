@@ -47,25 +47,66 @@ class _InteractiveChoiceGridState extends State<InteractiveChoiceGrid> {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: List.generate(widget.choices.length, (index) {
-        final choice = widget.choices[index];
-        final isSelected = _selectedIndex == index;
+    int maxLabelLength = 0;
+    for (final c in widget.choices) {
+      if (c.label.length > maxLabelLength) {
+        maxLabelLength = c.label.length;
+      }
+    }
 
-        return FractionallySizedBox(
-          widthFactor: 0.48,
-          child: _ChoiceItem(
-            choice: choice,
-            isAnswered: widget.isAnswered,
-            isEnabled: widget.isEnabled && !_isSubmitting,
-            isSelected: isSelected,
-            isIncorrectSelection: _incorrectSelections.contains(index),
-            onTap: () => unawaited(_handleChoice(index, choice)),
+    // Set uniform minimum height so all options dynamically adjust to match the largest footprint
+    final double uniformMinHeight = maxLabelLength > 40
+        ? 96.0
+        : (maxLabelLength > 20 ? 80.0 : 64.0);
+
+    final rows = <Widget>[];
+    for (int i = 0; i < widget.choices.length; i += 2) {
+      final hasSecond = i + 1 < widget.choices.length;
+      final firstIndex = i;
+      final secondIndex = i + 1;
+
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildChoiceItem(firstIndex, uniformMinHeight),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: hasSecond
+                    ? _buildChoiceItem(secondIndex, uniformMinHeight)
+                    : const SizedBox.shrink(),
+              ),
+            ],
           ),
-        );
-      }),
+        ),
+      );
+      if (i + 2 < widget.choices.length) {
+        rows.add(const SizedBox(height: 12));
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: rows,
+    );
+  }
+
+  Widget _buildChoiceItem(int index, double minHeight) {
+    final choice = widget.choices[index];
+    final isSelected = _selectedIndex == index;
+
+    return _ChoiceItem(
+      choice: choice,
+      isAnswered: widget.isAnswered,
+      isEnabled: widget.isEnabled && !_isSubmitting,
+      isSelected: isSelected,
+      isIncorrectSelection: _incorrectSelections.contains(index),
+      minHeight: minHeight,
+      onTap: () => unawaited(_handleChoice(index, choice)),
     );
   }
 }
@@ -76,6 +117,7 @@ class _ChoiceItem extends StatefulWidget {
   final bool isEnabled;
   final bool isSelected;
   final bool isIncorrectSelection;
+  final double minHeight;
   final VoidCallback onTap;
 
   const _ChoiceItem({
@@ -84,6 +126,7 @@ class _ChoiceItem extends StatefulWidget {
     required this.isEnabled,
     required this.isSelected,
     required this.isIncorrectSelection,
+    required this.minHeight,
     required this.onTap,
   });
 
@@ -178,14 +221,33 @@ class _ChoiceItemState extends State<_ChoiceItem>
             scale: _scaleAnimation,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              constraints: BoxConstraints(minHeight: widget.minHeight),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+              alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: borderColor, width: 2),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: borderColor,
+                  width: (widget.isSelected ||
+                          (widget.isAnswered && widget.isSelected))
+                      ? 2
+                      : 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: (widget.isSelected ||
+                            (widget.isAnswered && widget.isSelected))
+                        ? borderColor.withValues(alpha: 0.15)
+                        : AppColors.shadow.withValues(alpha: 0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (emojiText.isNotEmpty) ...[
                     Text(emojiText, style: const TextStyle(fontSize: 20)),
@@ -194,7 +256,10 @@ class _ChoiceItemState extends State<_ChoiceItem>
                   Expanded(
                     child: Text(
                       widget.choice.label,
-                      style: AppTextStyles.subtitle1,
+                      style: AppTextStyles.subtitle1.copyWith(
+                        color: AppColors.text,
+                        fontWeight: FontWeight.w600,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
