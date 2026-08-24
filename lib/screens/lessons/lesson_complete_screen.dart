@@ -95,17 +95,6 @@ class _LessonCompleteScreenState extends State<LessonCompleteScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Mascot celebration
-                    ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: Image.asset(
-                        AppAssets.xyHappy,
-                        width: 150,
-                        height: 150,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
                     // Title
                     ScaleTransition(
                       scale: _scaleAnimation,
@@ -115,6 +104,7 @@ class _LessonCompleteScreenState extends State<LessonCompleteScreen>
                         style: AppTextStyles.heading1.copyWith(
                           color: AppColors.text,
                           fontWeight: FontWeight.w900,
+                          fontSize: 28,
                         ),
                       ),
                     ),
@@ -127,80 +117,24 @@ class _LessonCompleteScreenState extends State<LessonCompleteScreen>
                         textAlign: TextAlign.center,
                         style: AppTextStyles.subtitle1.copyWith(
                           color: AppColors.textSecondary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 36),
 
-                    // Lesson Completion Card
-                    FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 24,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              AppColors.mint.withValues(alpha: 0.12),
-                              AppColors.lightMint,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: AppColors.mint.withValues(alpha: 0.35),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            const Text('🌟', style: TextStyle(fontSize: 36)),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Concept Mastered!',
-                              style: AppTextStyles.heading1.copyWith(
-                                color: const Color(0xFF0F7263),
-                                fontWeight: FontWeight.w900,
-                                fontSize: 24,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${lesson?.totalSteps ?? 0} interactive steps completed',
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
+                    // Mascot celebration (Centered in the middle of the page)
+                    ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: Image.asset(
+                        AppAssets.xyHappy,
+                        width: 190,
+                        height: 190,
+                        fit: BoxFit.contain,
                       ),
                     ),
-                    const SizedBox(height: 16),
-
-                    // Stats row
-                    FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _StatChip(
-                            icon: Icons.check_circle_rounded,
-                            label: '${lesson?.totalSteps ?? 0} Steps',
-                            color: AppColors.mint,
-                          ),
-                          const SizedBox(width: 12),
-                          const _StatChip(
-                            icon: Icons.verified_rounded,
-                            label: 'Completed',
-                            color: AppColors.purple,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 48),
 
                     // Action buttons
                     FadeTransition(
@@ -353,45 +287,6 @@ class _NextLessonRedirectState extends State<_NextLessonRedirect> {
     return const Scaffold(
       backgroundColor: AppColors.background,
       body: Center(child: CircularProgressIndicator(color: AppColors.pink)),
-    );
-  }
-}
-
-/// Small stat chip widget for the celebration screen.
-class _StatChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  const _StatChip({
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: AppTextStyles.subtitle2.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
