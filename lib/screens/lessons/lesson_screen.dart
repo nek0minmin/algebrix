@@ -908,7 +908,7 @@ class _ModuleLessonIntro extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'ALGEBRA FOUNDATIONS',
+              context.watch<LessonProvider>().currentLesson?.moduleTitle.toUpperCase() ?? 'ALGEBRA',
               textAlign: TextAlign.center,
               style: AppTextStyles.caption.copyWith(
                 color: AppColors.textSecondary,
