@@ -972,21 +972,10 @@ class _ModuleQuizHubCard extends StatelessWidget {
           if (isUnlocked && attempts > 0) ...[
             Row(
               children: [
-                Row(
-                  children: List.generate(3, (index) {
-                    final earned = index < progress.starRating;
-                    return Icon(
-                      earned ? Icons.star_rounded : Icons.star_border_rounded,
-                      size: 20,
-                      color: earned ? AppColors.yellow : AppColors.border,
-                    );
-                  }),
-                ),
-                const SizedBox(width: 8),
                 Text(
                   'Best: $displayScore / $totalQ (${bestPercent.round()}%)',
                   style: GoogleFonts.nunito(
-                    fontSize: 13,
+                    fontSize: 13.5,
                     fontWeight: FontWeight.w800,
                     color: AppColors.text,
                   ),
@@ -994,7 +983,11 @@ class _ModuleQuizHubCard extends StatelessWidget {
                 const Spacer(),
                 Text(
                   '$attempts ${attempts == 1 ? 'attempt' : 'attempts'}',
-                  style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),

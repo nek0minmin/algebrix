@@ -208,7 +208,7 @@ void main() {
 
       // Verify explanation appears right below mascot
       expect(find.text('x is the variable.'), findsOneWidget);
-      expect(find.text('Finish Quiz 🎉'), findsOneWidget);
+      expect(find.text('Finish Quiz'), findsOneWidget);
     });
 
     testWidgets('ModuleQuizScreen renders equation in single-line responsive block when prompt has a colon', (tester) async {

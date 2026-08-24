@@ -27,8 +27,7 @@ class ModuleQuizScreen extends StatefulWidget {
   State<ModuleQuizScreen> createState() => _ModuleQuizScreenState();
 }
 
-class _ModuleQuizScreenState extends State<ModuleQuizScreen>
-    with TickerProviderStateMixin {
+class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
   late final ModuleQuizService _quizService;
 
   bool _isLoading = true;
@@ -43,38 +42,11 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
 
   bool _isFinished = false;
 
-  late AnimationController _loadingAnimController;
-  late Animation<double> _pulseAnimation;
-
   @override
   void initState() {
     super.initState();
     _quizService = widget.quizService ?? ModuleQuizService();
-
-    _loadingAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
-    _pulseAnimation = Tween<double>(begin: 0.96, end: 1.04).animate(
-      CurvedAnimation(
-        parent: _loadingAnimController,
-        curve: Curves.easeInOut,
-      ),
-    );
-
-    final isTesting =
-        WidgetsBinding.instance.runtimeType.toString().contains('Test');
-    if (!isTesting) {
-      _loadingAnimController.repeat(reverse: true);
-    }
-
     _loadQuiz();
-  }
-
-  @override
-  void dispose() {
-    _loadingAnimController.dispose();
-    super.dispose();
   }
 
   bool _isCountingDown = false;
@@ -258,7 +230,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
         break;
       default:
         mascotAsset = AppAssets.xyGo;
-        countLabel = 'GO! 🚀';
+        countLabel = 'GO!';
         countSubtitle = 'Good luck!';
         countColor = AppColors.pink;
         break;
@@ -270,19 +242,11 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) => ScaleTransition(
-                scale: animation,
-                child: child,
-              ),
-              child: Image.asset(
-                mascotAsset,
-                key: ValueKey('countdown-$_countdownStep'),
-                width: 140,
-                height: 140,
-                fit: BoxFit.contain,
-              ),
+            Image.asset(
+              mascotAsset,
+              width: 140,
+              height: 140,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 24),
             Text(
@@ -317,14 +281,11 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ScaleTransition(
-              scale: _pulseAnimation,
-              child: Image.asset(
-                AppAssets.xyLoading,
-                width: 120,
-                height: 120,
-                fit: BoxFit.contain,
-              ),
+            Image.asset(
+              AppAssets.xyLoading,
+              width: 120,
+              height: 120,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 28),
             Text(
@@ -505,22 +466,12 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
                 const SizedBox(height: 16),
 
                 // 3. ONE SINGLE BIG Mascot Picture (Centered, with contrast shadow)
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (child, animation) => ScaleTransition(
-                    scale: CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutBack,
-                    ),
-                    child: child,
-                  ),
-                  child: XyMascot(
-                    key: ValueKey('mascot-$mascotAsset'),
-                    asset: mascotAsset,
-                    size: 155,
-                    shadowBlur: 6.0,
-                    shadowOpacity: 0.22,
-                  ),
+                XyMascot(
+                  key: ValueKey('mascot-$mascotAsset'),
+                  asset: mascotAsset,
+                  size: 155,
+                  shadowBlur: 6.0,
+                  shadowOpacity: 0.22,
                 ),
 
                 // 4. Insight / Mini Explanation (Centered directly below mascot when answered)
@@ -565,13 +516,17 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
               ? PrimaryButton(
                   label: 'Confirm Answer',
                   backgroundColor: AppColors.mint,
+                  icon: Icons.check_rounded,
                   onPressed:
                       _selectedChoiceIndex != null ? _handleConfirmAnswer : null,
                 )
               : PrimaryButton(
                   label: _currentIndex + 1 == total
-                      ? 'Finish Quiz 🎉'
-                      : 'Next Question →',
+                      ? 'Finish Quiz'
+                      : 'Next Question',
+                  icon: _currentIndex + 1 == total
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.arrow_forward_rounded,
                   backgroundColor: AppColors.pink,
                   onPressed: _handleNextQuestion,
                 ),
@@ -812,7 +767,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
                       const SizedBox(width: 8),
                       Text(
                         percent >= 60
-                            ? 'PASSED (≥60% Requirement Met) 🎉'
+                            ? 'PASSED (≥60% Requirement Met)'
                             : 'NEEDS REVIEW (60% Required to Advance)',
                         style: GoogleFonts.nunito(
                           fontSize: 13,
@@ -856,7 +811,8 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
 
           // Action Buttons
           PrimaryButton(
-            label: 'Retake Quiz 🔄',
+            label: 'Retake Quiz',
+            icon: Icons.replay_rounded,
             onPressed: _loadQuiz,
           ),
           const SizedBox(height: 10),
