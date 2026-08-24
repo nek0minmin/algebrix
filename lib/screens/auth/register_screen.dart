@@ -6,6 +6,7 @@ import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/widgets/app_input_field.dart';
+import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/password_strength_checklist.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/screens/auth/login_screen.dart';
@@ -121,19 +122,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       // Log out auto-created session so user lands on Login Screen
       await authProvider.signOut();
 
-      messenger.showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Account created successfully! Please log in to continue. 🎉',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: AppColors.mint,
-          duration: const Duration(seconds: 4),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+      showAlgebrixSnackBar(
+        context,
+        message: 'Account created successfully! Please log in to continue. 🎉',
+        isError: false,
       );
 
       if (navigator.canPop()) {
@@ -144,18 +136,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       }
     } else {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            authProvider.errorMessage ?? 'Registration failed. Please try again.',
-            style: AppTextStyles.body2.copyWith(color: Colors.white),
-          ),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+      showAlgebrixSnackBar(
+        context,
+        message: authProvider.errorMessage ?? 'Registration failed. Please try again.',
+        isError: true,
       );
     }
   }

@@ -117,22 +117,16 @@ class AppTheme {
 
       // ── Input Decoration ────────────────────────────────────────────────
       inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: AppColors.background,
+        filled: false,
+        fillColor: Colors.transparent,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: AppColors.border, width: 0.5),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: AppColors.pink, width: 1.5),
-        ),
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        errorBorder: InputBorder.none,
+        focusedErrorBorder: InputBorder.none,
+        disabledBorder: InputBorder.none,
         hintStyle: GoogleFonts.nunito(
           color: AppColors.subtitle,
           fontSize: 14,

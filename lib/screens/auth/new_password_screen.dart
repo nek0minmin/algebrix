@@ -5,6 +5,7 @@ import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/widgets/app_input_field.dart';
+import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/password_strength_checklist.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/screens/auth/login_screen.dart';
@@ -94,17 +95,10 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
       if (success) {
         _showSuccessDialog();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              authProvider.errorMessage ?? 'Failed to update password. Please try again.',
-            ),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+        showAlgebrixSnackBar(
+          context,
+          message: authProvider.errorMessage ?? 'Failed to update password. Please try again.',
+          isError: true,
         );
       }
     }

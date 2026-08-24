@@ -167,12 +167,14 @@ class LessonProvider extends ChangeNotifier {
 
     if (lesson.steps.isEmpty) return true;
     if (_accountId != null) {
-      // Record initial step entry asynchronously without blocking navigation
-      _recordVisitedStep(
+      final recorded = await _recordVisitedStep(
         lesson: lesson,
         stepIndex: _currentStepIndex,
         answerCorrect: false,
-      ).catchError((_) => false);
+      );
+      if (!recorded) {
+        return false;
+      }
     }
     return true;
   }
@@ -271,20 +273,31 @@ class LessonProvider extends ChangeNotifier {
         answerCorrect: false,
         completing: true,
       );
-      if (result != null) {
-        final completed =
-            result.completionRequirementsMet &&
-            result.progress.status == LessonProgressStatus.completed;
-        if (!completed) {
-          _errorMessage =
-              'Complete each required check before finishing this lesson.';
-          notifyListeners();
-          return false;
-        }
+      if (result == null ||
+          !result.completionRequirementsMet ||
+          result.progress.status != LessonProgressStatus.completed) {
+        _errorMessage ??=
+            'Complete each required check before finishing this lesson.';
+        notifyListeners();
+        return false;
       }
+    } else {
+      _completedLessonIds.add(lesson.lessonId);
+      final now = DateTime.now();
+      _persistedProgress[lesson.lessonId] = LessonProgress(
+        userId: 'guest',
+        moduleId: lesson.moduleId,
+        lessonId: lesson.lessonId,
+        contentVersion: 1,
+        status: LessonProgressStatus.completed,
+        startedAt: _persistedProgress[lesson.lessonId]?.startedAt ?? now,
+        updatedAt: now,
+        lastStepId: lesson.steps.last.id,
+        lastStepIndex: lesson.steps.length - 1,
+        completedAt: now,
+      );
     }
 
-    _completedLessonIds.add(lesson.lessonId);
     _errorMessage = null;
     notifyListeners();
     return true;

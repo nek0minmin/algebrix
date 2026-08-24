@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:algebrix/core/utils/error_formatter.dart';
 import 'package:algebrix/models/user_model.dart';
 
 typedef GoogleSignOut = Future<void> Function();
@@ -458,57 +459,12 @@ class AuthService extends ChangeNotifier {
 
   /// Helper to convert Supabase AuthException to user-friendly messages.
   String _parseAuthException(AuthException e, {required String fallback}) {
-    final msg = e.message;
-    final msgLower = msg.toLowerCase();
-    final statusCode = e.statusCode;
-
-    if (statusCode == '429' ||
-        msgLower.contains('rate limit') ||
-        msgLower.contains('rate_limit') ||
-        msgLower.contains('too many requests') ||
-        msgLower.contains('over_email_send_rate_limit') ||
-        msgLower.contains('rate_limit_exceeded') ||
-        msgLower.contains('over_request_rate_limit') ||
-        msgLower.contains('request limit')) {
-      return 'Rate limit reached. Please wait a moment before trying again.';
-    }
-
-    if (msgLower.contains('unexpected_failure') || msgLower.contains('unexpected failure')) {
-      return 'Supabase Auth requires configuring Custom SMTP or valid email settings. Please verify SMTP setup.';
-    }
-
-    if (msg.trim().isNotEmpty) {
-      return msg;
-    }
-
-    return fallback;
+    return ErrorFormatter.formatAuthError(e);
   }
 
   /// Helper to convert general exceptions to user-friendly messages.
   String _parseGeneralException(Object e, {required String fallback}) {
-    final errStr = e.toString();
-    final errStrLower = errStr.toLowerCase();
-
-    if (errStrLower.contains('429') ||
-        errStrLower.contains('rate limit') ||
-        errStrLower.contains('rate_limit') ||
-        errStrLower.contains('too many requests') ||
-        errStrLower.contains('over_email_send_rate_limit') ||
-        errStrLower.contains('rate_limit_exceeded') ||
-        errStrLower.contains('over_request_rate_limit') ||
-        errStrLower.contains('request limit')) {
-      return 'Rate limit reached. Please wait a moment before trying again.';
-    }
-
-    if (errStrLower.contains('unexpected_failure') || errStrLower.contains('unexpected failure')) {
-      return 'Supabase Auth requires configuring Custom SMTP or valid email settings. Please verify SMTP setup.';
-    }
-
-    if (errStr.startsWith('Exception: ')) {
-      return errStr.substring(11).trim();
-    }
-
-    return fallback;
+    return ErrorFormatter.formatAuthError(e);
   }
 
   /// Sign out the current user.

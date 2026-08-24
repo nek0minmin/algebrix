@@ -5,6 +5,7 @@ import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/widgets/app_input_field.dart';
+import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 
 /// Clean Password Reset Link Screen.
@@ -51,17 +52,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           _isSubmitted = true;
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              authProvider.errorMessage ?? 'Failed to send reset link. Please try again.',
-            ),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+        showAlgebrixSnackBar(
+          context,
+          message: authProvider.errorMessage ?? 'Failed to send reset link. Please try again.',
+          isError: true,
         );
       }
     }

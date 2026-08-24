@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:algebrix/core/utils/error_formatter.dart';
 import 'package:algebrix/models/user_model.dart';
 import 'package:algebrix/services/auth_service.dart';
 
@@ -309,23 +310,6 @@ class AuthProvider extends ChangeNotifier {
   }
 
   String _formatErrorMessage(String error) {
-    final lower = error.toLowerCase();
-    if (lower.contains('429') ||
-        lower.contains('rate limit') ||
-        lower.contains('rate_limit') ||
-        lower.contains('too many requests') ||
-        lower.contains('over_email_send_rate_limit') ||
-        lower.contains('rate_limit_exceeded') ||
-        lower.contains('over_request_rate_limit') ||
-        lower.contains('request limit')) {
-      return 'Rate limit reached. Please wait a moment before trying again.';
-    }
-    if (error.contains('AuthException:')) {
-      return error.replaceAll('AuthException:', '').trim();
-    }
-    if (error.contains('Exception:')) {
-      return error.replaceAll('Exception:', '').trim();
-    }
-    return error;
+    return ErrorFormatter.formatAuthError(error);
   }
 }

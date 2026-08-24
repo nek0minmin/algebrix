@@ -5,6 +5,7 @@ import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/widgets/app_input_field.dart';
+import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/screens/auth/register_screen.dart';
 import 'package:algebrix/screens/auth/forgot_password_screen.dart';
@@ -68,11 +69,10 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (_) => const MainShell()),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Login failed. Please check your credentials.'),
-            backgroundColor: AppColors.error,
-          ),
+        showAlgebrixSnackBar(
+          context,
+          message: authProvider.errorMessage ?? 'Incorrect email or password. Please try again.',
+          isError: true,
         );
       }
     }

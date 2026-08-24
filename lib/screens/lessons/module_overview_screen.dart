@@ -160,53 +160,12 @@ class _ModuleOverviewScreenState extends State<ModuleOverviewScreen>
                     setState(() => _introSeen = true);
                   },
                 ),
-              ] else ...[
-                // Module Title Banner
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.pink.withValues(alpha: 0.08),
-                        AppColors.extraLightPink,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Row(
-                    children: [
-                      XyMascot(
-                        asset: AppAssets.xyLessons,
-                        size: 84,
-                        shadowBlur: 5.0,
-                        shadowOpacity: 0.25,
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Algebra Foundations',
-                              style: AppTextStyles.heading2.copyWith(
-                                color: AppColors.text,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${module.lessons.length} lessons',
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                // Dynamic Module Hero Header Banner
+                _ModuleHeroHeaderBanner(
+                  module: module,
+                  completedCount: module.lessons
+                      .where((l) => lessonProvider.isLessonCompleted(l.lessonId))
+                      .length,
                 ),
 
                 const SizedBox(height: 16),
@@ -861,3 +820,113 @@ class _ModuleQuizPromoCard extends StatelessWidget {
     );
   }
 }
+
+/// Rich, engaging hero banner card for the module overview page.
+class _ModuleHeroHeaderBanner extends StatelessWidget {
+  final ModuleContent module;
+  final int completedCount;
+
+  const _ModuleHeroHeaderBanner({
+    required this.module,
+    required this.completedCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final totalCount = module.lessons.length;
+    final progress = totalCount > 0 ? completedCount / totalCount : 0.0;
+    final isModule2 = module.id == 'module2';
+    final accentColor = isModule2 ? AppColors.purple : AppColors.pink;
+    final moduleNum = isModule2 ? 2 : 1;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            accentColor.withValues(alpha: 0.12),
+            Colors.white,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: accentColor.withValues(alpha: 0.22),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          XyMascot(
+            asset: module.xyAsset ?? AppAssets.xyLessons,
+            size: 96,
+            shadowBlur: 8.0,
+            shadowOpacity: 0.22,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'MODULE $moduleNum',
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: accentColor,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  module.title,
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.text,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '$completedCount of $totalCount lessons completed',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 6,
+                    backgroundColor: AppColors.border,
+                    valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
