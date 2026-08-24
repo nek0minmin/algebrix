@@ -29,7 +29,7 @@ class AiFeedbackResult {
 
   factory AiFeedbackResult.fromJson(
     Map<String, dynamic> json, {
-    required String provider,
+    String? provider,
   }) {
     return AiFeedbackResult(
       title: json['title'] as String? ?? 'Learning Insight',
@@ -45,7 +45,7 @@ class AiFeedbackResult {
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-      providerUsed: provider,
+      providerUsed: provider ?? json['provider'] as String? ?? 'Algebrix AI',
       isCorrect: json['isCorrect'] as bool? ?? true,
     );
   }

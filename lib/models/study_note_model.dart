@@ -67,7 +67,10 @@ class StudyNote {
 
       final jsonString = content.substring(jsonStart, jsonEnd).trim();
       final map = jsonDecode(jsonString) as Map<String, dynamic>;
-      return AiFeedbackResult.fromJson(map, map['provider'] as String? ?? 'Algebrix AI');
+      return AiFeedbackResult.fromJson(
+        map,
+        provider: map['provider'] as String? ?? 'Algebrix AI',
+      );
     } catch (_) {
       return null;
     }
