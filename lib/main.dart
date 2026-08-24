@@ -10,8 +10,10 @@ import 'core/providers/balance_scale_provider.dart';
 import 'core/providers/lesson_provider.dart';
 import 'core/providers/notes_provider.dart';
 import 'core/providers/quest_map_provider.dart';
+import 'core/providers/quiz_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'models/lesson_progress_model.dart';
+import 'models/module_quiz_progress_model.dart';
 import 'models/quest_map_model.dart';
 import 'models/study_note_model.dart';
 import 'services/ai_tutor_service.dart';
@@ -19,6 +21,7 @@ import 'services/auth_service.dart';
 import 'services/notes_repository.dart';
 import 'services/progress_repository.dart';
 import 'services/quest_repository.dart';
+import 'services/quiz_repository.dart';
 import 'screens/splash/splash_screen.dart';
 
 void main() async {
@@ -81,6 +84,7 @@ class AlgebrixApp extends StatelessWidget {
         ),
         Provider<NotesRepository>(create: (_) => _createNotesRepository()),
         Provider<QuestRepository>(create: (_) => _createQuestRepository()),
+        Provider<QuizRepository>(create: (_) => _createQuizRepository()),
         ChangeNotifierProxyProvider2<
           AuthProvider,
           ProgressRepository,
@@ -127,6 +131,21 @@ class AlgebrixApp extends StatelessWidget {
             return provider;
           },
         ),
+        ChangeNotifierProxyProvider2<
+          AuthProvider,
+          QuizRepository,
+          QuizProvider
+        >(
+          create: (context) => QuizProvider(
+            repository: context.read<QuizRepository>(),
+          ),
+          update: (context, authProvider, repository, quizProvider) {
+            final provider =
+                quizProvider ?? QuizProvider(repository: repository);
+            provider.bindAccount(authProvider.currentUser?.id);
+            return provider;
+          },
+        ),
       ],
       child: MaterialApp(
         title: 'Algebrix',
@@ -159,6 +178,49 @@ QuestRepository _createQuestRepository() {
     return SupabaseQuestRepository();
   } catch (_) {
     return const _UnavailableQuestRepository();
+  }
+}
+
+QuizRepository _createQuizRepository() {
+  try {
+    return SupabaseQuizRepository();
+  } catch (_) {
+    return const _UnavailableQuizRepository();
+  }
+}
+
+class _UnavailableQuizRepository implements QuizRepository {
+  const _UnavailableQuizRepository();
+
+  @override
+  Future<List<ModuleQuizProgress>> fetchAllQuizProgress() => Future.value([]);
+
+  @override
+  Future<ModuleQuizProgress?> fetchQuizProgress(String moduleId) =>
+      Future.value(null);
+
+  @override
+  Future<ModuleQuizProgress> saveQuizResult({
+    required String moduleId,
+    required int score,
+    required int totalQuestions,
+  }) {
+    final percentage =
+        totalQuestions > 0 ? (score / totalQuestions) * 100 : 0.0;
+    return Future.value(
+      ModuleQuizProgress(
+        userId: 'offline_user',
+        moduleId: moduleId,
+        highScore: score,
+        totalQuestions: totalQuestions,
+        bestPercentage: percentage,
+        passed: percentage >= 60.0,
+        attemptsCount: 1,
+        lastScore: score,
+        lastPercentage: percentage,
+        lastAttemptAt: DateTime.now(),
+      ),
+    );
   }
 }
 

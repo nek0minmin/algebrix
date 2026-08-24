@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
+import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
 import 'package:algebrix/screens/lessons/lesson_screen.dart';
+import 'package:algebrix/screens/quiz/quiz_hub_screen.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/widgets/page_headers.dart';
@@ -26,6 +29,9 @@ class _LessonsScreenState extends State<LessonsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final quizProvider = context.watch<QuizProvider>();
+    final isModule2Unlocked = quizProvider.isModuleUnlocked('module2');
+
     final allLessons = [...module1.lessons, ...module2.lessons];
     final filteredLessons = _searchQuery.isEmpty
         ? <LessonContent>[]
@@ -49,6 +55,20 @@ class _LessonsScreenState extends State<LessonsScreen> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
             child: Column(
               children: [
+                // 🎯 Module Quizzes & Mastery Banner
+                if (_searchQuery.isEmpty) ...[
+                  _QuizHubBannerCard(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const QuizHubScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
                 if (_searchQuery.isNotEmpty) ...[
                   if (filteredLessons.isEmpty)
                     Container(
@@ -91,22 +111,39 @@ class _LessonsScreenState extends State<LessonsScreen> {
 
                 const SizedBox(height: 16),
 
-                // Module 2 — Working with Expressions (Active)
-                _ModuleCard(
-                  module: module2,
-                  moduleNumber: 2,
-                  accentColor: AppColors.purple,
-                  isLocked: false,
-                  onTap: () {
-                    final lessonProvider = context.read<LessonProvider>();
-                    lessonProvider.startModule(module2);
-                    Navigator.of(context).push(
-                      AppPageRoute(
-                        child: const ModuleOverviewScreen(),
-                      ),
-                    );
-                  },
-                ),
+                // Module 2 — Working with Expressions (Dynamic Unlock)
+                if (isModule2Unlocked)
+                  _ModuleCard(
+                    module: module2,
+                    moduleNumber: 2,
+                    accentColor: AppColors.purple,
+                    isLocked: false,
+                    onTap: () {
+                      final lessonProvider = context.read<LessonProvider>();
+                      lessonProvider.startModule(module2);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const ModuleOverviewScreen(),
+                        ),
+                      );
+                    },
+                  )
+                else
+                  _LockedModuleCard(
+                    title: module2.title,
+                    description: 'Pass Module 1 Quiz with at least 60% to unlock.',
+                    moduleNumber: 2,
+                    icon: '📐',
+                    accentColor: AppColors.purple,
+                    onTapLocked: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Score at least 60% on the Module 1 Quiz to unlock Module 2!'),
+                          backgroundColor: AppColors.pink,
+                        ),
+                      );
+                    },
+                  ),
 
                 const SizedBox(height: 16),
 
@@ -295,44 +332,54 @@ class _ModuleCard extends StatelessWidget {
   }
 }
 
-/// Locked module card with greyed-out lock indicator.
-class _LockedModuleCard extends StatelessWidget {
-  final String title;
-  final String description;
-  final int moduleNumber;
-  final String icon;
-  final Color accentColor;
+/// Banner card linking to the dedicated Quiz Hub screen.
+class _QuizHubBannerCard extends StatelessWidget {
+  final VoidCallback onTap;
 
-  const _LockedModuleCard({
-    required this.title,
-    required this.description,
-    required this.moduleNumber,
-    required this.icon,
-    required this.accentColor,
-  });
+  const _QuizHubBannerCard({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: 0.5,
+    return BouncyPressable(
+      shrinkFactor: 0.97,
+      enableHaptics: true,
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.border, width: 1),
+          gradient: const LinearGradient(
+            colors: [AppColors.lightPurple, Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.purple.withValues(alpha: 0.3),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.purple.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.divider,
-                borderRadius: BorderRadius.circular(14),
+              width: 44,
+              height: 44,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
               ),
-              child: Center(
-                child: Text(icon, style: const TextStyle(fontSize: 24)),
+              child: const Center(
+                child: Icon(
+                  Icons.psychology_rounded,
+                  color: AppColors.purple,
+                  size: 24,
+                ),
               ),
             ),
             const SizedBox(width: 14),
@@ -340,34 +387,139 @@ class _LockedModuleCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'MODULE $moduleNumber',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.subtitle,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Quizzes & Mastery',
+                          style: GoogleFonts.nunito(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.text,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.purple,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'QUIZ HUB',
+                          style: GoogleFonts.nunito(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
                   Text(
-                    title,
-                    style: AppTextStyles.subtitle1.copyWith(
-                      color: AppColors.text,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    description,
+                    'Score ≥60% on quizzes to unlock new modules',
                     style: AppTextStyles.caption.copyWith(
-                      color: AppColors.subtitle,
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.lock_rounded, size: 22, color: AppColors.subtitle),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: AppColors.purple,
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Locked module card with greyed-out lock indicator.
+class _LockedModuleCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final int moduleNumber;
+  final String icon;
+  final Color accentColor;
+  final VoidCallback? onTapLocked;
+
+  const _LockedModuleCard({
+    required this.title,
+    required this.description,
+    required this.moduleNumber,
+    required this.icon,
+    required this.accentColor,
+    this.onTapLocked,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyPressable(
+      shrinkFactor: 0.98,
+      enableHaptics: true,
+      onTap: onTapLocked,
+      child: Opacity(
+        opacity: 0.65,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.border, width: 1),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: Text(icon, style: const TextStyle(fontSize: 24)),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'MODULE $moduleNumber',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.subtitle,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      title,
+                      style: AppTextStyles.subtitle1.copyWith(
+                        color: AppColors.text,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.subtitle,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.lock_rounded, size: 22, color: AppColors.subtitle),
+            ],
+          ),
         ),
       ),
     );

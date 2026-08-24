@@ -5,6 +5,7 @@ import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
+import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/lesson/xy_speech_bubble.dart';
@@ -684,100 +685,176 @@ class _ModuleQuizPromoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lessonProvider = context.watch<LessonProvider>();
+    final quizProvider = context.watch<QuizProvider>();
+
+    final isUnlocked = quizProvider.isQuizUnlocked(module.id, lessonProvider);
+    final quizProgress = quizProvider.getQuizProgress(module.id);
+    final completedLessons = lessonProvider.completedLessonsInModule(module.id);
+    final totalLessons = module.lessons.length;
+    final hasPassed = quizProgress.passed;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onStartQuiz,
+        onTap: isUnlocked
+            ? onStartQuiz
+            : () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Complete all ${module.title} lessons ($completedLessons/$totalLessons) to unlock the Quiz!',
+                    ),
+                    backgroundColor: AppColors.pink,
+                  ),
+                );
+              },
         borderRadius: BorderRadius.circular(20),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: AppColors.purple.withValues(alpha: 0.4),
-              width: 1.5,
+        child: Opacity(
+          opacity: isUnlocked ? 1.0 : 0.7,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isUnlocked
+                    ? (hasPassed
+                        ? AppColors.mint
+                        : AppColors.purple.withValues(alpha: 0.4))
+                    : AppColors.border,
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isUnlocked
+                      ? (hasPassed
+                          ? AppColors.mint.withValues(alpha: 0.08)
+                          : AppColors.purple.withValues(alpha: 0.08))
+                      : AppColors.shadow,
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.purple.withValues(alpha: 0.08),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: AppColors.lightPurple,
-                  shape: BoxShape.circle,
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isUnlocked ? AppColors.lightPurple : AppColors.divider,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isUnlocked
+                        ? Icons.psychology_rounded
+                        : Icons.lock_outline_rounded,
+                    color: isUnlocked ? AppColors.purple : AppColors.subtitle,
+                    size: 26,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.psychology_rounded,
-                  color: AppColors.purple,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'AI Module Quiz',
-                            style: GoogleFonts.nunito(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.text,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'AI Module Quiz',
+                              style: GoogleFonts.nunito(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.text,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.lightMint,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '+150 XP',
-                            style: GoogleFonts.nunito(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              color: const Color(0xFF0F7263),
+                          const SizedBox(width: 8),
+                          if (hasPassed)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.lightMint,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'Passed (${quizProgress.formattedBestPercentage})',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF0F7263),
+                                ),
+                              ),
+                            )
+                          else if (isUnlocked)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.extraLightPink,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'Ready to Take',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.darkPink,
+                                ),
+                              ),
+                            )
+                          else
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.divider,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'Locked ($completedLessons/$totalLessons)',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.subtitle,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '15 Dynamic Questions • Progressive Difficulty',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        isUnlocked
+                            ? '10 Dynamic Questions • Progressive Difficulty'
+                            : 'Complete all $totalLessons lessons to unlock this quiz',
+                        style: GoogleFonts.nunito(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: AppColors.purple,
-              ),
-            ],
+                Icon(
+                  isUnlocked
+                      ? Icons.arrow_forward_ios_rounded
+                      : Icons.lock_rounded,
+                  size: 16,
+                  color: isUnlocked ? AppColors.purple : AppColors.subtitle,
+                ),
+              ],
+            ),
           ),
         ),
       ),

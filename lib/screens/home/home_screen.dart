@@ -23,13 +23,14 @@ import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/screens/auth/login_screen.dart';
 import 'package:algebrix/screens/lessons/lesson_screen.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
-import 'package:algebrix/screens/practice/balance_scale_screen.dart';
+import 'package:algebrix/screens/quiz/quiz_hub_screen.dart';
 import 'package:algebrix/screens/practice/quiz_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/screens/notes/note_detail_screen.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/screens/practice/quest_map_screen.dart';
+import 'package:algebrix/screens/practice/balance_scale_screen.dart';
 import 'package:algebrix/core/animations/app_page_route.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
 
@@ -199,11 +200,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: '🧠',
                           accentColor: AppColors.purple,
                           onTap: () {
-                            final targetModule =
-                                lessonProvider.currentModule ?? module1;
                             Navigator.of(context).push(
                               AppPageRoute(
-                                child: ModuleQuizScreen(module: targetModule),
+                                child: const QuizHubScreen(),
                               ),
                             );
                           },

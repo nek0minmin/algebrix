@@ -69,8 +69,8 @@ class ModuleQuizQuestion {
       correctIndex = 0;
     }
 
-    // Determine progressive difficulty based on question index (1-15)
-    final diff = index <= 5 ? 1 : (index <= 10 ? 2 : 3);
+    // Determine progressive difficulty based on question index (1-10)
+    final diff = index <= 3 ? 1 : (index <= 7 ? 2 : 3);
 
     return ModuleQuizQuestion(
       id: json['id'] as String? ?? 'q_$index',

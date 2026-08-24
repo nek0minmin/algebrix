@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_model.dart';
 import 'package:algebrix/services/module_quiz_service.dart';
+import 'package:algebrix/services/quiz_repository.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 
 class _StubQuizService extends ModuleQuizService {
@@ -31,41 +34,94 @@ class _StubQuizService extends ModuleQuizService {
   }
 }
 
+class _StubEquationQuizService extends ModuleQuizService {
+  @override
+  Future<ModuleQuiz> generateQuiz({required ModuleContent module}) async {
+    return ModuleQuiz(
+      moduleId: module.id,
+      moduleTitle: module.title,
+      questions: const [
+        ModuleQuizQuestion(
+          id: 'q1',
+          subLessonTitle: 'Combining Like Terms',
+          question: 'Simplify the expression by combining like terms: 6k + 4 − 2k + 9',
+          type: QuizQuestionType.multipleChoice,
+          options: ['4k + 13', '8k + 13', '4k + 5'],
+          correctIndex: 0,
+          explanation: 'Group like terms: (6k − 2k) + (4 + 9) = 4k + 13.',
+          difficulty: 3,
+        ),
+      ],
+      generatedAt: DateTime.now(),
+      providerUsed: 'Test Stub',
+    );
+  }
+}
+
 void main() {
   group('ModuleQuiz Models and Generation', () {
     final quizService = ModuleQuizService();
 
-    test('Module 1 generates exactly 15 progressive items covering sub-lessons', () async {
+    test('Module 1 generates exactly 10 progressive items strictly within Module 1 scope', () async {
       final quiz = await quizService.generateQuiz(module: module1);
 
       expect(quiz.moduleId, 'module1');
-      expect(quiz.questions.length, 15);
+      expect(quiz.questions.length, 10);
 
-      for (var i = 0; i < 5; i++) {
+      // Verify difficulty progression (3 Foundations, 4 Procedural, 3 Mastery)
+      for (var i = 0; i < 3; i++) {
         expect(quiz.questions[i].difficulty, 1);
       }
-      for (var i = 5; i < 10; i++) {
+      for (var i = 3; i < 7; i++) {
         expect(quiz.questions[i].difficulty, 2);
       }
-      for (var i = 10; i < 15; i++) {
+      for (var i = 7; i < 10; i++) {
         expect(quiz.questions[i].difficulty, 3);
+      }
+
+      // Verify negative constant question in Module 1 Seed Bank (Q2)
+      final qConstant = quiz.questions.firstWhere(
+        (q) => q.question.contains('9y − 12') || q.question.contains('constant'),
+      );
+      expect(qConstant.options[qConstant.correctIndex], '−12');
+
+      // Verify strict scope: NO distributive property, NO combining like terms, NO substitution
+      for (final q in quiz.questions) {
+        final lowerQ = q.question.toLowerCase();
+        final lowerSub = q.subLessonTitle.toLowerCase();
+
+        expect(lowerQ, isNot(contains('distributive')));
+        expect(lowerQ, isNot(contains('combine like terms')));
+        expect(lowerQ, isNot(contains('like terms')));
+        expect(lowerQ, isNot(contains('commutative')));
+        expect(lowerQ, isNot(contains('associative')));
+        expect(lowerSub, isNot(contains('distributive')));
+        expect(lowerSub, isNot(contains('like terms')));
       }
     });
 
-    test('Module 2 generates exactly 15 progressive items covering sub-lessons', () async {
+    test('Module 2 generates exactly 10 progressive items strictly within Module 2 scope', () async {
       final quiz = await quizService.generateQuiz(module: module2);
 
       expect(quiz.moduleId, 'module2');
-      expect(quiz.questions.length, 15);
+      expect(quiz.questions.length, 10);
 
-      for (var i = 0; i < 5; i++) {
+      for (var i = 0; i < 3; i++) {
         expect(quiz.questions[i].difficulty, 1);
       }
-      for (var i = 5; i < 10; i++) {
+      for (var i = 3; i < 7; i++) {
         expect(quiz.questions[i].difficulty, 2);
       }
-      for (var i = 10; i < 15; i++) {
+      for (var i = 7; i < 10; i++) {
         expect(quiz.questions[i].difficulty, 3);
+      }
+
+      // Verify strict scope: all questions must be expressions/like terms/distributive/properties/evaluation
+      for (final q in quiz.questions) {
+        final lowerQ = q.question.toLowerCase();
+        expect(lowerQ, isNot(contains('what is a variable')));
+        expect(lowerQ, isNot(contains('what is a constant')));
+        expect(lowerQ, isNot(contains('what is an algebraic expression')));
       }
     });
 
@@ -112,11 +168,16 @@ void main() {
 
   group('ModuleQuizScreen Widget Tests', () {
     testWidgets('ModuleQuizScreen shows loading state, question, option selection, and explanation', (tester) async {
+      final quizProvider = QuizProvider(repository: MemoryQuizRepository());
+
       await tester.pumpWidget(
-        MaterialApp(
-          home: ModuleQuizScreen(
-            module: module1,
-            quizService: _StubQuizService(),
+        ChangeNotifierProvider<QuizProvider>.value(
+          value: quizProvider,
+          child: MaterialApp(
+            home: ModuleQuizScreen(
+              module: module1,
+              quizService: _StubQuizService(),
+            ),
           ),
         ),
       );
@@ -148,6 +209,31 @@ void main() {
       // Verify explanation appears right below mascot
       expect(find.text('x is the variable.'), findsOneWidget);
       expect(find.text('Finish Quiz 🎉'), findsOneWidget);
+    });
+
+    testWidgets('ModuleQuizScreen renders equation in single-line responsive block when prompt has a colon', (tester) async {
+      final quizProvider = QuizProvider(repository: MemoryQuizRepository());
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<QuizProvider>.value(
+          value: quizProvider,
+          child: MaterialApp(
+            home: ModuleQuizScreen(
+              module: module2,
+              quizService: _StubEquationQuizService(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Prompt part is separated cleanly
+      expect(find.text('Simplify the expression by combining like terms:'), findsOneWidget);
+
+      // Math equation is in dedicated single-line block
+      expect(find.text('6k + 4 − 2k + 9'), findsOneWidget);
+      expect(find.byType(FittedBox), findsWidgets);
     });
   });
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
+import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_model.dart';
 import 'package:algebrix/services/module_quiz_service.dart';
@@ -174,11 +176,19 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
       setState(() {
         _isFinished = true;
       });
+      final total = _quiz?.questions.length ?? 10;
+      try {
+        context.read<QuizProvider>().recordQuizResult(
+          moduleId: widget.module.id,
+          score: _correctCount,
+          totalQuestions: total,
+        );
+      } catch (_) {}
     }
   }
 
   int get _starRating {
-    final total = _quiz?.questions.length ?? 15;
+    final total = _quiz?.questions.length ?? 10;
     final percent = total > 0 ? (_correctCount / total) * 100 : 0;
     if (percent >= 80) return 3;
     if (percent >= 60) return 2;
@@ -328,7 +338,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
             ),
             const SizedBox(height: 10),
             Text(
-              'Synthesizing 15 progressive questions from ${widget.module.title}',
+              'Synthesizing 10 progressive questions from ${widget.module.title}',
               style: GoogleFonts.nunito(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -678,7 +688,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
 
   // ── 4. Victory & Mastery Review Screen ─────────────────────────────────────
   Widget _buildVictoryScreen() {
-    final total = _quiz?.questions.length ?? 15;
+    final total = _quiz?.questions.length ?? 10;
     final percent = total > 0 ? ((_correctCount / total) * 100).round() : 0;
 
     return SingleChildScrollView(
@@ -772,31 +782,44 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
                 ),
                 const SizedBox(height: 16),
 
-                // XP Reward Chip
+                // Pass / Fail Requirement Chip
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 8,
+                    vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.lightMint,
+                    color: percent >= 60
+                        ? AppColors.lightMint
+                        : AppColors.extraLightPink,
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: percent >= 60
+                          ? AppColors.mint.withValues(alpha: 0.5)
+                          : AppColors.pink.withValues(alpha: 0.5),
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.bolt_rounded,
-                        color: AppColors.mint,
+                      Icon(
+                        percent >= 60
+                            ? Icons.check_circle_rounded
+                            : Icons.info_outline_rounded,
+                        color: percent >= 60 ? AppColors.mint : AppColors.darkPink,
                         size: 20,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Text(
-                        '+150 XP Earned!',
+                        percent >= 60
+                            ? 'PASSED (≥60% Requirement Met) 🎉'
+                            : 'NEEDS REVIEW (60% Required to Advance)',
                         style: GoogleFonts.nunito(
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFF0F7263),
+                          color: percent >= 60
+                              ? const Color(0xFF0F7263)
+                              : AppColors.darkPink,
                         ),
                       ),
                     ],
@@ -940,6 +963,15 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
     'number', 'numbers', 'letter', 'letters', 'phrase', 'phrases', 'group', 'groups',
   };
 
+  bool _looksLikeMathExpression(String text) {
+    final t = text.trim();
+    if (t.isEmpty) return false;
+    // Contains math operators, powers, variables with coefficients, or algebraic symbols
+    return RegExp(r'[+\−\-\×\*\÷\/\=\<\>\^\(\)\[\]²³]').hasMatch(t) ||
+        RegExp(r'\d+[a-zA-Z]').hasMatch(t) ||
+        (t.length <= 20 && RegExp(r'\d').hasMatch(t));
+  }
+
   bool _isMathToken(String rawToken) {
     final token = rawToken.trim();
     if (token.isEmpty) return false;
@@ -1011,10 +1043,12 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
           ),
         );
       } else if (isMath) {
-        // Dark gray for numbers, equations, operations, and variables
+        // Dark gray for numbers, equations, operations, and variables.
+        // Using non-breaking spaces ensures math terms never break mid-token.
+        final nonBreakingMath = cleanText.replaceAll(' ', '\u00A0');
         spans.add(
           TextSpan(
-            text: cleanText,
+            text: nonBreakingMath,
             style: GoogleFonts.nunito(
               fontSize: fontSize,
               fontWeight: FontWeight.w800,
@@ -1045,6 +1079,56 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen>
   }
 
   Widget _buildRichQuestionPrompt(String questionText) {
+    final colonIndex = questionText.indexOf(':');
+
+    // If the question contains a colon and the trailing segment is an equation/expression
+    if (colonIndex != -1) {
+      final promptPart = questionText.substring(0, colonIndex + 1).trim();
+      final mathPart = questionText.substring(colonIndex + 1).trim();
+
+      if (mathPart.isNotEmpty && _looksLikeMathExpression(mathPart)) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Prompt Text
+            Text.rich(
+              TextSpan(children: _parseMathSpans(promptPart, fontSize: 17)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+
+            // Dedicated Single-Line Responsive Equation Card (Never wraps across lines)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.lightPurple.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.purple.withValues(alpha: 0.25),
+                  width: 1.2,
+                ),
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  mathPart,
+                  style: GoogleFonts.nunito(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF222428),
+                    letterSpacing: 0.5,
+                  ),
+                  maxLines: 1,
+                  softWrap: false,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+    }
+
     final spans = _parseMathSpans(questionText, fontSize: 18.5);
 
     return Text.rich(

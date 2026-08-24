@@ -132,7 +132,7 @@ class _LessonCompleteScreenState extends State<LessonCompleteScreen>
                     ),
                     const SizedBox(height: 32),
 
-                    // XP Earned Card
+                    // Lesson Completion Card
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: Container(
@@ -143,33 +143,33 @@ class _LessonCompleteScreenState extends State<LessonCompleteScreen>
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              AppColors.yellow.withValues(alpha: 0.15),
-                              AppColors.lightYellow,
+                              AppColors.mint.withValues(alpha: 0.12),
+                              AppColors.lightMint,
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: AppColors.yellow.withValues(alpha: 0.3),
+                            color: AppColors.mint.withValues(alpha: 0.35),
                             width: 1.5,
                           ),
                         ),
                         child: Column(
                           children: [
-                            const Text('⭐', style: TextStyle(fontSize: 36)),
+                            const Text('🌟', style: TextStyle(fontSize: 36)),
                             const SizedBox(height: 8),
                             Text(
-                              '+$xpEarned XP',
+                              'Concept Mastered!',
                               style: AppTextStyles.heading1.copyWith(
-                                color: AppColors.text,
+                                color: const Color(0xFF0F7263),
                                 fontWeight: FontWeight.w900,
-                                fontSize: 32,
+                                fontSize: 24,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Experience earned',
+                              '${lesson?.totalSteps ?? 0} interactive steps completed',
                               style: AppTextStyles.caption.copyWith(
                                 color: AppColors.textSecondary,
                               ),
@@ -192,10 +192,10 @@ class _LessonCompleteScreenState extends State<LessonCompleteScreen>
                             color: AppColors.mint,
                           ),
                           const SizedBox(width: 12),
-                          _StatChip(
-                            icon: Icons.stars_rounded,
-                            label: '$xpEarned XP',
-                            color: AppColors.yellow,
+                          const _StatChip(
+                            icon: Icons.verified_rounded,
+                            label: 'Completed',
+                            color: AppColors.purple,
                           ),
                         ],
                       ),

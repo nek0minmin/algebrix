@@ -6,6 +6,7 @@ import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/screens/practice/quest_map_screen.dart';
+import 'package:algebrix/screens/quiz/quiz_hub_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
@@ -66,12 +67,19 @@ class PracticeScreen extends StatelessWidget {
                       key: const Key('practice-mode-quiz'),
                       icon: Icons.psychology_rounded,
                       title: 'AI Module Quiz',
-                      subtitle: '15 Progressive Questions',
+                      subtitle: '10 Progressive Questions',
                       description:
                           'Test your mastery across all module lessons with dynamic, AI-generated multiple choice and true/false questions.',
                       isPrimary: false,
                       badgeText: 'AI POWERED',
-                      onTap: () => _showModuleSelectionSheet(context),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          AppPageRoute(
+                            child: const QuizHubScreen(),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -140,7 +148,7 @@ class PracticeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                'Choose a module to generate 15 progressive quiz questions.',
+                'Choose a module to generate 10 progressive quiz questions.',
                 style: GoogleFonts.nunito(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
@@ -237,7 +245,7 @@ class PracticeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${module.lessons.length} Sub-lessons • 15 Questions',
+                    '${module.lessons.length} Sub-lessons • 10 Questions',
                     style: GoogleFonts.nunito(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,

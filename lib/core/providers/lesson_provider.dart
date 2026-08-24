@@ -167,12 +167,12 @@ class LessonProvider extends ChangeNotifier {
 
     if (lesson.steps.isEmpty) return true;
     if (_accountId != null) {
-      final saved = await _recordVisitedStep(
+      // Record initial step entry asynchronously without blocking navigation
+      _recordVisitedStep(
         lesson: lesson,
         stepIndex: _currentStepIndex,
         answerCorrect: false,
-      );
-      if (!saved) return false;
+      ).catchError((_) => false);
     }
     return true;
   }
@@ -374,6 +374,22 @@ class LessonProvider extends ChangeNotifier {
 
   bool isLessonCompleted(String lessonId) =>
       _completedLessonIds.contains(lessonId);
+
+  /// Returns true only if all content-bearing lessons in the module are completed.
+  bool isModuleCompleted(String moduleId) {
+    final module = moduleId == 'module1' ? module1 : (moduleId == 'module2' ? module2 : null);
+    if (module == null || module.lessons.isEmpty) return false;
+    final relevantLessons = module.lessons.where((l) => l.steps.isNotEmpty);
+    if (relevantLessons.isEmpty) return false;
+    return relevantLessons.every((l) => _completedLessonIds.contains(l.lessonId));
+  }
+
+  /// Returns the count of completed lessons in the given module.
+  int completedLessonsInModule(String moduleId) {
+    final module = moduleId == 'module1' ? module1 : (moduleId == 'module2' ? module2 : null);
+    if (module == null) return 0;
+    return module.lessons.where((l) => _completedLessonIds.contains(l.lessonId)).length;
+  }
 
   LessonProgress? progressForLesson(String lessonId) =>
       _persistedProgress[lessonId];

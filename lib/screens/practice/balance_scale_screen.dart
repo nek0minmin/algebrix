@@ -2389,33 +2389,33 @@ class _ReasoningAndCelebrationDialogState
           // Rewards Pods
           Row(
             children: [
-              // XP Pod
+              // Stars Pod
               Expanded(
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.lightMint,
+                    color: AppColors.lightYellow,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.mint.withValues(alpha: 0.35),
+                      color: AppColors.yellow.withValues(alpha: 0.4),
                     ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(
-                        Icons.bolt_rounded,
-                        color: AppColors.mint,
+                        Icons.star_rounded,
+                        color: AppColors.yellow,
                         size: 20,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '+${provider.xpEarned} XP',
+                        '${provider.starRating} Stars',
                         style: GoogleFonts.nunito(
-                          fontSize: 15,
+                          fontSize: 14.5,
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFF0F7263),
+                          color: const Color(0xFF8C6600),
                         ),
                       ),
                     ],

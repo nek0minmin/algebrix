@@ -2,6 +2,7 @@ import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/core/providers/notes_provider.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
+import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/models/lesson_progress_model.dart';
 import 'package:algebrix/models/quest_map_model.dart';
 import 'package:algebrix/models/study_note_model.dart';
@@ -11,6 +12,7 @@ import 'package:algebrix/services/auth_service.dart';
 import 'package:algebrix/services/notes_repository.dart';
 import 'package:algebrix/services/progress_repository.dart';
 import 'package:algebrix/services/quest_repository.dart';
+import 'package:algebrix/services/quiz_repository.dart';
 import 'package:algebrix/widgets/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -200,6 +202,7 @@ void main() {
     final lessonProvider = LessonProvider(repository: _FakeProgressRepository());
     final notesProvider = NotesProvider(repository: _FakeNotesRepository());
     final questProvider = QuestMapProvider(repository: _FakeQuestRepository());
+    final quizProvider = QuizProvider(repository: MemoryQuizRepository());
 
     await tester.pumpWidget(
       MultiProvider(
@@ -208,6 +211,7 @@ void main() {
           ChangeNotifierProvider<LessonProvider>.value(value: lessonProvider),
           ChangeNotifierProvider<NotesProvider>.value(value: notesProvider),
           ChangeNotifierProvider<QuestMapProvider>.value(value: questProvider),
+          ChangeNotifierProvider<QuizProvider>.value(value: quizProvider),
         ],
         child: const MaterialApp(
           home: MainShell(),
