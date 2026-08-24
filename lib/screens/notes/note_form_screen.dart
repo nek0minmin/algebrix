@@ -118,7 +118,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     final currentFeedback = aiProvider?.currentFeedback;
 
     final isAiDetectedOffTopic = currentFeedback != null &&
-        (currentFeedback.isCorrect == false ||
+        (currentFeedback.providerUsed == 'Algebrix Topic Guard' ||
             currentFeedback.title.toLowerCase().contains('focus on algebra') ||
             currentFeedback.message.toLowerCase().contains('recipe') ||
             currentFeedback.message.toLowerCase().contains('lumpia') ||

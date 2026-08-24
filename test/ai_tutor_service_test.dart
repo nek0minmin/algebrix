@@ -103,5 +103,22 @@ void main() {
       expect(result.title, contains('Learning Nudge'));
       expect(result.providerUsed, 'Offline Knowledge');
     });
+
+    test('isOffTopicText correctly identifies math notes vs off-topic content', () {
+      final service = AiTutorService();
+
+      // Math worked examples with mistakes should NOT be off-topic
+      expect(service.isOffTopicText('Problem: 3x + 4 = 16\nMy answer:\nx = 16'), isFalse);
+      expect(service.isOffTopicText('2x + 5 = 15 -> 2x = 20 -> x = 10'), isFalse);
+
+      // Verbal algebra reflections should NOT be off-topic
+      expect(service.isOffTopicText('To isolate the variable, perform inverse operations on both sides'), isFalse);
+      expect(service.isOffTopicText('Commutative property states that the order of addition does not matter'), isFalse);
+      expect(service.isOffTopicText('Like terms share the exact same variable part'), isFalse);
+
+      // True off-topic notes SHOULD be detected as off-topic
+      expect(service.isOffTopicText('My delicious lumpia recipe with ground pork and wrappers'), isTrue);
+      expect(service.isOffTopicText('How to bake chocolate chip cookies in the oven with sugar and flour'), isTrue);
+    });
   });
 }

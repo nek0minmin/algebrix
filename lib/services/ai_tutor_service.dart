@@ -206,37 +206,50 @@ CRITICAL RULES:
     final lower = userPrompt.toLowerCase().trim();
     if (lower.length < 10) return false;
 
-    // Explicit off-topic keywords (food, recipes, games, pop culture)
+    // Explicit non-educational / non-math keywords (food recipes, gaming, entertainment)
     final offTopicKeywords = [
       'lumpia', 'ice cream', 'recipe', 'pizza', 'burger', 'milk', 'sugar',
-      'cook', 'bake', 'ingredient', 'food', 'playstation', 'xbox', 'nintendo',
-      'fifa', 'fortnite', 'minecraft', 'movie', 'song', 'music',
-      'restaurant', 'hotel', 'car', 'dog', 'cat', 'sleep', 'party',
+      'cook', 'bake', 'ingredient', 'ingredients', 'playstation', 'xbox', 'nintendo',
+      'fifa', 'fortnite', 'minecraft', 'roblox', 'tiktok', 'movie', 'song', 'music',
+      'restaurant', 'hotel', 'anime', 'party',
     ];
 
     final hasOffTopicKeyword = offTopicKeywords.any((kw) => lower.contains(kw));
 
-    // Math symbols check (=, +, -, *, /, ^, <, >)
-    final hasMathSymbols = RegExp(r'[=\+\-\*\/\^<>]').hasMatch(lower);
+    // Math symbols, numbers, and algebraic variable check (=, +, -, *, /, ^, <, >, (, ), [, ], {, }, ×, ÷, ±, √, π, %, numbers, single letters)
+    final hasMathSymbols = RegExp(r'[=\+\-\*\/\^<>×÷±√π\(\)\[\]\{\}%]').hasMatch(lower) ||
+        RegExp(r'\b\d+\b').hasMatch(lower) ||
+        RegExp(r'\b[xynabckm]\b').hasMatch(lower);
 
-    // Specific math vocabulary terms
+    // Comprehensive algebra & math vocabulary terms
     final mathTerms = [
-      'equation', 'variable', 'algebra', 'constant', 'coefficient',
-      'term', 'expression', 'subtract', 'divide', 'multiply',
-      'linear', 'quadratic', 'slope', 'intercept', 'factor',
-      'fraction', 'decimal', 'exponent', 'formula', 'ratio',
-      'polynomial', 'binomial', 'trinomial', 'inequality', 'solving',
-      'isolate', 'inverse', 'operation',
+      'algebra', 'math', 'equation', 'expression', 'variable', 'constant', 'coefficient',
+      'term', 'terms', 'unknown', 'value', 'solve', 'solving', 'solution', 'problem',
+      'example', 'step', 'steps', 'check', 'answer', 'question', 'add', 'addition',
+      'plus', 'subtract', 'subtraction', 'minus', 'multiply', 'multiplication', 'times',
+      'divide', 'division', 'fraction', 'decimal', 'negative', 'positive', 'sign', 'signs',
+      'equal', 'equals', 'zero', 'like terms', 'unlike terms', 'combine', 'combining',
+      'distribute', 'distributive', 'parentheses', 'bracket', 'brackets', 'pemdas',
+      'order of operations', 'isolate', 'isolating', 'inverse', 'operation', 'operations',
+      'balance', 'balanced', 'both sides', 'left side', 'right side', 'substitute',
+      'substitution', 'evaluate', 'evaluation', 'simplify', 'simplifying', 'commutative',
+      'associative', 'identity', 'property', 'properties', 'linear', 'quadratic', 'slope',
+      'intercept', 'factor', 'factoring', 'exponent', 'exponents', 'power', 'ratio',
+      'polynomial', 'binomial', 'trinomial', 'inequality', 'algebrix', 'xy', 'lesson',
+      'quiz', 'practice', 'rule', 'rules', 'formula',
     ];
 
     final hasMathTerm = mathTerms.any((term) => lower.contains(term));
 
-    // If it contains explicit off-topic keywords without math terms, it's OFF TOPIC
-    if (hasOffTopicKeyword && !hasMathTerm) return true;
+    // If it has math terms or math symbols/variables, it is MATH RELATED (NOT off topic)
+    if (hasMathTerm || hasMathSymbols) {
+      return false;
+    }
 
-    // If it has no math symbols and no math terms, it's OFF TOPIC
-    if (!hasMathSymbols && !hasMathTerm) return true;
+    // Only flag if it explicitly contains off-topic keywords without any math content
+    if (hasOffTopicKeyword) return true;
 
+    // Otherwise, allow student reflections and notes without false blocking
     return false;
   }
 
