@@ -94,5 +94,15 @@ void main() {
     // Module 1 is locked because 0/6 lessons are completed
     expect(find.text('Complete all 6 Module 1 lessons'), findsOneWidget);
     expect(find.text('Tap to view lessons (0/6)'), findsOneWidget);
+
+    // Expand analytics breakdown
+    expect(find.text('View Detailed Breakdown'), findsOneWidget);
+    await tester.tap(find.text('View Detailed Breakdown'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hide Detailed Breakdown'), findsOneWidget);
+    expect(find.text('Total Plays'), findsOneWidget);
+    expect(find.text('Passes'), findsOneWidget);
+    expect(find.text('Retries / Fails'), findsOneWidget);
   });
 }

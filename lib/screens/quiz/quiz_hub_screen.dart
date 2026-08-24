@@ -10,6 +10,7 @@ import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
+import 'package:algebrix/models/module_quiz_progress_model.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
@@ -17,7 +18,8 @@ import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
 
 /// Dedicated Quiz Hub & Mastery Screen featuring rich Xy hero artwork (xy-quiz.png),
-/// aggregated performance analytics, and module quiz progression without heavy gray buttons.
+/// aggregated performance analytics with expandable per-quiz breakdown (play/fail counts),
+/// and module quiz progression without heavy gray buttons.
 class QuizHubScreen extends StatelessWidget {
   const QuizHubScreen({super.key});
 
@@ -26,6 +28,9 @@ class QuizHubScreen extends StatelessWidget {
     final quizProvider = context.watch<QuizProvider>();
     final lessonProvider = context.watch<LessonProvider>();
     final analytics = quizProvider.analytics;
+
+    final m1Progress = quizProvider.getQuizProgress('module1');
+    final m2Progress = quizProvider.getQuizProgress('module2');
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -77,8 +82,24 @@ class QuizHubScreen extends StatelessWidget {
                   _QuizHeroBannerCard(),
                   const SizedBox(height: 20),
 
-                  // ── 3. Performance Analytics Dashboard Card ───────────────
-                  _AnalyticsSummaryCard(analytics: analytics),
+                  // ── 3. Performance Analytics Dashboard (Expandable) ───────
+                  _AnalyticsSummaryCard(
+                    analytics: analytics,
+                    moduleProgresses: [
+                      _QuizBreakdownItem(
+                        moduleNumber: 1,
+                        title: module1.title,
+                        progress: m1Progress,
+                        isUnlocked: quizProvider.isQuizUnlocked('module1', lessonProvider),
+                      ),
+                      _QuizBreakdownItem(
+                        moduleNumber: 2,
+                        title: module2.title,
+                        progress: m2Progress,
+                        isUnlocked: quizProvider.isQuizUnlocked('module2', lessonProvider),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 24),
 
                   // ── 4. Section Header ─────────────────────────────────────
@@ -118,7 +139,7 @@ class QuizHubScreen extends StatelessWidget {
                     moduleNumber: 1,
                     accentColor: AppColors.pink,
                     isUnlocked: quizProvider.isQuizUnlocked('module1', lessonProvider),
-                    progress: quizProvider.getQuizProgress('module1'),
+                    progress: m1Progress,
                     completedLessons: lessonProvider.completedLessonsInModule('module1'),
                     totalLessons: module1.lessons.length,
                     unlockRequirement: 'Complete all 6 Module 1 lessons',
@@ -146,7 +167,7 @@ class QuizHubScreen extends StatelessWidget {
                     moduleNumber: 2,
                     accentColor: AppColors.purple,
                     isUnlocked: quizProvider.isQuizUnlocked('module2', lessonProvider),
-                    progress: quizProvider.getQuizProgress('module2'),
+                    progress: m2Progress,
                     completedLessons: lessonProvider.completedLessonsInModule('module2'),
                     totalLessons: module2.lessons.length,
                     unlockRequirement: !quizProvider.isModuleUnlocked('module2')
@@ -201,6 +222,20 @@ class QuizHubScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _QuizBreakdownItem {
+  final int moduleNumber;
+  final String title;
+  final ModuleQuizProgress progress;
+  final bool isUnlocked;
+
+  const _QuizBreakdownItem({
+    required this.moduleNumber,
+    required this.title,
+    required this.progress,
+    required this.isUnlocked,
+  });
 }
 
 /// Hero Banner featuring prominent Xy Quiz illustration
@@ -295,19 +330,31 @@ class _QuizHeroBannerCard extends StatelessWidget {
   }
 }
 
-/// Hero Analytics Overview Card with prominent Xy artwork
-class _AnalyticsSummaryCard extends StatelessWidget {
-  final dynamic analytics;
+/// Hero Analytics Overview Card with expandable per-quiz breakdown
+class _AnalyticsSummaryCard extends StatefulWidget {
+  final QuizAnalyticsSummary analytics;
+  final List<_QuizBreakdownItem> moduleProgresses;
 
-  const _AnalyticsSummaryCard({required this.analytics});
+  const _AnalyticsSummaryCard({
+    required this.analytics,
+    this.moduleProgresses = const [],
+  });
+
+  @override
+  State<_AnalyticsSummaryCard> createState() => _AnalyticsSummaryCardState();
+}
+
+class _AnalyticsSummaryCardState extends State<_AnalyticsSummaryCard> {
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
-    final rawAccuracy = (analytics.overallAccuracyPercentage as num).toDouble();
+    final rawAccuracy = widget.analytics.overallAccuracyPercentage;
     final accuracy = rawAccuracy.clamp(0.0, 100.0);
-    final passedCount = analytics.totalQuizzesPassed as int;
-    final attempts = analytics.totalAttempts as int;
-    final mastery = analytics.masteryLevel as String;
+    final passedCount = widget.analytics.totalQuizzesPassed;
+    final attempts = widget.analytics.totalAttempts;
+    final fails = widget.analytics.totalFails;
+    final mastery = widget.analytics.masteryLevel;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -401,8 +448,319 @@ class _AnalyticsSummaryCard extends StatelessWidget {
               ),
             ],
           ),
+
+          // ── Expandable Analytics Breakdown Toggle ────────────────────────
+          const SizedBox(height: 14),
+          BouncyPressable(
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: _isExpanded ? AppColors.extraLightPink : AppColors.background,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: _isExpanded ? AppColors.lightPink : AppColors.border,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.analytics_outlined,
+                    size: 18,
+                    color: _isExpanded ? AppColors.darkPink : AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _isExpanded ? 'Hide Detailed Breakdown' : 'View Detailed Breakdown',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: _isExpanded ? AppColors.darkPink : AppColors.text,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    _isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                    color: _isExpanded ? AppColors.darkPink : AppColors.textSecondary,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Expanded Per-Quiz Breakdown Content ──────────────────────────
+          if (_isExpanded) ...[
+            const SizedBox(height: 14),
+            // Overall play / fail pills
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _SummaryPill(
+                    icon: Icons.sports_esports_rounded,
+                    label: 'Total Plays',
+                    count: '$attempts',
+                    color: AppColors.purple,
+                  ),
+                  Container(width: 1, height: 20, color: AppColors.divider),
+                  _SummaryPill(
+                    icon: Icons.check_circle_rounded,
+                    label: 'Passes',
+                    count: '$passedCount',
+                    color: AppColors.mint,
+                  ),
+                  Container(width: 1, height: 20, color: AppColors.divider),
+                  _SummaryPill(
+                    icon: Icons.replay_rounded,
+                    label: 'Retries / Fails',
+                    count: '$fails',
+                    color: AppColors.pink,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Per Quiz List
+            ...widget.moduleProgresses.map((item) {
+              final p = item.progress;
+              final hasAttempted = p.hasAttempted;
+              final isPassed = p.passed;
+              final bestPercent = p.bestPercentage.round().clamp(0, 100);
+              final displayScore = p.displayHighScore;
+              final totalQ = p.totalQuestions;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isPassed ? AppColors.mint.withValues(alpha: 0.5) : AppColors.border,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Module ${item.moduleNumber}',
+                          style: GoogleFonts.nunito(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.purple,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.text,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (isPassed)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.lightMint,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Passed ($bestPercent%)',
+                              style: GoogleFonts.nunito(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF0F7263),
+                              ),
+                            ),
+                          )
+                        else if (hasAttempted)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.extraLightPink,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Retried ($bestPercent%)',
+                              style: GoogleFonts.nunito(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.darkPink,
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.divider,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              item.isUnlocked ? 'Ready' : 'Locked',
+                              style: GoogleFonts.nunito(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.subtitle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (hasAttempted)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _MiniStat(
+                            label: 'Best Score',
+                            value: '$displayScore / $totalQ ($bestPercent%)',
+                            icon: Icons.star_rounded,
+                            iconColor: AppColors.yellow,
+                          ),
+                          _MiniStat(
+                            label: 'Play Count',
+                            value: '${p.playCount} attempts',
+                            icon: Icons.play_arrow_rounded,
+                            iconColor: AppColors.purple,
+                          ),
+                          _MiniStat(
+                            label: 'Fail Count',
+                            value: '${p.failCount} retries',
+                            icon: Icons.replay_rounded,
+                            iconColor: AppColors.pink,
+                          ),
+                        ],
+                      )
+                    else
+                      Text(
+                        item.isUnlocked
+                            ? 'Not taken yet. Ready to start!'
+                            : 'Locked. Complete previous lessons to unlock.',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _SummaryPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String count;
+  final Color color;
+
+  const _SummaryPill({
+    required this.icon,
+    required this.label,
+    required this.count,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              count,
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: AppColors.text,
+              ),
+            ),
+            Text(
+              label,
+              style: GoogleFonts.nunito(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color iconColor;
+
+  const _MiniStat({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: iconColor),
+        const SizedBox(width: 4),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              style: GoogleFonts.nunito(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
+              ),
+            ),
+            Text(
+              label,
+              style: GoogleFonts.nunito(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -453,7 +811,7 @@ class _ModuleQuizHubCard extends StatelessWidget {
   final int moduleNumber;
   final Color accentColor;
   final bool isUnlocked;
-  final dynamic progress;
+  final ModuleQuizProgress progress;
   final int completedLessons;
   final int totalLessons;
   final String unlockRequirement;
@@ -475,11 +833,11 @@ class _ModuleQuizHubCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasPassed = progress.passed as bool;
-    final highScore = progress.highScore as int;
-    final bestPercent = (progress.bestPercentage as num).toDouble().clamp(0.0, 100.0);
-    final attempts = progress.attemptsCount as int;
-    final totalQ = progress.totalQuestions as int;
+    final hasPassed = progress.passed;
+    final displayScore = progress.displayHighScore;
+    final bestPercent = progress.bestPercentage.clamp(0.0, 100.0);
+    final attempts = progress.attemptsCount;
+    final totalQ = progress.totalQuestions;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -626,7 +984,7 @@ class _ModuleQuizHubCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Best: ${highScore.clamp(0, totalQ)} / $totalQ (${bestPercent.round()}%)',
+                  'Best: $displayScore / $totalQ (${bestPercent.round()}%)',
                   style: GoogleFonts.nunito(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,

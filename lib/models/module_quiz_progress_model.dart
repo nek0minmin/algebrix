@@ -31,8 +31,24 @@ class ModuleQuizProgress {
   /// Returns true if this quiz has been taken at least once.
   bool get hasAttempted => attemptsCount > 0;
 
-  /// Formatted best accuracy percentage string (e.g., '87%').
-  String get formattedBestPercentage => '${bestPercentage.round()}%';
+  /// Effective high score scaled and normalized to the current totalQuestions (e.g. 8 out of 10).
+  int get displayHighScore {
+    if (bestPercentage <= 0) return 0;
+    final scaled = ((bestPercentage / 100.0) * totalQuestions).round();
+    return scaled.clamp(0, totalQuestions);
+  }
+
+  /// Play count (number of times the quiz was attempted).
+  int get playCount => attemptsCount;
+
+  /// Fail / retry count (attempts that did not meet the 60% passing mark).
+  int get failCount => (attemptsCount - (passed ? 1 : 0)).clamp(0, attemptsCount);
+
+  /// Pass count (1 if completed and passed, 0 otherwise).
+  int get passCount => passed ? 1 : 0;
+
+  /// Formatted best accuracy percentage string (e.g., '80%').
+  String get formattedBestPercentage => '${bestPercentage.round().clamp(0, 100)}%';
 
   /// Star rating (1-3 stars) based on best accuracy.
   int get starRating {
@@ -107,6 +123,7 @@ class QuizAnalyticsSummary {
     required this.totalCorrectAnswers,
     required this.overallAccuracyPercentage,
     required this.totalAttempts,
+    required this.totalFails,
     required this.masteryLevel,
   });
 
@@ -116,6 +133,7 @@ class QuizAnalyticsSummary {
   final int totalCorrectAnswers;
   final double overallAccuracyPercentage;
   final int totalAttempts;
+  final int totalFails;
   final String masteryLevel;
 
   factory QuizAnalyticsSummary.fromProgressList(List<ModuleQuizProgress> progressList) {
@@ -127,6 +145,7 @@ class QuizAnalyticsSummary {
         totalCorrectAnswers: 0,
         overallAccuracyPercentage: 0.0,
         totalAttempts: 0,
+        totalFails: 0,
         masteryLevel: 'Novice Explorer',
       );
     }
@@ -136,13 +155,15 @@ class QuizAnalyticsSummary {
     int totalQuestions = 0;
     int totalCorrect = 0;
     int totalAttemptsSum = 0;
+    int totalFailsSum = 0;
 
     for (final p in progressList) {
       if (p.hasAttempted) {
         attemptedCount++;
-        totalAttemptsSum += p.attemptsCount;
+        totalAttemptsSum += p.playCount;
+        totalFailsSum += p.failCount;
         totalQuestions += p.totalQuestions;
-        totalCorrect += p.highScore;
+        totalCorrect += p.displayHighScore;
       }
       if (p.passed) {
         passedCount++;
@@ -150,7 +171,7 @@ class QuizAnalyticsSummary {
     }
 
     final overallAccuracy = totalQuestions > 0
-        ? (totalCorrect / totalQuestions) * 100
+        ? ((totalCorrect / totalQuestions) * 100).clamp(0.0, 100.0)
         : 0.0;
 
     String level = 'Novice Explorer';
@@ -169,6 +190,7 @@ class QuizAnalyticsSummary {
       totalCorrectAnswers: totalCorrect,
       overallAccuracyPercentage: overallAccuracy,
       totalAttempts: totalAttemptsSum,
+      totalFails: totalFailsSum,
       masteryLevel: level,
     );
   }
