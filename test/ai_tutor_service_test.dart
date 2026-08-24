@@ -117,6 +117,8 @@ void main() {
       expect(service.isOffTopicText('Like terms share the exact same variable part'), isFalse);
 
       // True off-topic notes SHOULD be detected as off-topic
+      expect(service.isOffTopicText('like\nI like watermelons and strawberries'), isTrue);
+      expect(service.isOffTopicText('like\nI hate watermelons and strawberries'), isTrue);
       expect(service.isOffTopicText('My delicious lumpia recipe with ground pork and wrappers'), isTrue);
       expect(service.isOffTopicText('How to bake chocolate chip cookies in the oven with sugar and flour'), isTrue);
     });

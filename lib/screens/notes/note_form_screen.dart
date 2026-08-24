@@ -85,12 +85,15 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     if (aiProvider == null) return;
     FocusManager.instance.primaryFocus?.unfocus();
 
+    final lessonLabel = noteLessonOptionFor(_lessonId ?? '')?.label ?? 'Algebra';
+    final topicContext = title.isNotEmpty ? '$title (Lesson: $lessonLabel)' : lessonLabel;
+
     if (content.toLowerCase().contains('problem') || content.contains('=')) {
-      await aiProvider.checkWorkedExample(problem: title.isEmpty ? 'Equation' : title, solution: content);
+      await aiProvider.checkWorkedExample(problem: topicContext, solution: content);
     } else if (content.toLowerCase().contains('question') || content.endsWith('?')) {
-      await aiProvider.getSocraticHint(question: content);
+      await aiProvider.getSocraticHint(question: '$content (Context: $topicContext)');
     } else {
-      await aiProvider.evaluateExplanation(topic: title.isEmpty ? 'Algebra' : title, explanation: content);
+      await aiProvider.evaluateExplanation(topic: topicContext, explanation: content);
     }
   }
 
@@ -104,6 +107,8 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
     final service = AiTutorService();
     final rawContent = _contentController.text.trim();
+    final rawTitle = _titleController.text.trim();
+    final combinedNoteText = '$rawTitle\n$rawContent';
 
     final notesProvider = context.read<NotesProvider>();
     final aiProvider = context.read<AiNotesProvider?>();
@@ -115,10 +120,11 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
             currentFeedback.message.toLowerCase().contains('recipe') ||
             currentFeedback.message.toLowerCase().contains('lumpia') ||
             currentFeedback.message.toLowerCase().contains('food') ||
-            currentFeedback.message.toLowerCase().contains('ice cream'));
+            currentFeedback.message.toLowerCase().contains('ice cream') ||
+            currentFeedback.keyConcept == 'Algebrix Topic Boundary');
 
     // Check if the note content or AI feedback indicates off-topic
-    if (service.isOffTopicText(rawContent) || isAiDetectedOffTopic) {
+    if (service.isOffTopicText(combinedNoteText) || isAiDetectedOffTopic) {
       final confirm = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => Dialog(

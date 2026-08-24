@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
-/// Structured AI feedback result generated for Xy mascot.
+/// Data model representing structured educational feedback from Xy AI tutor.
 class AiFeedbackResult {
   final String title;
   final String message;
@@ -12,8 +12,8 @@ class AiFeedbackResult {
   final String? keyConcept;
   final String? promptForStudent;
   final List<String> suggestions;
-  final bool isCorrect;
   final String providerUsed;
+  final bool isCorrect;
 
   const AiFeedbackResult({
     required this.title,
@@ -23,14 +23,17 @@ class AiFeedbackResult {
     this.keyConcept,
     this.promptForStudent,
     this.suggestions = const [],
-    this.isCorrect = true,
     required this.providerUsed,
+    this.isCorrect = true,
   });
 
-  factory AiFeedbackResult.fromJson(Map<String, dynamic> json, String provider) {
+  factory AiFeedbackResult.fromJson(
+    Map<String, dynamic> json, {
+    required String provider,
+  }) {
     return AiFeedbackResult(
-      title: json['title'] as String? ?? '🐙 Xy Insights',
-      message: json['message'] as String? ?? 'Great effort in reviewing this problem!',
+      title: json['title'] as String? ?? 'Learning Insight',
+      message: json['message'] as String? ?? 'Keep exploring and practicing math!',
       steps: (json['steps'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
@@ -42,48 +45,75 @@ class AiFeedbackResult {
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-      isCorrect: json['isCorrect'] as bool? ?? true,
       providerUsed: provider,
+      isCorrect: json['isCorrect'] as bool? ?? true,
     );
   }
 }
 
-/// Service powering AI-Assisted Study Notes using Groq & NVIDIA APIs.
+/// Service handling intelligent LLM tutoring with Groq -> NVIDIA NIM multi-tier fallback.
 class AiTutorService {
   final http.Client _client;
 
   AiTutorService({http.Client? client}) : _client = client ?? http.Client();
 
-  String get _groqApiKey => dotenv.env['GROQ_API_KEY'] ?? '';
+  String get _groqApiKey {
+    try {
+      return dotenv.isInitialized ? (dotenv.env['GROQ_API_KEY'] ?? '') : '';
+    } catch (_) {
+      return '';
+    }
+  }
 
-  String get _nvidiaApiKey => dotenv.env['NVIDIA_API_KEY'] ?? '';
+  String get _nvidiaApiKey {
+    try {
+      return dotenv.isInitialized
+          ? (dotenv.env['NVIDIA_NIM_API_KEY'] ??
+              dotenv.env['NVIDIA_API_KEY'] ??
+              '')
+          : '';
+    } catch (_) {
+      return '';
+    }
+  }
 
-  /// 📖 Worked Example: Analyzes student solution steps for inverse operations & correctness.
+  /// 📝 Worked Example Verification: Validates student's self-written step-by-step solutions.
   Future<AiFeedbackResult> checkWorkedExample({
     required String problem,
     required String solution,
   }) async {
     final systemPrompt = '''
-You are Xy, the friendly octopus algebra tutor in Algebrix.
-A student solved a math problem. Verify their work.
-Rule: Be concise. Do NOT include emoji in "title". Wrap ALL math numbers, variables, and expressions in **bold** (e.g. **2x + 5 = 15**, **+5**, **x = 5**).
-Provide clear step-by-step bullet points in "steps" (do NOT prefix with "Step 1", just the action).
+You are Xy, the supportive octopus tutor in Algebrix.
+The student submitted a worked example for an algebra problem: $problem.
+
+CRITICAL TOPIC RELEVANCE RULES:
+1. Algebrix is strictly an ALGEBRA learning app.
+2. If the submission is off-topic (e.g. food recipes, personal preferences like "I like watermelons", gaming, non-math text), you MUST return:
+{
+  "isCorrect": false,
+  "title": "Let's focus on Algebra!",
+  "message": "Xy is your dedicated algebra tutor! Please share an algebra equation or worked step to get insights.",
+  "keyConcept": "Algebrix Topic Boundary"
+}
+3. For algebra worked examples, verify the mathematical steps. Wrap ALL numbers, variables, and math operations in **bold** (e.g. **+4**, **3x**, **16**, **x = 4**).
+4. Do NOT include emoji in "title". Provide 2-3 clear step-by-step bullet points in "steps" (do NOT prefix with "Step 1", just the action).
+
 Return JSON ONLY with exact keys:
 {
   "isCorrect": boolean,
-  "title": "Looks good!" or "Let's check step by step!",
-  "message": "1 short sentence overview",
-  "steps": ["Subtract **5** from both sides (**2x = 10**)", "Divide both sides by **2** (**x = 5**)"],
-  "whyItWorks": "Inverse operations keep the scale balanced",
-  "keyConcept": "The main takeaway rule"
+  "title": "Looks good!" or "Let's check step by step!" or "Let's focus on Algebra!",
+  "message": "Friendly summary feedback",
+  "steps": ["Step 1 description", "Step 2 description"],
+  "whyItWorks": "Mathematical intuition or rule (e.g. Inverse operations isolate the variable)",
+  "keyConcept": "Concept name (e.g. Subtraction Property of Equality)"
 }
 ''';
 
-    final userPrompt = 'Problem: $problem\nStudent Solution:\n$solution';
+    final userPrompt = 'Algebra Problem: $problem\nStudent Solution Steps: $solution';
     return _callAiWithFallback(systemPrompt: systemPrompt, userPrompt: userPrompt);
   }
 
-  /// 🐛 Mistake Reflection: Identifies misconceptions without giving away answers.
+  /// 🔍 Mistake Diagnosis: Pinpoints mathematical misconceptions constructively.
   Future<AiFeedbackResult> diagnoseMistake({
     required String problem,
     required String incorrectAnswer,
@@ -139,19 +169,32 @@ Return JSON ONLY with exact keys:
     required String studentExplanation,
   }) async {
     final systemPrompt = '''
-You are Xy, the algebra tutor in Algebrix.
-The student tried to explain a concept ($topic) in their own words.
-Rule: Do NOT include emoji in "title". Evaluate if they grasped the core intuition.
+You are Xy, the expert algebra tutor in Algebrix.
+The student is writing a study note explaining an ALGEBRA concept ($topic).
+
+CRITICAL TOPIC RELEVANCE RULES:
+1. Algebrix is strictly an ALGEBRA learning app.
+2. If the student's text is off-topic (e.g. personal preferences like "I like watermelons and strawberries" or "I hate watermelons", food, games, everyday dictionary meanings of words like "like"), you MUST return:
+{
+  "isCorrect": false,
+  "title": "Let's focus on Algebra!",
+  "message": "Xy is your dedicated algebra tutor! This note doesn't seem to be about algebra or mathematics. Try writing about algebra concepts like **like terms**, **variables**, **equations**, or **inverse operations**!",
+  "keyConcept": "Algebrix Topic Boundary"
+}
+3. If the student is explaining an ALGEBRA concept (e.g. like terms, variables, equations, constants, PEMDAS, properties of operations, distributive property), evaluate whether they grasped the mathematical intuition and return constructive feedback.
+4. Wrap all numbers, variables, and mathematical terms in **bold**.
+5. Do NOT include emoji in "title".
+
 Return JSON ONLY with exact keys:
 {
   "isCorrect": boolean,
-  "title": "You're on the right track!" or "Almost there!",
-  "message": "Friendly constructive feedback on their explanation",
-  "keyConcept": "Core rule or intuition"
+  "title": "You're on the right track!" or "Almost there!" or "Let's focus on Algebra!",
+  "message": "Friendly constructive feedback on their algebra explanation",
+  "keyConcept": "Core algebraic rule or intuition"
 }
 ''';
 
-    final userPrompt = 'Topic: $topic\nStudent Explanation: $studentExplanation';
+    final userPrompt = 'Algebra Topic: $topic\nStudent Note/Explanation: $studentExplanation';
     return _callAiWithFallback(systemPrompt: systemPrompt, userPrompt: userPrompt);
   }
 
@@ -204,52 +247,65 @@ CRITICAL RULES:
 
   bool isOffTopicText(String userPrompt) {
     final lower = userPrompt.toLowerCase().trim();
-    if (lower.length < 10) return false;
+    if (lower.length < 5) return false;
 
-    // Explicit non-educational / non-math keywords (food recipes, gaming, entertainment)
+    // Explicit non-educational / non-math keywords (food recipes, fruits, dining, entertainment)
     final offTopicKeywords = [
       'lumpia', 'ice cream', 'recipe', 'pizza', 'burger', 'milk', 'sugar',
-      'cook', 'bake', 'ingredient', 'ingredients', 'playstation', 'xbox', 'nintendo',
-      'fifa', 'fortnite', 'minecraft', 'roblox', 'tiktok', 'movie', 'song', 'music',
-      'restaurant', 'hotel', 'anime', 'party',
+      'cook', 'bake', 'baking', 'ingredient', 'ingredients', 'watermelon', 'watermelons',
+      'strawberry', 'strawberries', 'fruit', 'fruits', 'apple', 'apples', 'banana',
+      'bananas', 'mango', 'mangoes', 'delicious', 'tasty', 'snack', 'food', 'meat',
+      'pork', 'chicken', 'beef', 'dinner', 'lunch', 'breakfast', 'playstation', 'xbox',
+      'nintendo', 'fifa', 'fortnite', 'minecraft', 'roblox', 'tiktok', 'movie', 'song',
+      'music', 'restaurant', 'hotel', 'anime', 'party', 'girlfriend', 'boyfriend',
     ];
 
     final hasOffTopicKeyword = offTopicKeywords.any((kw) => lower.contains(kw));
 
-    // Math symbols, numbers, and algebraic variable check (=, +, -, *, /, ^, <, >, (, ), [, ], {, }, ×, ÷, ±, √, π, %, numbers, single letters)
-    final hasMathSymbols = RegExp(r'[=\+\-\*\/\^<>×÷±√π\(\)\[\]\{\}%]').hasMatch(lower) ||
-        RegExp(r'\b\d+\b').hasMatch(lower) ||
-        RegExp(r'\b[xynabckm]\b').hasMatch(lower);
+    // True mathematical operators and structural syntax (=, +, -, *, /, ^, <, >, (, ), [, ], {, }, ×, ÷, ±, √, π, %, or explicit numbers in expressions)
+    final hasMathSymbols = RegExp(r'[=\+\-\*\/\^<>×÷±√π%]').hasMatch(lower) ||
+        RegExp(r'\d+\s*[a-z]|[a-z]\s*[=\+\-\*\/]\s*\d+|\d+\s*[=\+\-\*\/]\s*\d+').hasMatch(lower);
 
-    // Comprehensive algebra & math vocabulary terms
-    final mathTerms = [
-      'algebra', 'math', 'equation', 'expression', 'variable', 'constant', 'coefficient',
-      'term', 'terms', 'unknown', 'value', 'solve', 'solving', 'solution', 'problem',
-      'example', 'step', 'steps', 'check', 'answer', 'question', 'add', 'addition',
-      'plus', 'subtract', 'subtraction', 'minus', 'multiply', 'multiplication', 'times',
-      'divide', 'division', 'fraction', 'decimal', 'negative', 'positive', 'sign', 'signs',
-      'equal', 'equals', 'zero', 'like terms', 'unlike terms', 'combine', 'combining',
-      'distribute', 'distributive', 'parentheses', 'bracket', 'brackets', 'pemdas',
-      'order of operations', 'isolate', 'isolating', 'inverse', 'operation', 'operations',
-      'balance', 'balanced', 'both sides', 'left side', 'right side', 'substitute',
-      'substitution', 'evaluate', 'evaluation', 'simplify', 'simplifying', 'commutative',
-      'associative', 'identity', 'property', 'properties', 'linear', 'quadratic', 'slope',
-      'intercept', 'factor', 'factoring', 'exponent', 'exponents', 'power', 'ratio',
-      'polynomial', 'binomial', 'trinomial', 'inequality', 'algebrix', 'xy', 'lesson',
-      'quiz', 'practice', 'rule', 'rules', 'formula',
+    // Unambiguous, domain-specific algebra multi-word phrases and technical terminology
+    final unambiguousMathTerms = [
+      'like terms', 'unlike terms', 'combining like terms', 'combine like terms',
+      'distributive property', 'order of operations', 'pemdas', 'inverse operation',
+      'inverse operations', 'isolate the variable', 'isolate x', 'isolate y',
+      'algebra', 'algebraic', 'coefficient', 'polynomial', 'binomial', 'trinomial',
+      'monomial', 'quadratic', 'linear equation', 'system of equations',
+      'constant term', 'solve for x', 'solve for y', 'balance scale',
+      'commutative property', 'associative property', 'identity property',
+      'properties of operations', 'variable', 'variables', 'equation', 'equations',
+      'expression', 'expressions', 'inequality', 'inequalities', 'substitution',
     ];
 
-    final hasMathTerm = mathTerms.any((term) => lower.contains(term));
+    final hasUnambiguousMath = unambiguousMathTerms.any((term) => lower.contains(term));
 
-    // If it has math terms or math symbols/variables, it is MATH RELATED (NOT off topic)
-    if (hasMathTerm || hasMathSymbols) {
+    // If it contains explicit off-topic terms and lacks unambiguous math terms or symbols:
+    if (hasOffTopicKeyword && !hasUnambiguousMath && !hasMathSymbols) {
+      return true;
+    }
+
+    // Check if the prompt has ANY math terms or math symbols
+    if (hasUnambiguousMath || hasMathSymbols) {
       return false;
     }
 
-    // Only flag if it explicitly contains off-topic keywords without any math content
+    // Single contextual math words (matched with word boundaries to avoid false substring triggers)
+    final singleMathWords = [
+      'math', 'algebra', 'equation', 'expression', 'variable', 'coefficient',
+      'constant', 'term', 'terms', 'exponent', 'fraction', 'decimal', 'isolate',
+      'substitute', 'simplify', 'evaluate', 'distribute', 'pemdas', 'solve',
+    ];
+    final hasSingleMathWord = singleMathWords.any((w) => RegExp(r'\b' + w + r'\b').hasMatch(lower));
+
+    if (hasSingleMathWord) {
+      return false;
+    }
+
+    // If it has off-topic keywords, flag it
     if (hasOffTopicKeyword) return true;
 
-    // Otherwise, allow student reflections and notes without false blocking
     return false;
   }
 
@@ -276,28 +332,21 @@ CRITICAL RULES:
         userPrompt: userPrompt,
         isJsonMode: true,
       );
-      final json = jsonDecode(_extractJson(text)) as Map<String, dynamic>;
-      return AiFeedbackResult.fromJson(json, 'Groq (Llama 3.3 70B)');
-    } catch (groqError) {
-      debugPrint('Groq API error: $groqError. Falling back to NVIDIA NIM...');
+      final json = _extractAndDecodeJson(text);
+      return AiFeedbackResult.fromJson(json, provider: 'Groq (Llama 3.3 70B)');
+    } catch (e) {
+      debugPrint('Groq API error: $e. Falling back to NVIDIA NIM...');
       try {
         final text = await _callNvidia(
           systemPrompt: systemPrompt,
           userPrompt: userPrompt,
           isJsonMode: true,
         );
-        final json = jsonDecode(_extractJson(text)) as Map<String, dynamic>;
-        return AiFeedbackResult.fromJson(json, 'NVIDIA NIM');
-      } catch (nvidiaError) {
-        debugPrint('NVIDIA API error: $nvidiaError. Using offline fallback.');
-        return const AiFeedbackResult(
-          title: 'Xy\'s Learning Nudge',
-          message:
-              'Keep both sides of your equation balanced like a scale! Whatever operation you perform on the left, apply equally to the right.',
-          whyItWorks: 'The Property of Equality maintains balance.',
-          keyConcept: 'Inverse operations isolate variables step-by-step.',
-          providerUsed: 'Offline Knowledge',
-        );
+        final json = _extractAndDecodeJson(text);
+        return AiFeedbackResult.fromJson(json, provider: 'NVIDIA NIM');
+      } catch (e2) {
+        debugPrint('NVIDIA API error: $e2. Using offline fallback.');
+        return _getOfflineFallback(userPrompt);
       }
     }
   }
@@ -305,7 +354,7 @@ CRITICAL RULES:
   Future<String> _callGroq({
     required String systemPrompt,
     required String userPrompt,
-    bool isJsonMode = true,
+    required bool isJsonMode,
   }) async {
     final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
     final models = [
@@ -317,26 +366,31 @@ CRITICAL RULES:
     Object? lastError;
     for (final model in models) {
       try {
+        final bodyMap = <String, dynamic>{
+          'model': model,
+          'messages': [
+            {'role': 'system', 'content': systemPrompt},
+            {'role': 'user', 'content': userPrompt},
+          ],
+          'temperature': 0.3,
+        };
+
+        if (isJsonMode) {
+          bodyMap['response_format'] = {'type': 'json_object'};
+        }
+
         final response = await _client.post(
           url,
           headers: {
             'Authorization': 'Bearer $_groqApiKey',
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json; charset=utf-8',
           },
-          body: jsonEncode({
-            'model': model,
-            'messages': [
-              {'role': 'system', 'content': systemPrompt},
-              {'role': 'user', 'content': userPrompt},
-            ],
-            'temperature': 0.3,
-            if (isJsonMode) 'response_format': {'type': 'json_object'},
-          }),
+          body: jsonEncode(bodyMap),
         ).timeout(const Duration(seconds: 10));
 
         if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          return data['choices'][0]['message']['content'] as String;
+          final decoded = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+          return decoded['choices'][0]['message']['content'] as String;
         } else {
           lastError = Exception('Groq $model status ${response.statusCode}: ${response.body}');
         }
@@ -351,41 +405,78 @@ CRITICAL RULES:
   Future<String> _callNvidia({
     required String systemPrompt,
     required String userPrompt,
-    bool isJsonMode = true,
+    required bool isJsonMode,
   }) async {
     final url = Uri.parse('https://integrate.api.nvidia.com/v1/chat/completions');
+    final bodyMap = <String, dynamic>{
+      'model': 'meta/llama-3.3-70b-instruct',
+      'messages': [
+        {'role': 'system', 'content': systemPrompt},
+        {'role': 'user', 'content': userPrompt},
+      ],
+      'temperature': 0.3,
+    };
+
+    if (isJsonMode) {
+      bodyMap['response_format'] = {'type': 'json_object'};
+    }
+
     final response = await _client.post(
       url,
       headers: {
         'Authorization': 'Bearer $_nvidiaApiKey',
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json; charset=utf-8',
       },
-      body: jsonEncode({
-        'model': 'meta/llama-3.3-70b-instruct',
-        'messages': [
-          {'role': 'system', 'content': systemPrompt},
-          {'role': 'user', 'content': userPrompt},
-        ],
-        'temperature': 0.3,
-      }),
+      body: jsonEncode(bodyMap),
     ).timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
       throw Exception('NVIDIA status ${response.statusCode}: ${response.body}');
     }
 
-    final data = jsonDecode(response.body);
-    return data['choices'][0]['message']['content'] as String;
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    return decoded['choices'][0]['message']['content'] as String;
   }
 
-  String _extractJson(String raw) {
-    final trimmed = raw.trim();
-    if (trimmed.startsWith('{') && trimmed.endsWith('}')) return trimmed;
-    final start = trimmed.indexOf('{');
-    final end = trimmed.lastIndexOf('}');
-    if (start != -1 && end != -1 && end > start) {
-      return trimmed.substring(start, end + 1);
+  Map<String, dynamic> _extractAndDecodeJson(String text) {
+    var cleaned = text.trim();
+    if (cleaned.startsWith('```json')) {
+      cleaned = cleaned.substring(7);
+    } else if (cleaned.startsWith('```')) {
+      cleaned = cleaned.substring(3);
     }
-    return trimmed;
+    if (cleaned.endsWith('```')) {
+      cleaned = cleaned.substring(0, cleaned.length - 3);
+    }
+    cleaned = cleaned.trim();
+    return jsonDecode(cleaned) as Map<String, dynamic>;
+  }
+
+  AiFeedbackResult _getOfflineFallback(String userPrompt) {
+    final lower = userPrompt.toLowerCase();
+
+    if (lower.contains('+') || lower.contains('-') || lower.contains('=')) {
+      return const AiFeedbackResult(
+        title: 'Step Check Insight',
+        message: 'Remember that inverse operations keep both sides equal.',
+        steps: [
+          'Undo addition or subtraction first to isolate variable terms.',
+          'Undo multiplication or division to solve for the unknown variable.',
+        ],
+        whyItWorks: 'Maintaining equality on both sides preserves the balance.',
+        keyConcept: 'Properties of Equality',
+        providerUsed: 'Offline Knowledge',
+        isCorrect: true,
+      );
+    }
+
+    return const AiFeedbackResult(
+      title: 'Learning Nudge',
+      message: 'Great note! Review the lesson rules and practice with similar equations.',
+      whyItWorks: 'Writing explanations in your own words builds lasting memory.',
+      keyConcept: 'Algebra Foundations',
+      providerUsed: 'Offline Knowledge',
+      isCorrect: true,
+    );
   }
 }
