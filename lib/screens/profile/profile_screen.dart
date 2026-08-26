@@ -117,7 +117,7 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // XP & Streak Progress Row
+            // Lesson Progress & Streak Row
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -133,11 +133,11 @@ class ProfileScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Level Progress',
+                        'Lesson Progress',
                         style: AppTextStyles.subtitle1.copyWith(fontWeight: FontWeight.w800),
                       ),
                       Text(
-                        '$totalXp XP',
+                        '${lessonProvider.completedLessonIds.length} / 13 Lessons',
                         style: AppTextStyles.subtitle2.copyWith(
                           color: AppColors.pink,
                           fontWeight: FontWeight.w900,
@@ -149,7 +149,7 @@ class ProfileScreen extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: LinearProgressIndicator(
-                      value: levelProgress,
+                      value: (lessonProvider.completedLessonIds.length / 13.0).clamp(0.0, 1.0),
                       minHeight: 10,
                       backgroundColor: AppColors.divider,
                       valueColor: const AlwaysStoppedAnimation<Color>(AppColors.pink),
@@ -157,7 +157,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${(1000 - (totalXp % 1000))} XP until next level',
+                    '${13 - lessonProvider.completedLessonIds.length} lessons remaining to complete Foundations',
                     style: AppTextStyles.caption.copyWith(color: AppColors.subtitle),
                   ),
                   const Divider(height: 28, color: AppColors.divider),

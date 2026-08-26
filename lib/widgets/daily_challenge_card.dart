@@ -67,8 +67,6 @@ class DailyChallengeCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                XpBadge(amount: xpReward),
               ],
             ),
             const SizedBox(height: 8),

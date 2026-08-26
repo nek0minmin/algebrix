@@ -139,8 +139,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: ProgressCard(
                               level: profile.level,
-                              progress: (profile.xp % 1000) / 1000,
-                              xpText: '${profile.xp} XP total',
+                              progress: (lessonProvider.completedLessonIds.length / 13.0).clamp(0.0, 1.0),
+                              xpText: '${lessonProvider.completedLessonIds.length} of 13 Completed',
                               levelTitle: profile.levelTitle,
                             ),
                           ),

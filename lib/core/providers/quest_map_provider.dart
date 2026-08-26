@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:algebrix/models/quest_map_model.dart';
 import 'package:algebrix/services/quest_repository.dart';
 import 'package:algebrix/services/math_api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// State management for the Quest Map feature.
 ///
@@ -28,6 +29,7 @@ class QuestMapProvider extends ChangeNotifier {
   String? _activeLandId = 'balands';
   bool _isLoading = false;
   String? _errorMessage;
+  bool _hasSeenPairadiseWelcome = false;
 
   // ---------------------------------------------------------------------------
   // Getters
@@ -41,15 +43,27 @@ class QuestMapProvider extends ChangeNotifier {
   String? get activeLandId => _activeLandId;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  bool get hasSeenPairadiseWelcome => _hasSeenPairadiseWelcome;
+
+  Future<void> markPairadiseWelcomeSeen() async {
+    _hasSeenPairadiseWelcome = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('has_seen_pairadise_welcome', true);
+    } catch (_) {}
+    notifyListeners();
+  }
 
   /// The currently active land (defaults to Balands).
   QuestLand? get activeLand {
     if (_activeLandId == null) return null;
-    try {
-      return _lands.firstWhere((l) => l.id == _activeLandId);
-    } catch (_) {
-      return _lands.isNotEmpty ? _lands.first : null;
-    }
+    return _lands.firstWhere(
+      (l) => l.id == _activeLandId,
+      orElse: () => _defaultLands.firstWhere(
+        (l) => l.id == _activeLandId,
+        orElse: () => _defaultLands.first,
+      ),
+    );
   }
 
   /// Number of stars earned in the active land.
@@ -164,9 +178,19 @@ class QuestMapProvider extends ChangeNotifier {
 
     try {
       final fetchedLands = await _repository.fetchAllLands();
-      _lands = fetchedLands.isNotEmpty ? fetchedLands : _defaultLands;
+      final landMap = {for (final l in _defaultLands) l.id: l};
+      for (final l in fetchedLands) {
+        landMap[l.id] = l;
+      }
+      _lands = landMap.values.toList();
       _activeLandId = targetLand;
       _totalStars = await _repository.fetchTotalStars();
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        _hasSeenPairadiseWelcome =
+            prefs.getBool('has_seen_pairadise_welcome') ?? false;
+      } catch (_) {}
 
       final progressList = await _repository.fetchLandProgress(targetLand);
       _levelProgress = {
@@ -190,56 +214,57 @@ class QuestMapProvider extends ChangeNotifier {
 
   /// Submit the result of completing a level.
   ///
-  /// Calculates stars using the combined rubric and persists the best score.
+  /// Calculates stars using the combined rubric or custom stars, and persists the best score.
   Future<int> submitLevelResult({
+    String? landId,
     required int levelNumber,
     required int moveCount,
     required int optimalMoves,
     required bool reasoningPassed,
+    int? starsEarned,
   }) async {
-    // Calculate stars using the combined rubric
+    final effectiveLandId = landId ?? _activeLandId ?? 'balands';
     final withinMoves = moveCount <= optimalMoves;
-    int stars;
-    if (withinMoves && reasoningPassed) {
-      stars = 3;
-    } else if (withinMoves || reasoningPassed) {
-      stars = 2;
-    } else {
-      stars = 1;
-    }
-
-    final landId = _activeLandId ?? 'balands';
+    int stars = starsEarned ?? (
+      (withinMoves && reasoningPassed)
+          ? 3
+          : (withinMoves || reasoningPassed)
+              ? 2
+              : 1
+    );
 
     try {
       await _repository.saveLevelResult(
-        landId: landId,
+        landId: effectiveLandId,
         levelNumber: levelNumber,
         starsEarned: stars,
         moveCount: moveCount,
         reasoningPassed: reasoningPassed,
       );
 
-      // Update local state with best-score logic
-      final existing = _levelProgress[levelNumber];
-      final bestStars = existing != null && existing.starsEarned > stars
-          ? existing.starsEarned
-          : stars;
-      final bestMoves = existing?.bestMoves != null &&
-              existing!.bestMoves! < moveCount
-          ? existing.bestMoves!
-          : moveCount;
-      final bestReasoning =
-          reasoningPassed || (existing?.reasoningPassed ?? false);
+      // Update local state if active land matches
+      if (_activeLandId == effectiveLandId) {
+        final existing = _levelProgress[levelNumber];
+        final bestStars = existing != null && existing.starsEarned > stars
+            ? existing.starsEarned
+            : stars;
+        final bestMoves = existing?.bestMoves != null &&
+                existing!.bestMoves! < moveCount
+            ? existing.bestMoves!
+            : moveCount;
+        final bestReasoning =
+            reasoningPassed || (existing?.reasoningPassed ?? false);
 
-      _levelProgress[levelNumber] = QuestLevelProgress(
-        userId: existing?.userId ?? '',
-        landId: landId,
-        levelNumber: levelNumber,
-        starsEarned: bestStars,
-        bestMoves: bestMoves,
-        reasoningPassed: bestReasoning,
-        completedAt: DateTime.now().toUtc(),
-      );
+        _levelProgress[levelNumber] = QuestLevelProgress(
+          userId: existing?.userId ?? '',
+          landId: effectiveLandId,
+          levelNumber: levelNumber,
+          starsEarned: bestStars,
+          bestMoves: bestMoves,
+          reasoningPassed: bestReasoning,
+          completedAt: DateTime.now().toUtc(),
+        );
+      }
 
       // Refresh total stars across all lands
       try {
@@ -255,7 +280,7 @@ class QuestMapProvider extends ChangeNotifier {
       // Silently handle persistence errors — local state is still updated
       _levelProgress[levelNumber] = QuestLevelProgress(
         userId: '',
-        landId: landId,
+        landId: effectiveLandId,
         levelNumber: levelNumber,
         starsEarned: stars,
         bestMoves: moveCount,
@@ -371,17 +396,17 @@ class QuestMapProvider extends ChangeNotifier {
     QuestLevelDefinition(
       levelNumber: 3,
       difficulty: 3,
-      description: 'Paired Terms',
+      description: 'Eliminate Suspects',
     ),
     QuestLevelDefinition(
       levelNumber: 4,
       difficulty: 4,
-      description: 'Symmetric Islands',
+      description: 'Narrow the Search',
     ),
     QuestLevelDefinition(
       levelNumber: 5,
       difficulty: 5,
-      description: 'Mirror Equations',
+      description: 'Substitution Swap',
     ),
     QuestLevelDefinition(
       levelNumber: 6,
@@ -396,17 +421,17 @@ class QuestMapProvider extends ChangeNotifier {
     QuestLevelDefinition(
       levelNumber: 8,
       difficulty: 8,
-      description: 'Lagoon Symmetry',
+      description: 'Equation Stacking',
     ),
     QuestLevelDefinition(
       levelNumber: 9,
       difficulty: 9,
-      description: 'Advanced Twin Balance',
+      description: 'Advanced Cancelation',
     ),
     QuestLevelDefinition(
       levelNumber: 10,
       difficulty: 10,
-      description: 'Pairadise Summit Master',
+      description: 'The Twin Gate',
     ),
   ];
 }

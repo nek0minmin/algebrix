@@ -8,6 +8,7 @@ import 'package:algebrix/services/quest_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeQuestRepository implements QuestRepository {
   @override
@@ -244,6 +245,7 @@ void main() {
     testWidgets('renders 3 practice mode cards and navigates to Quest Map', (
       tester,
     ) async {
+      SharedPreferences.setMockInitialValues({});
       await tester.binding.setSurfaceSize(const Size(430, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 

@@ -7,6 +7,7 @@ import 'package:algebrix/services/quest_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FakeQuestRepository implements QuestRepository {
   final List<QuestLand> _lands = [
@@ -353,11 +354,15 @@ void main() {
       expect(provider.activeLand?.name, 'Pairadise');
       expect(provider.levelDefinitions.length, 10);
       expect(provider.levelDefinitions[0].description, 'Twin Introductions');
-      expect(provider.levelDefinitions[9].description, 'Pairadise Summit Master');
+      expect(provider.levelDefinitions[9].description, 'The Twin Gate');
     });
   });
 
   group('QuestMapScreen UI Widget Tests', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
     testWidgets('renders Balands header, HUD star capsule, portals, and level preview', (
       tester,
     ) async {
@@ -389,6 +394,8 @@ void main() {
       expect(find.byKey(const Key('quest-level-node-10')), findsOneWidget);
 
       // Tap Level 1 to open Level Preview Bottom Sheet
+      await tester.ensureVisible(find.byKey(const Key('quest-level-node-1')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('quest-level-node-1')));
       await tester.pumpAndSettle();
 
@@ -434,9 +441,10 @@ void main() {
       expect(find.text('🔒 REQUIRES 25 ⭐ (0/25)'), findsOneWidget);
     });
 
-    testWidgets('unlocked Pairadise shows celebration dialog and switches map theme', (
+    testWidgets('unlocked Pairadise shows celebration dialog once and direct switches after', (
       tester,
     ) async {
+      SharedPreferences.setMockInitialValues({});
       await tester.binding.setSurfaceSize(const Size(430, 1200));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -467,23 +475,44 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Tap Portal to Pairadise (portal icon in summit disc)
-      expect(find.byIcon(Icons.auto_awesome_rounded), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.auto_awesome_rounded));
+      // Open World Selector from top header
+      expect(find.text('BALANDS'), findsOneWidget);
+      await tester.tap(find.text('BALANDS'));
       await tester.pumpAndSettle();
 
-      // Congratulatory Scene
-      expect(find.text('Balands Conquered! 🎉'), findsOneWidget);
-      expect(find.text('27 Stars Acquired ⭐'), findsOneWidget);
-      expect(find.text('Enter Pairadise ➔'), findsOneWidget);
+      // World Selector Sheet opens
+      expect(find.text('Explore Algebria Realms'), findsOneWidget);
+      expect(find.text('Pairadise'), findsOneWidget);
+      expect(find.text('The Land of Pairs'), findsOneWidget);
 
-      // Enter Pairadise
+      // Tap Pairadise card to travel for the FIRST time
+      await tester.tap(find.text('Pairadise'));
+      await tester.pumpAndSettle();
+
+      // Celebration dialog shows up for first time
+      expect(find.text('Enter Pairadise ➔'), findsOneWidget);
       await tester.tap(find.text('Enter Pairadise ➔'));
       await tester.pumpAndSettle();
 
       expect(find.text('PAIRADISE'), findsOneWidget);
       expect(find.text('The Land of Pairs'), findsOneWidget);
-      expect(find.text('↩️ BALANDS ⚖️'), findsOneWidget);
+
+      // Now switch back to BALANDS
+      await tester.tap(find.text('PAIRADISE'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Balands'));
+      await tester.pumpAndSettle();
+      expect(find.text('BALANDS'), findsOneWidget);
+
+      // Switch to PAIRADISE a SECOND time -> should NOT show welcome popup
+      await tester.tap(find.text('BALANDS'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Pairadise'));
+      await tester.pumpAndSettle();
+
+      // Directly switches without dialog
+      expect(find.text('Enter Pairadise ➔'), findsNothing);
+      expect(find.text('PAIRADISE'), findsOneWidget);
     });
   });
 }

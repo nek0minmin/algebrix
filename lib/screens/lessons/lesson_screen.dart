@@ -54,8 +54,8 @@ class _LessonScreenState extends State<LessonScreen> {
 
     setState(() {
       _lastAnswerCorrect = true;
-      _showXpReward = xpAwarded > 0;
-      _xpAmount = xpAwarded;
+      _showXpReward = false; // XP pop-up disabled
+      _xpAmount = 0;
     });
   }
 
