@@ -11,6 +11,7 @@ import 'package:algebrix/widgets/ai_feedback_card.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
+import 'package:algebrix/widgets/notes/math_formatting_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -94,6 +95,31 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
       await aiProvider.getSocraticHint(question: '$content (Context: $topicContext)');
     } else {
       await aiProvider.evaluateExplanation(topic: topicContext, explanation: content);
+    }
+
+    if (!mounted) return;
+
+    // Check if Xy's analysis suggests a better-fitting lesson tag
+    final newFeedback = aiProvider.currentFeedback;
+    if (newFeedback != null && newFeedback.providerUsed != 'Algebrix Topic Guard') {
+      final suggestedLesson = detectBestFittingLesson(
+        title: title,
+        content: content,
+        keyConcept: newFeedback.keyConcept,
+        aiTitle: newFeedback.title,
+        aiMessage: newFeedback.message,
+      );
+
+      if (suggestedLesson != null && suggestedLesson.lessonId != _lessonId) {
+        setState(() {
+          _lessonId = suggestedLesson.lessonId;
+        });
+        showAlgebrixSnackBar(
+          context,
+          message: '✨ Xy updated lesson tag to "${suggestedLesson.title}" based on your note!',
+          icon: Icons.auto_awesome_rounded,
+        );
+      }
     }
   }
 
@@ -378,6 +404,13 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                     ),
                     const SizedBox(height: 10),
 
+                    // Quick-Insert Math Formatting Bar & Exponent Palette
+                    MathFormattingBar(
+                      controller: _contentController,
+                      enabled: !isSaving,
+                    ),
+                    const SizedBox(height: 12),
+
                     // Explanation Box with Floating FAB inside bottom right!
                     Stack(
                       children: [
@@ -589,6 +622,7 @@ class _LessonSelector extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
+      barrierColor: AppColors.text.withValues(alpha: 0.35),
       useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -688,21 +722,16 @@ class _LessonPickerSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final lessonProvider = Provider.of<LessonProvider?>(context);
 
-    // Filter to show lessons the user has finished reading or visited in progress
-    final completedOptions = lessonProvider != null
-        ? noteLessonOptions
-            .where((opt) =>
-                lessonProvider.isLessonCompleted(opt.lessonId) ||
-                lessonProvider.progressForLesson(opt.lessonId) != null)
-            .toList()
-        : <NoteLessonOption>[];
-
-    // Fallback: If no lessons completed yet, display all options so new users can create notes
-    final displayOptions = completedOptions.isNotEmpty ? completedOptions : noteLessonOptions;
-    final isFiltered = completedOptions.isNotEmpty;
+    // Group options by Module
+    final module1Options = noteLessonOptions
+        .where((opt) => opt.moduleId == 'module1')
+        .toList(growable: false);
+    final module2Options = noteLessonOptions
+        .where((opt) => opt.moduleId == 'module2')
+        .toList(growable: false);
 
     return FractionallySizedBox(
-      heightFactor: 0.78,
+      heightFactor: 0.82,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         child: Column(
@@ -718,20 +747,20 @@ class _LessonPickerSheet extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: AppColors.extraLightPink,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(
                     Icons.menu_book_rounded,
-                    color: AppColors.pink,
-                    size: 20,
+                    color: AppColors.darkPink,
+                    size: 22,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -741,17 +770,18 @@ class _LessonPickerSheet extends StatelessWidget {
                     children: [
                       Text(
                         'Choose a lesson',
-                        style: AppTextStyles.heading3.copyWith(
+                        style: GoogleFonts.nunito(
                           fontWeight: FontWeight.w900,
                           fontSize: 18,
+                          color: AppColors.text,
                         ),
                       ),
                       Text(
-                        isFiltered
-                            ? 'Showing lessons you have completed.'
-                            : 'Choose a lesson to connect your note.',
-                        style: AppTextStyles.caption.copyWith(
+                        'Select the lesson topic for your note.',
+                        style: GoogleFonts.nunito(
                           color: AppColors.textSecondary,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -761,87 +791,150 @@ class _LessonPickerSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: ListView.separated(
-                itemCount: displayOptions.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final option = displayOptions[index];
-                  final selected = option.lessonId == selectedLessonId;
-                  final isFinished = lessonProvider?.isLessonCompleted(option.lessonId) ?? false;
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  // Module 1 Section
+                  _buildModuleHeader('Module 1 • Foundations of Algebra', AppColors.pink, AppColors.extraLightPink),
+                  const SizedBox(height: 8),
+                  ...module1Options.map((opt) => _buildLessonTile(context, opt, lessonProvider)),
 
-                  return Material(
-                    color: selected
-                        ? AppColors.extraLightPink
-                        : Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                      side: BorderSide(
-                        color: selected
-                            ? AppColors.pink
-                            : AppColors.border,
-                        width: selected ? 1.5 : 1,
-                      ),
-                    ),
-                    child: InkWell(
-                      key: Key('lesson-option-${option.lessonId}'),
-                      onTap: () => Navigator.of(context).pop(option.lessonId),
-                      borderRadius: BorderRadius.circular(18),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 56),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  option.label,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTextStyles.body1.copyWith(
-                                    fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
-                                    color: selected ? AppColors.darkPink : AppColors.text,
-                                  ),
-                                ),
-                              ),
-                              if (isFinished) ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.lightMint,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    'Completed',
-                                    style: AppTextStyles.caption.copyWith(
-                                      color: const Color(0xFF00796B),
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              if (selected) ...[
-                                const SizedBox(width: 10),
-                                const Icon(
-                                  Icons.check_circle_rounded,
-                                  color: AppColors.pink,
-                                  size: 22,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                  const SizedBox(height: 16),
+
+                  // Module 2 Section
+                  _buildModuleHeader('Module 2 • Operations & Simplification', AppColors.purple, AppColors.lightPurple),
+                  const SizedBox(height: 8),
+                  ...module2Options.map((opt) => _buildLessonTile(context, opt, lessonProvider)),
+                ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModuleHeader(String title, Color accent, Color bg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        title,
+        style: GoogleFonts.nunito(
+          fontSize: 12,
+          fontWeight: FontWeight.w900,
+          color: accent,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLessonTile(BuildContext context, NoteLessonOption option, LessonProvider? lessonProvider) {
+    final selected = option.lessonId == selectedLessonId;
+    final isFinished = lessonProvider?.isLessonCompleted(option.lessonId) ?? false;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: selected ? AppColors.extraLightPink : const Color(0xFFF9FAFC),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: selected ? AppColors.pink : AppColors.border.withValues(alpha: 0.8),
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: InkWell(
+          key: Key('lesson-option-${option.lessonId}'),
+          onTap: () => Navigator.of(context).pop(option.lessonId),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                // Lesson number badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.pink : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: selected ? AppColors.pink : AppColors.border,
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    option.lessonNumber,
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: selected ? Colors.white : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // Lesson title
+                Expanded(
+                  child: Text(
+                    option.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.nunito(
+                      fontSize: 14.5,
+                      fontWeight: selected ? FontWeight.w900 : FontWeight.w800,
+                      color: selected ? AppColors.darkPink : AppColors.text,
+                    ),
+                  ),
+                ),
+
+                // Completed badge
+                if (isFinished) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightMint,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.check_circle_outline_rounded,
+                          size: 12,
+                          color: Color(0xFF00796B),
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          'Completed',
+                          style: GoogleFonts.nunito(
+                            color: const Color(0xFF00796B),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 10.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Selected Checkmark
+                if (selected) ...[
+                  const SizedBox(width: 10),
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColors.pink,
+                    size: 20,
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );

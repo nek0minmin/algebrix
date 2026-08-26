@@ -6,6 +6,7 @@ import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/lesson_progress_model.dart';
 import 'package:algebrix/services/progress_repository.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LessonProvider extends ChangeNotifier {
   LessonProvider({required ProgressRepository repository})
@@ -128,6 +129,28 @@ class LessonProvider extends ChangeNotifier {
               .where((item) => item.status == LessonProgressStatus.completed)
               .map((item) => item.lessonId),
         );
+
+      // Merge offline/local cached completions for resilience against unmigrated backend catalogs
+      final localCached = await _loadLocalCompletedLessons(accountId);
+      for (final lessonId in localCached) {
+        _completedLessonIds.add(lessonId);
+        _persistedProgress.putIfAbsent(
+          lessonId,
+          () => LessonProgress(
+            userId: accountId,
+            moduleId: lessonId.startsWith('m2_') ? 'module2' : 'module1',
+            lessonId: lessonId,
+            contentVersion: 1,
+            status: LessonProgressStatus.completed,
+            startedAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+            lastStepId: 'completed',
+            lastStepIndex: 0,
+            completedAt: DateTime.now(),
+          ),
+        );
+      }
+
       _hydrationError = null;
     } catch (error) {
       if (!_isCurrentAccount(accountId, generation)) return;
@@ -351,6 +374,7 @@ class LessonProvider extends ChangeNotifier {
       _persistedProgress[lesson.lessonId] = result.progress;
       if (result.progress.status == LessonProgressStatus.completed) {
         _completedLessonIds.add(lesson.lessonId);
+        unawaited(_saveLocalCompletedLesson(accountId, lesson.lessonId));
       }
       _sessionXp += result.xpAwarded;
       final currentProfile = _profile;
@@ -391,6 +415,7 @@ class LessonProvider extends ChangeNotifier {
           _persistedProgress[lesson.lessonId] = localProgress;
           if (completing) {
             _completedLessonIds.add(lesson.lessonId);
+            unawaited(_saveLocalCompletedLesson(accountId, lesson.lessonId));
           }
           _errorMessage = null;
           return RecordLessonStepResult(
@@ -514,5 +539,29 @@ class LessonProvider extends ChangeNotifier {
     return message.isEmpty
         ? 'Progress could not be loaded. Please try again.'
         : message;
+  }
+
+  Future<void> _saveLocalCompletedLesson(String accountId, String lessonId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'algebrix_completed_$accountId';
+      final current = prefs.getStringList(key) ?? <String>[];
+      if (!current.contains(lessonId)) {
+        final updated = List<String>.from(current)..add(lessonId);
+        await prefs.setStringList(key, updated);
+      }
+    } catch (_) {
+      // Gracefully ignore if storage is unavailable or in test mocks
+    }
+  }
+
+  Future<List<String>> _loadLocalCompletedLessons(String accountId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'algebrix_completed_$accountId';
+      return prefs.getStringList(key) ?? <String>[];
+    } catch (_) {
+      return <String>[];
+    }
   }
 }

@@ -87,23 +87,37 @@ class SupabaseNotesRepository implements NotesRepository {
     final normalizedLessonId = _optionalIdentifier(lessonId, 'lessonId');
 
     try {
-      var query = _client.from('study_notes').select().eq('user_id', userId);
-      if (normalizedModuleId != null) {
-        query = query.eq('module_id', normalizedModuleId);
-      }
-      if (normalizedLessonId != null) {
-        query = query.eq('lesson_id', normalizedLessonId);
-      }
-      final rows = await query.order('updated_at', ascending: false);
-      return rows.map((row) => StudyNote.fromJson(row)).toList(growable: false);
+      return await _queryNotes(userId, normalizedModuleId, normalizedLessonId);
     } on PostgrestException catch (error) {
-      throw _mapPostgrestError(error, action: 'load');
+      // Auto-retry once after a brief delay for transient connection or JWT sync
+      try {
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+        return await _queryNotes(userId, normalizedModuleId, normalizedLessonId);
+      } catch (_) {
+        throw _mapPostgrestError(error, action: 'load');
+      }
     } on FormatException catch (error) {
       throw NotesRepositoryException(
         'One of your saved notes contains invalid data.',
         cause: error,
       );
     }
+  }
+
+  Future<List<StudyNote>> _queryNotes(
+    String userId,
+    String? moduleId,
+    String? lessonId,
+  ) async {
+    var query = _client.from('study_notes').select().eq('user_id', userId);
+    if (moduleId != null) {
+      query = query.eq('module_id', moduleId);
+    }
+    if (lessonId != null) {
+      query = query.eq('lesson_id', lessonId);
+    }
+    final rows = await query.order('updated_at', ascending: false);
+    return rows.map((row) => StudyNote.fromJson(row)).toList(growable: false);
   }
 
   @override
@@ -192,7 +206,7 @@ class SupabaseNotesRepository implements NotesRepository {
   }
 
   String _requireAuthenticatedUser() {
-    final user = _client.auth.currentUser;
+    final user = _client.auth.currentUser ?? _client.auth.currentSession?.user;
     if (user == null) {
       throw const NotesRepositoryException(
         'Please sign in to access your study notes.',

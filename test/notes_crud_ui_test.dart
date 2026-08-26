@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:algebrix/core/providers/notes_provider.dart';
 import 'package:algebrix/models/study_note_model.dart';
+import 'package:algebrix/screens/notes/note_lesson_options.dart';
 import 'package:algebrix/screens/notes/notes_screen.dart';
 import 'package:algebrix/services/notes_repository.dart';
 import 'package:flutter/material.dart';
@@ -295,6 +296,54 @@ void main() {
         );
       }
     }
+  });
+
+  testWidgets('lesson picker displays module groupings and selects completed lesson', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final repository = _MemoryNotesRepository();
+    final provider = NotesProvider(repository: repository);
+    provider.bindAccount('student-1');
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: const MaterialApp(home: Scaffold(body: NotesScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('new-note-button-compact')));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const Key('note-lesson-selector-button')));
+    await tester.tap(find.byKey(const Key('note-lesson-selector-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Module 1 • Foundations of Algebra'), findsOneWidget);
+    expect(find.text('Module 2 • Operations & Simplification'), findsOneWidget);
+    expect(find.byKey(const Key('lesson-option-m1_l4')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('lesson-option-m1_l4')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1.4 • Expressions'), findsOneWidget);
+  });
+
+  test('smart lesson detection identifies expressions topic from content', () {
+    final match = detectBestFittingLesson(
+      title: 'Math phrases',
+      content: 'An algebraic expression combines terms and operations like 3x + 5 without an equal sign.',
+    );
+    expect(match?.lessonId, 'm1_l4');
+    expect(match?.title, 'Expressions');
   });
 }
 
