@@ -10,6 +10,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FakeQuestRepository implements QuestRepository {
+  String activeUserId = 'test-user-1';
+
   final List<QuestLand> _lands = [
     const QuestLand(
       id: 'balands',
@@ -29,23 +31,22 @@ class FakeQuestRepository implements QuestRepository {
     ),
   ];
 
-  final Map<String, Map<int, QuestLevelProgress>> _progressByLand = {
-    'balands': {},
-    'pairadise': {},
-  };
+  final Map<String, Map<String, Map<int, QuestLevelProgress>>>
+      _progressByUserAndLand = {};
 
   @override
   Future<List<QuestLand>> fetchAllLands() async => _lands;
 
   @override
   Future<List<QuestLevelProgress>> fetchLandProgress(String landId) async {
-    return _progressByLand[landId]?.values.toList() ?? [];
+    return _progressByUserAndLand[activeUserId]?[landId]?.values.toList() ?? [];
   }
 
   @override
   Future<int> fetchTotalStars() async {
     int sum = 0;
-    for (final landProgress in _progressByLand.values) {
+    final userMap = _progressByUserAndLand[activeUserId] ?? {};
+    for (final landProgress in userMap.values) {
       for (final p in landProgress.values) {
         sum += p.starsEarned;
       }
@@ -61,17 +62,20 @@ class FakeQuestRepository implements QuestRepository {
     required int moveCount,
     required bool reasoningPassed,
   }) async {
-    final landMap = _progressByLand.putIfAbsent(landId, () => {});
+    final userMap =
+        _progressByUserAndLand.putIfAbsent(activeUserId, () => {});
+    final landMap = userMap.putIfAbsent(landId, () => {});
     final existing = landMap[levelNumber];
     final bestStars = existing != null && existing.starsEarned > starsEarned
         ? existing.starsEarned
         : starsEarned;
-    final bestMoves = existing?.bestMoves != null && existing!.bestMoves! < moveCount
+    final bestMoves = existing?.bestMoves != null &&
+            existing!.bestMoves! < moveCount
         ? existing.bestMoves!
         : moveCount;
 
     landMap[levelNumber] = QuestLevelProgress(
-      userId: 'test-user',
+      userId: activeUserId,
       landId: landId,
       levelNumber: levelNumber,
       starsEarned: bestStars,
@@ -289,7 +293,7 @@ void main() {
 
       // Initially on Level 1
       expect(provider.currentLevel, 1);
-      expect(provider.currentLandAndLevelLabel, 'Balands I (Level 1)');
+      expect(provider.currentLandAndLevelLabel, 'Balands I');
 
       // Complete Level 1 -> frontier is Level 2
       await provider.submitLevelResult(
@@ -299,7 +303,7 @@ void main() {
         reasoningPassed: true,
       );
       expect(provider.currentLevel, 2);
-      expect(provider.currentLandAndLevelLabel, 'Balands II (Level 2)');
+      expect(provider.currentLandAndLevelLabel, 'Balands II');
 
       // Complete Level 2 and 3 -> frontier is Level 4
       await provider.submitLevelResult(
@@ -315,7 +319,7 @@ void main() {
         reasoningPassed: true,
       );
       expect(provider.currentLevel, 4);
-      expect(provider.currentLandAndLevelLabel, 'Balands IV (Level 4)');
+      expect(provider.currentLandAndLevelLabel, 'Balands IV');
     });
 
     test('Pairadise unlocking and land switching logic', () async {
@@ -513,6 +517,65 @@ void main() {
       // Directly switches without dialog
       expect(find.text('Enter Pairadise ➔'), findsNothing);
       expect(find.text('PAIRADISE'), findsOneWidget);
+    });
+
+    test('QuestMapProvider isolates quest progress completely between different user accounts', () async {
+      SharedPreferences.setMockInitialValues({});
+      final repo = FakeQuestRepository();
+      final provider = QuestMapProvider(repository: repo);
+
+      // 1. Account A logs in and completes 10 levels (30 stars) in Balands
+      repo.activeUserId = 'user_account_A';
+      provider.bindAccount('user_account_A');
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      for (int i = 1; i <= 10; i++) {
+        await provider.submitLevelResult(
+          levelNumber: i,
+          moveCount: 1,
+          optimalMoves: 1,
+          reasoningPassed: true,
+        );
+      }
+      expect(provider.totalStars, 30);
+      expect(provider.currentLevel, 10);
+      expect(provider.isPairadiseUnlocked, isTrue);
+
+      // 2. Account A logs out
+      provider.bindAccount(null);
+      expect(provider.totalStars, 0);
+      expect(provider.currentLevel, 1);
+
+      // 3. Fresh Account B logs in
+      repo.activeUserId = 'user_account_B';
+      provider.bindAccount('user_account_B');
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      // Account B MUST have 0 stars, Level 1, Pairadise locked, Balands active
+      expect(provider.totalStars, 0);
+      expect(provider.currentLevel, 1);
+      expect(provider.activeLandId, 'balands');
+      expect(provider.isPairadiseUnlocked, isFalse);
+      expect(provider.currentLandAndLevelLabel, 'Balands I');
+
+      // Account B completes 1 level
+      await provider.submitLevelResult(
+        levelNumber: 1,
+        moveCount: 1,
+        optimalMoves: 1,
+        reasoningPassed: true,
+      );
+      expect(provider.totalStars, 3);
+      expect(provider.currentLevel, 2);
+
+      // 4. Switch back to Account A -> Account A's 30 stars and 10 levels are intact
+      repo.activeUserId = 'user_account_A';
+      provider.bindAccount('user_account_A');
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      expect(provider.totalStars, 30);
+      expect(provider.currentLevel, 10);
+      expect(provider.isPairadiseUnlocked, isTrue);
     });
   });
 }

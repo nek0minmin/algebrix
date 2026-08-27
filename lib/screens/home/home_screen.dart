@@ -7,8 +7,8 @@ import 'package:algebrix/core/constants/app_strings.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/core/providers/notes_provider.dart';
+import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/models/user_model.dart';
-import 'package:algebrix/models/daily_challenge_model.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/data/module1_content.dart';
@@ -16,17 +16,14 @@ import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/data/module3_content.dart';
 import 'package:algebrix/widgets/lesson_card.dart';
 import 'package:algebrix/widgets/primary_button.dart';
-import 'package:algebrix/widgets/secondary_button.dart';
-import 'package:algebrix/widgets/daily_challenge_card.dart';
-import 'package:algebrix/widgets/progress_card.dart';
-import 'package:algebrix/widgets/streak_badge.dart';
 import 'package:algebrix/widgets/page_headers.dart';
+import 'package:algebrix/widgets/xy_mascot.dart';
 import 'package:algebrix/screens/auth/login_screen.dart';
 import 'package:algebrix/screens/lessons/lesson_screen.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
 import 'package:algebrix/screens/quiz/quiz_hub_screen.dart';
-import 'package:algebrix/screens/practice/quiz_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
+import 'package:algebrix/screens/practice/quiz_screen.dart';
 import 'package:algebrix/screens/notes/note_detail_screen.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
@@ -52,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final authProvider = context.watch<AuthProvider>();
     final lessonProvider = context.watch<LessonProvider>();
     final notesProvider = context.watch<NotesProvider>();
+    final quizProvider = context.watch<QuizProvider>();
     final questMapProvider = context.watch<QuestMapProvider>();
 
     if (!authProvider.isAuthenticated) {
@@ -69,15 +67,61 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final user = authProvider.currentUser ?? UserModel.placeholder();
-    final profile = lessonProvider.profile;
-    final currentLesson = lessonProvider.latestResumableLesson(module1);
-    final currentLessonProgress = currentLesson == null
-        ? 0.0
-        : lessonProvider.progressFractionForLesson(currentLesson);
-    final currentLessonRecord = currentLesson == null
-        ? null
-        : lessonProvider.progressForLesson(currentLesson.lessonId);
-    final dailyChallenge = DailyChallengeModel.placeholder();
+
+    // Determine latest unlocked module and active resumable lesson
+    final allModules = [module1, module2, module3];
+    final unlockedModules = allModules
+        .where((m) => quizProvider.isModuleUnlocked(m.id))
+        .toList();
+
+    LessonContent? activeLesson;
+    ModuleContent activeModule =
+        unlockedModules.isNotEmpty ? unlockedModules.last : module1;
+
+    for (final mod in unlockedModules.reversed) {
+      for (final l in mod.lessons) {
+        if (!lessonProvider.isLessonCompleted(l.lessonId)) {
+          activeLesson = l;
+          activeModule = mod;
+          break;
+        }
+      }
+      if (activeLesson != null) break;
+    }
+
+    activeLesson ??= activeModule.lessons.last;
+
+    final currentLessonProgress =
+        lessonProvider.progressFractionForLesson(activeLesson);
+    final currentLessonRecord =
+        lessonProvider.progressForLesson(activeLesson.lessonId);
+
+    // Quiz Mastery calculation
+    final passedQuizzesCount = ['module1', 'module2', 'module3']
+        .where((id) => quizProvider.isModuleQuizPassed(id))
+        .length;
+
+    String nextQuizTitle = 'Module 1 Quiz';
+    bool isNextQuizReady = quizProvider.isQuizUnlocked('module1', lessonProvider);
+    ModuleContent nextQuizModule = module1;
+
+    if (!quizProvider.isModuleQuizPassed('module1')) {
+      nextQuizTitle = 'Module 1 Quiz (Foundations)';
+      isNextQuizReady = quizProvider.isQuizUnlocked('module1', lessonProvider);
+      nextQuizModule = module1;
+    } else if (!quizProvider.isModuleQuizPassed('module2')) {
+      nextQuizTitle = 'Module 2 Quiz (Expressions)';
+      isNextQuizReady = quizProvider.isQuizUnlocked('module2', lessonProvider);
+      nextQuizModule = module2;
+    } else if (!quizProvider.isModuleQuizPassed('module3')) {
+      nextQuizTitle = 'Module 3 Quiz (Equations)';
+      isNextQuizReady = quizProvider.isQuizUnlocked('module3', lessonProvider);
+      nextQuizModule = module3;
+    } else {
+      nextQuizTitle = 'All Quizzes Mastered';
+      isNextQuizReady = true;
+      nextQuizModule = module3;
+    }
 
     final isSearching = _searchQuery.trim().isNotEmpty;
 
@@ -106,67 +150,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       ...module2.lessons,
                       ...module3.lessons,
                     ],
-                    onOpenLesson: (lesson) => _openLesson(context, lessonProvider, lesson),
+                    onOpenLesson: (lesson) =>
+                        _openLesson(context, lessonProvider, lesson),
                     onOpenNote: (note) {
                       notesProvider.selectNote(note.id);
                       Navigator.of(context).push(
-                        AppPageRoute(builder: (_) => NoteDetailScreen(note: note)),
+                        AppPageRoute(
+                          builder: (_) => NoteDetailScreen(note: note),
+                        ),
                       );
                     },
                   ),
                 ] else ...[
-                  // Progress & Streak Stats Card
-                  if (lessonProvider.isHydrating)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: CircularProgressIndicator(color: AppColors.pink),
-                      ),
-                    )
-                  else if (profile != null) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: AppColors.border),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: ProgressCard(
-                              level: profile.level,
-                              progress: (lessonProvider.completedLessonIds.length / 13.0).clamp(0.0, 1.0),
-                              xpText: '${lessonProvider.completedLessonIds.length} of 13 Completed',
-                              levelTitle: profile.levelTitle,
-                            ),
-                          ),
-                          Container(
-                            width: 1,
-                            height: 80,
-                            color: AppColors.divider,
-                          ),
-                          Expanded(
-                            child: StreakBadge(
-                              streakDays: profile.streak,
-                              showSubtitle: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Algebria Adventure Shortcut Banner
+                  // 1. Algebria Adventure Shortcut Banner (Prominent Top Card)
                   _AlgebriaDashboardShortcut(
                     landAndLevel: questMapProvider.currentLandAndLevelLabel,
                     starsEarned: questMapProvider.activeLandStars,
@@ -179,8 +175,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Quick Action Feature Grid
-                  Text('Quick Practice & Features', style: AppTextStyles.heading3),
+                  // 2. Quick Action Feature Grid
+                  Text(
+                    'Quick Practice & Features',
+                    style: AppTextStyles.heading3,
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -192,7 +191,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           accentColor: AppColors.pink,
                           onTap: () {
                             Navigator.of(context).push(
-                              AppPageRoute(child: const BalanceScaleScreen()),
+                              AppPageRoute(
+                                child: const BalanceScaleScreen(),
+                              ),
                             );
                           },
                         ),
@@ -215,121 +216,76 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 24),
 
-                  // Section 2: Continue Learning
+                  // 3. Continue Learning
                   Text('Continue Learning', style: AppTextStyles.heading3),
                   const SizedBox(height: 12),
-                  if (currentLesson != null) ...[
-                    LessonCard(
-                      lessonTitle: currentLesson.title,
-                      moduleTitle: currentLesson.moduleTitle,
-                      progress: currentLessonProgress,
-                      progressText:
-                          '${(currentLessonProgress * 100).round()}% complete',
-                      onTap: lessonProvider.isBusy
-                          ? null
-                          : () => _openLesson(
+                  LessonCard(
+                    lessonTitle: activeLesson.title,
+                    moduleTitle: activeLesson.moduleTitle,
+                    progress: currentLessonProgress,
+                    progressText:
+                        '${(currentLessonProgress * 100).round()}% complete',
+                    onTap: lessonProvider.isBusy
+                        ? null
+                        : () => _openLesson(
                               context,
                               lessonProvider,
-                              currentLesson,
+                              activeLesson!,
                             ),
-                    ),
-                    const SizedBox(height: 12),
-                    PrimaryButton(
-                      label: currentLessonRecord == null
-                          ? 'Start Lesson 1'
-                          : lessonProvider.isLessonCompleted(
-                              currentLesson.lessonId,
-                            )
-                          ? 'Review'
-                          : 'Continue',
-                      isLoading: lessonProvider.isRecording,
-                      onPressed: lessonProvider.isBusy
-                          ? null
-                          : () => _openLesson(
+                  ),
+                  const SizedBox(height: 12),
+                  PrimaryButton(
+                    label: currentLessonRecord == null
+                        ? 'Start Lesson'
+                        : lessonProvider.isLessonCompleted(
+                            activeLesson.lessonId,
+                          )
+                        ? 'Review Lesson'
+                        : 'Continue Lesson',
+                    isLoading: lessonProvider.isRecording,
+                    onPressed: lessonProvider.isBusy
+                        ? null
+                        : () => _openLesson(
                               context,
                               lessonProvider,
-                              currentLesson,
+                              activeLesson!,
                             ),
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-
-                  // Section 3: Daily Challenge
-                  DailyChallengeCard(
-                    title: dailyChallenge.title,
-                    description: dailyChallenge.description,
-                    progress: dailyChallenge.progress,
-                    progressText: dailyChallenge.progressDisplay,
-                    xpReward: dailyChallenge.xpReward,
-                    onTap: () {},
                   ),
                   const SizedBox(height: 24),
 
-                  // Section 4: Learning tip
-                  Text("Today's learning tip", style: AppTextStyles.heading3),
+                  // 4. Quiz Mastery Status Card
+                  _QuizMasteryDashboardCard(
+                    passedCount: passedQuizzesCount,
+                    totalQuizzes: 3,
+                    nextQuizTitle: nextQuizTitle,
+                    isNextQuizReady: isNextQuizReady,
+                    onTap: () {
+                      if (isNextQuizReady &&
+                          !quizProvider.isModuleQuizPassed(nextQuizModule.id)) {
+                        Navigator.of(context).push(
+                          AppPageRoute(
+                            child: ModuleQuizScreen(module: nextQuizModule),
+                          ),
+                        );
+                      } else {
+                        Navigator.of(context).push(
+                          AppPageRoute(
+                            child: const QuizHubScreen(),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 5. Xy's Learning Tip
+                  Text("Xy's Learning Tip", style: AppTextStyles.heading3),
                   const SizedBox(height: 12),
                   _LearningTipCallout(message: AppStrings.tipOfTheDay),
 
-                  const SizedBox(height: 28),
-
-                  // Section 5: Logged in User Card
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.extraLightPink.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.pink.withValues(alpha: 0.3),
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.account_circle_outlined,
-                              color: AppColors.pink,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                'Logged in as ${user.name}',
-                                style: AppTextStyles.subtitle2.copyWith(
-                                  color: AppColors.text,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        SecondaryButton(
-                          label: 'Log Out',
-                          icon: Icons.logout_rounded,
-                          borderColor: AppColors.pink,
-                          textColor: AppColors.pink,
-                          onPressed: () async {
-                            await authProvider.logout();
-                            if (context.mounted) {
-                              Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                  builder: (_) => const LoginScreen(),
-                                ),
-                                (route) => false,
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                 ],
               ],
             ),
@@ -479,7 +435,7 @@ class _UniversalSearchResults extends StatelessWidget {
         'subtitle': 'Dynamic questions & AI explanations',
         'icon': '🧠',
         'action': () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const QuizScreen()),
+          MaterialPageRoute(builder: (_) => QuizScreen()),
         ),
       });
     }
@@ -598,6 +554,144 @@ class _UniversalSearchResults extends StatelessWidget {
   }
 }
 
+class _QuizMasteryDashboardCard extends StatelessWidget {
+  const _QuizMasteryDashboardCard({
+    required this.passedCount,
+    required this.totalQuizzes,
+    required this.nextQuizTitle,
+    required this.isNextQuizReady,
+    required this.onTap,
+  });
+
+  final int passedCount;
+  final int totalQuizzes;
+  final String nextQuizTitle;
+  final bool isNextQuizReady;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = (passedCount / totalQuizzes).clamp(0.0, 1.0);
+    final isAllPassed = passedCount >= totalQuizzes;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: AppColors.purple.withValues(alpha: 0.3),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.purple.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.lightPurple,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text('🧠', style: TextStyle(fontSize: 20)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Quiz Mastery Status',
+                      style: GoogleFonts.nunito(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.text,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      isAllPassed
+                          ? 'All $totalQuizzes Quizzes Mastered! 🎉'
+                          : '$passedCount of $totalQuizzes Quizzes Passed (${(percent * 100).round()}%)',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.purple,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: percent,
+              backgroundColor: AppColors.lightPurple,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
+              minHeight: 8,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  isAllPassed
+                      ? 'Review your past scores or retake quizzes to practice.'
+                      : (isNextQuizReady
+                          ? '$nextQuizTitle is ready to test your knowledge!'
+                          : 'Complete lessons to unlock $nextQuizTitle.'),
+                  style: GoogleFonts.nunito(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: onTap,
+                style: TextButton.styleFrom(
+                  backgroundColor: isNextQuizReady || isAllPassed
+                      ? AppColors.lightPurple
+                      : AppColors.border.withValues(alpha: 0.3),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  isAllPassed
+                      ? 'Quiz Hub'
+                      : (isNextQuizReady ? 'Take Quiz' : 'View Quizzes'),
+                  style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.purple,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _LearningTipCallout extends StatelessWidget {
   const _LearningTipCallout({required this.message});
 
@@ -610,32 +704,32 @@ class _LearningTipCallout extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: AppColors.extraLightPink,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.tips_and_updates_outlined,
-              color: AppColors.darkPink,
-              size: 22,
-              semanticLabel: 'Learning tip',
-            ),
+          XyMascot(
+            asset: AppAssets.xyInsight,
+            size: 46,
+            shadowBlur: 3.0,
+            shadowOpacity: 0.15,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Text(
               message,
               style: AppTextStyles.body2.copyWith(
                 color: AppColors.textSecondary,
+                height: 1.5,
               ),
             ),
           ),
@@ -665,19 +759,26 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
       enableHaptics: true,
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              AppColors.extraLightPink.withValues(alpha: 0.6),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: AppColors.pink.withValues(alpha: 0.35),
-            width: 1.5,
+            color: AppColors.pink.withValues(alpha: 0.4),
+            width: 1.6,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.pink.withValues(alpha: 0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
+              color: AppColors.pink.withValues(alpha: 0.12),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -685,19 +786,19 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
           children: [
             // Left: Adventure cover artwork thumbnail
             Container(
-              width: 54,
-              height: 54,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: AppColors.pink.withValues(alpha: 0.25),
-                  width: 1,
+                  color: AppColors.pink.withValues(alpha: 0.35),
+                  width: 1.5,
                 ),
                 boxShadow: const [
                   BoxShadow(
                     color: Colors.black12,
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
+                    blurRadius: 6,
+                    offset: Offset(0, 3),
                   ),
                 ],
               ),
@@ -707,64 +808,84 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 16),
 
             // Center: Location & Progress
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.extraLightPink,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          'ALGEBRIA QUEST',
-                          style: GoogleFonts.nunito(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.pink,
-                            letterSpacing: 0.5,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            AppAssets.star,
-                            width: 14,
-                            height: 14,
+                          decoration: BoxDecoration(
+                            color: AppColors.extraLightPink,
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          const SizedBox(width: 3),
-                          Text(
-                            '$starsEarned/$maxStars',
+                          child: Text(
+                            'ALGEBRIA QUEST',
                             style: GoogleFonts.nunito(
-                              fontSize: 11.5,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.w900,
-                              color: AppColors.textSecondary,
+                              color: AppColors.pink,
+                              letterSpacing: 0.6,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    landAndLevel,
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.text,
+                        ),
+                        const SizedBox(width: 8),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              AppAssets.star,
+                              width: 14,
+                              height: 14,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              '$starsEarned/$maxStars',
+                              style: GoogleFonts.nunito(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(height: 5),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      landAndLevel,
+                      style: GoogleFonts.nunito(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.text,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Tap to explore lands & solve puzzles',
+                    style: GoogleFonts.nunito(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -772,7 +893,7 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
 
             // Right: Play CTA icon pill
             Container(
-              padding: const EdgeInsets.all(9),
+              padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFFFF69B4), Color(0xFFFF4081)],
@@ -780,16 +901,16 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.pink.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
+                    color: AppColors.pink.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: const Icon(
                 Icons.arrow_forward_rounded,
                 color: Colors.white,
-                size: 18,
+                size: 20,
               ),
             ),
           ],

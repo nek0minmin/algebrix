@@ -49,7 +49,8 @@ class QuestMapProvider extends ChangeNotifier {
     _hasSeenPairadiseWelcome = true;
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('has_seen_pairadise_welcome', true);
+      final key = 'has_seen_pairadise_welcome_${_accountId ?? 'guest'}';
+      await prefs.setBool(key, true);
     } catch (_) {}
     notifyListeners();
   }
@@ -124,12 +125,12 @@ class QuestMapProvider extends ChangeNotifier {
     return 10;
   }
 
-  /// Formatted land and level display string, e.g. "Balands IV (Level 4)".
+  /// Formatted land and level display string, e.g. "Balands IV" or "Pairadise I".
   String get currentLandAndLevelLabel {
     final landName = activeLand?.name ?? 'Balands';
     final lvl = currentLevel;
     final roman = _toRoman(lvl);
-    return '$landName $roman (Level $lvl)';
+    return '$landName $roman';
   }
 
   static String _toRoman(int n) {
@@ -148,6 +149,8 @@ class QuestMapProvider extends ChangeNotifier {
     return map[n] ?? '$n';
   }
 
+  int _accountGeneration = 0;
+
   // ---------------------------------------------------------------------------
   // Actions
   // ---------------------------------------------------------------------------
@@ -155,17 +158,29 @@ class QuestMapProvider extends ChangeNotifier {
   /// Binds the current authenticated user account and loads their specific progress.
   void bindAccount(String? accountId) {
     if (_accountId == accountId) return;
+
+    _accountGeneration++;
     _accountId = accountId;
+    _levelProgress = {};
+    _totalStars = 0;
+    _activeLandId = 'balands';
+    _hasSeenPairadiseWelcome = false;
+    _errorMessage = null;
 
     if (accountId == null) {
-      _levelProgress = {};
-      _totalStars = 0;
-      _activeLandId = 'balands';
+      _isLoading = false;
       notifyListeners();
       return;
     }
 
-    unawaited(loadQuestMap());
+    _isLoading = true;
+    notifyListeners();
+    unawaited(_hydrateQuestMap(accountId, _accountGeneration));
+  }
+
+  Future<void> _hydrateQuestMap(String accountId, int generation) async {
+    await loadQuestMap();
+    if (_accountId != accountId || _accountGeneration != generation) return;
   }
 
   /// Load all lands and progress for the first (or given) land.
@@ -174,7 +189,20 @@ class QuestMapProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    final targetLand = landId ?? _activeLandId ?? 'balands';
+    String targetLand = landId ?? _activeLandId ?? 'balands';
+    String? savedLand;
+    final accountKey = _accountId ?? 'guest';
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _hasSeenPairadiseWelcome =
+          prefs.getBool('has_seen_pairadise_welcome_$accountKey') ?? false;
+
+      savedLand = prefs.getString('saved_active_land_id_$accountKey');
+      if (landId == null && savedLand != null && savedLand.isNotEmpty) {
+        targetLand = savedLand;
+      }
+    } catch (_) {}
 
     try {
       final fetchedLands = await _repository.fetchAllLands();
@@ -183,14 +211,14 @@ class QuestMapProvider extends ChangeNotifier {
         landMap[l.id] = l;
       }
       _lands = landMap.values.toList();
-      _activeLandId = targetLand;
       _totalStars = await _repository.fetchTotalStars();
 
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        _hasSeenPairadiseWelcome =
-            prefs.getBool('has_seen_pairadise_welcome') ?? false;
-      } catch (_) {}
+      // If user has already unlocked and entered Pairadise, remember Pairadise as active land
+      if (landId == null && savedLand == null && _hasSeenPairadiseWelcome && _totalStars >= 25) {
+        targetLand = 'pairadise';
+      }
+
+      _activeLandId = targetLand;
 
       final progressList = await _repository.fetchLandProgress(targetLand);
       _levelProgress = {
@@ -209,6 +237,11 @@ class QuestMapProvider extends ChangeNotifier {
   /// Switch the active game world (e.g. from 'balands' to 'pairadise').
   Future<void> switchLand(String landId) async {
     if (_activeLandId == landId) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'saved_active_land_id_${_accountId ?? 'guest'}';
+      await prefs.setString(key, landId);
+    } catch (_) {}
     await loadQuestMap(landId: landId);
   }
 

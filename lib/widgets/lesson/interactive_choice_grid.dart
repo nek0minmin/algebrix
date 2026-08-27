@@ -178,17 +178,11 @@ class _ChoiceItemState extends State<_ChoiceItem>
   Widget build(BuildContext context) {
     Color bgColor = Colors.white;
     Color borderColor = AppColors.border;
-    Widget? trailingIcon;
     double opacity = 1.0;
 
     if (widget.isIncorrectSelection) {
       bgColor = const Color(0xFFFFF1F2);
       borderColor = AppColors.error;
-      trailingIcon = const Icon(
-        Icons.cancel_rounded,
-        color: AppColors.error,
-        size: 20,
-      );
     } else if (widget.isSelected && !widget.isAnswered) {
       bgColor = AppColors.extraLightPink;
       borderColor = AppColors.pink;
@@ -196,11 +190,6 @@ class _ChoiceItemState extends State<_ChoiceItem>
       if (widget.isSelected) {
         bgColor = AppColors.lightMint;
         borderColor = AppColors.mint;
-        trailingIcon = const Icon(
-          Icons.check_circle_rounded,
-          color: AppColors.mint,
-          size: 20,
-        );
       } else {
         opacity = 0.6;
       }
@@ -222,7 +211,7 @@ class _ChoiceItemState extends State<_ChoiceItem>
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               constraints: BoxConstraints(minHeight: widget.minHeight),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: bgColor,
@@ -263,10 +252,6 @@ class _ChoiceItemState extends State<_ChoiceItem>
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  if (trailingIcon != null) ...[
-                    const SizedBox(width: 8),
-                    trailingIcon,
-                  ],
                 ],
               ),
             ),

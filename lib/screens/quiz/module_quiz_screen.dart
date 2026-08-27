@@ -728,49 +728,61 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
                 // Pass / Fail Requirement Chip
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                    horizontal: 20,
                     vertical: 10,
                   ),
-                  decoration: BoxDecoration(
-                    color: percent >= 60
-                        ? AppColors.lightMint
-                        : AppColors.extraLightPink,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
+                    decoration: BoxDecoration(
                       color: percent >= 60
-                          ? AppColors.mint.withValues(alpha: 0.5)
-                          : AppColors.pink.withValues(alpha: 0.5),
+                          ? AppColors.lightMint
+                          : AppColors.extraLightPink,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: percent >= 60
+                            ? AppColors.mint.withValues(alpha: 0.6)
+                            : AppColors.pink.withValues(alpha: 0.6),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          percent >= 60
+                              ? Icons.check_circle_rounded
+                              : Icons.cancel_rounded,
+                          color: percent >= 60 ? AppColors.mint : AppColors.error,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          percent >= 60 ? 'PASSED' : 'FAILED',
+                          style: GoogleFonts.nunito(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                            color: percent >= 60
+                                ? const Color(0xFF0F7263)
+                                : AppColors.error,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        percent >= 60
-                            ? Icons.check_circle_rounded
-                            : Icons.info_outline_rounded,
-                        color: percent >= 60 ? AppColors.mint : AppColors.darkPink,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        percent >= 60
-                            ? 'PASSED (≥60% Requirement Met)'
-                            : 'NEEDS REVIEW (60% Required to Advance)',
-                        style: GoogleFonts.nunito(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                          color: percent >= 60
-                              ? const Color(0xFF0F7263)
-                              : AppColors.darkPink,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 10),
+                  Text(
+                    percent >= 60
+                        ? 'Great job! You\'ve successfully mastered this module.'
+                        : 'Don’t give up! Review the lesson notes and try again.',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 24),
 
           // Review Section Header

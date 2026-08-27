@@ -69,14 +69,13 @@ void main() {
     await tester.pump(const Duration(milliseconds: 700));
 
     expect(attempts, [false]);
-    expect(find.byIcon(Icons.cancel_rounded), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
 
     await tester.tap(find.text('7'));
     await tester.pumpAndSettle();
 
     expect(attempts, [false, true]);
-    expect(find.byIcon(Icons.cancel_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
+    expect(find.text('7'), findsOneWidget);
   });
 
   testWidgets('a pending answer ignores a second immediate tap', (

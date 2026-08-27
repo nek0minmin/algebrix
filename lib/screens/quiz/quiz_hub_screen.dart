@@ -179,7 +179,7 @@ class QuizHubScreen extends StatelessWidget {
                     completedLessons: lessonProvider.completedLessonsInModule('module2'),
                     totalLessons: module2.lessons.length,
                     unlockRequirement: !quizProvider.isModuleUnlocked('module2')
-                        ? 'Score ≥60% on Module 1 Quiz'
+                        ? 'Score at least 60% on Module 1 Quiz'
                         : 'Complete all 7 Module 2 lessons',
                     onStart: () {
                       Navigator.of(context).push(
@@ -218,7 +218,7 @@ class QuizHubScreen extends StatelessWidget {
                     completedLessons: lessonProvider.completedLessonsInModule('module3'),
                     totalLessons: module3.lessons.length,
                     unlockRequirement: !quizProvider.isModuleUnlocked('module3')
-                        ? 'Score ≥60% on Module 2 Quiz'
+                        ? 'Score at least 60% on Module 2 Quiz'
                         : 'Complete all 8 Module 3 lessons',
                     onStart: () {
                       Navigator.of(context).push(
@@ -251,14 +251,14 @@ class QuizHubScreen extends StatelessWidget {
                   _LockedFutureQuizCard(
                     moduleNumber: 4,
                     title: 'Inequalities Quiz',
-                    prerequisite: 'Pass Module 3 Quiz (≥60%)',
+                    prerequisite: 'Pass Module 3 Quiz (at least 60%)',
                     accentColor: AppColors.yellow,
                   ),
                   const SizedBox(height: 12),
                   _LockedFutureQuizCard(
                     moduleNumber: 5,
                     title: 'Linear Relationships Quiz',
-                    prerequisite: 'Pass Module 4 Quiz (≥60%)',
+                    prerequisite: 'Pass Module 4 Quiz (at least 60%)',
                     accentColor: AppColors.info,
                   ),
                 ],

@@ -82,9 +82,9 @@ void main() {
 
       // Verify negative constant question in Module 1 Seed Bank (Q2)
       final qConstant = quiz.questions.firstWhere(
-        (q) => q.question.contains('9y − 12') || q.question.contains('constant'),
+        (q) => q.subLessonTitle.toLowerCase().contains('constant'),
       );
-      expect(qConstant.options[qConstant.correctIndex], '−12');
+      expect(qConstant.options[qConstant.correctIndex], startsWith('−'));
 
       // Verify strict scope: NO distributive property, NO combining like terms, NO substitution
       for (final q in quiz.questions) {

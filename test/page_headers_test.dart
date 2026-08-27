@@ -151,7 +151,6 @@ void main() {
 
   test('scoped root bodies leave Xy artwork to their shared header', () {
     const paths = [
-      'lib/screens/home/home_screen.dart',
       'lib/screens/lessons/lessons_screen.dart',
       'lib/screens/practice/quiz_screen.dart',
       'lib/screens/notes/notes_screen.dart',

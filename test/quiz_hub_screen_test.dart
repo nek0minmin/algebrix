@@ -98,7 +98,7 @@ void main() {
     expect(find.text('Tap to view lessons (0/6)'), findsOneWidget);
 
     // Module 3 is locked because Module 2 quiz is not passed
-    expect(find.text('Score ≥60% on Module 2 Quiz'), findsOneWidget);
+    expect(find.text('Score at least 60% on Module 2 Quiz'), findsOneWidget);
 
     // Expand analytics breakdown
     expect(find.text('View Detailed Breakdown'), findsOneWidget);

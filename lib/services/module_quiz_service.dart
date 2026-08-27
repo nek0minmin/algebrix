@@ -209,8 +209,12 @@ Return ONLY a JSON object with this EXACT structure:
     required ModuleContent module,
   }) async {
     final systemPrompt = _buildSystemPrompt(module);
+    final nonce = DateTime.now().microsecondsSinceEpoch;
     final userPrompt =
-        'Generate a 10-question progressive quiz strictly for module ${module.id} (${module.title}).';
+        'Generate a fresh, unique 10-question progressive quiz strictly for module ${module.id} (${module.title}). '
+        'Randomization seed: $nonce. '
+        'Ensure unique numerical values, diverse variable letters (e.g. k, m, p, w, n, a, b, c, x, y, z), '
+        'and different problem setups so every generated quiz is brand new and engaging.';
 
     // 1. Try Gemini API if key is present
     if (_geminiApiKey.isNotEmpty) {
@@ -304,7 +308,7 @@ Return ONLY a JSON object with this EXACT structure:
               }
             ],
             'generationConfig': {
-              'temperature': 0.2,
+              'temperature': 0.7,
               'responseMimeType': 'application/json',
             }
           }),
@@ -350,7 +354,7 @@ Return ONLY a JSON object with this EXACT structure:
               {'role': 'system', 'content': systemPrompt},
               {'role': 'user', 'content': userPrompt},
             ],
-            'temperature': 0.2,
+            'temperature': 0.7,
             'response_format': {'type': 'json_object'},
           }),
         ).timeout(const Duration(seconds: 12));
@@ -386,7 +390,7 @@ Return ONLY a JSON object with this EXACT structure:
           {'role': 'system', 'content': systemPrompt},
           {'role': 'user', 'content': userPrompt},
         ],
-        'temperature': 0.2,
+        'temperature': 0.7,
       }),
     ).timeout(const Duration(seconds: 12));
 
@@ -502,38 +506,42 @@ Return ONLY a JSON object with this EXACT structure:
   }
 
   ModuleQuiz _buildModule1SeedQuiz(Random rng) {
-    final a = rng.nextInt(4) + 3; // 3 to 6
+    final vars = ['x', 'y', 'n', 'a', 'b', 'k', 'm', 'w'];
+    final v = vars[rng.nextInt(vars.length)];
+    final a = rng.nextInt(5) + 3; // 3 to 7
+    final b = rng.nextInt(7) + 2; // 2 to 8
+    final c = rng.nextInt(6) + 2; // 2 to 7
 
     final questions = <ModuleQuizQuestion>[
       // Level 1: Foundations (Q1 to Q3)
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm1_q01',
         subLessonTitle: 'Variables',
-        question: 'In the algebraic expression 7x + 4, which part represents the variable?',
+        question: 'In the algebraic expression $a$v + $b, which part represents the variable?',
         type: QuizQuestionType.multipleChoice,
-        options: ['7', 'x', '4'],
+        options: ['$a', v, '$b'],
         correctIndex: 1,
-        explanation: 'A variable is a letter or symbol that represents an unknown quantity (x).',
+        explanation: 'A variable is a letter or symbol that represents an unknown quantity ($v).',
         difficulty: 1,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm1_q02',
         subLessonTitle: 'Constants',
-        question: 'In the expression 9y − 12, what is the constant term?',
+        question: 'In the expression ${a + 2}$v − $b, what is the constant term?',
         type: QuizQuestionType.multipleChoice,
-        options: ['9', 'y', '−12'],
+        options: ['${a + 2}', v, '−$b'],
         correctIndex: 2,
-        explanation: 'In 9y − 12, the minus sign belongs to the term that follows, making the constant −12.',
+        explanation: 'In ${a + 2}$v − $b, the minus sign belongs to the term that follows, making the constant −$b.',
         difficulty: 1,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm1_q03',
         subLessonTitle: 'Coefficients',
-        question: 'What is the coefficient of a standalone variable like "n"?',
+        question: 'What is the coefficient of a standalone variable like "$v"?',
         type: QuizQuestionType.multipleChoice,
-        options: ['0', '1', 'n'],
+        options: ['0', '1', v],
         correctIndex: 1,
-        explanation: 'A standalone variable always has an implicit (invisible) coefficient of 1 (1n = n).',
+        explanation: 'A standalone variable always has an implicit (invisible) coefficient of 1 (1$v = $v).',
         difficulty: 1,
       ),
 
@@ -541,9 +549,9 @@ Return ONLY a JSON object with this EXACT structure:
       ModuleQuizQuestion(
         id: 'm1_q04',
         subLessonTitle: 'Coefficients and Signs',
-        question: 'What is the coefficient of the variable in the term: −${a}y',
+        question: 'What is the coefficient of the variable in the term: −$a$v',
         type: QuizQuestionType.multipleChoice,
-        options: ['$a', '−$a', 'y'],
+        options: ['$a', '−$a', v],
         correctIndex: 1,
         explanation: 'The sign in front belongs to the coefficient, so the multiplier is −$a.',
         difficulty: 2,
@@ -558,36 +566,36 @@ Return ONLY a JSON object with this EXACT structure:
         explanation: 'False! The presence of an equals sign (=) makes it an equation, not an expression.',
         difficulty: 2,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm1_q06',
         subLessonTitle: 'Terms and Signs',
-        question: 'How many terms are in the expression: 4x + 7 − 3y + 2',
+        question: 'How many terms are in the expression: ${a}x + $b − ${c}y + 2',
         type: QuizQuestionType.multipleChoice,
         options: ['2', '3', '4'],
         correctIndex: 2,
-        explanation: 'Addition and subtraction separate the 4 distinct terms: 4x, +7, −3y, and +2.',
+        explanation: 'Addition and subtraction separate the 4 distinct terms: ${a}x, +$b, −${c}y, and +2.',
         difficulty: 2,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm1_q07',
         subLessonTitle: 'Order of Operations',
-        question: 'Evaluate: 6 + 4 × 3',
+        question: 'Evaluate: $a + $b × $c',
         type: QuizQuestionType.multipleChoice,
-        options: ['30', '18', '24'],
+        options: ['${(a + b) * c}', '${a + (b * c)}', '${(a * c) + b}'],
         correctIndex: 1,
-        explanation: 'Multiply first: 4 × 3 = 12. Then add: 6 + 12 = 18.',
+        explanation: 'Multiply first: $b × $c = ${b * c}. Then add: $a + ${b * c} = ${a + (b * c)}.',
         difficulty: 2,
       ),
 
       // Level 3: Multi-Step Mastery (Q8 to Q10)
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm1_q08',
         subLessonTitle: 'Order of Operations with Parentheses',
-        question: 'Evaluate: (5 + 3) × 2 − 4',
+        question: 'Evaluate: ($a + $b) × $c − 4',
         type: QuizQuestionType.multipleChoice,
-        options: ['12', '16', '8'],
+        options: ['${(a + b) * c - 4}', '${(a + b) * c}', '${a + (b * c) - 4}'],
         correctIndex: 0,
-        explanation: 'Parentheses first: 5 + 3 = 8. Then multiply: 8 × 2 = 16. Finally subtract: 16 − 4 = 12.',
+        explanation: 'Parentheses first: $a + $b = ${a + b}. Multiply: ${a + b} × $c = ${(a + b) * c}. Finally subtract 4: ${(a + b) * c - 4}.',
         difficulty: 3,
       ),
       const ModuleQuizQuestion(
@@ -622,26 +630,34 @@ Return ONLY a JSON object with this EXACT structure:
   }
 
   ModuleQuiz _buildModule2SeedQuiz(Random rng) {
+    final vars = ['x', 'y', 'k', 'm', 'p', 'w', 'a', 'b'];
+    final v = vars[rng.nextInt(vars.length)];
+    final c1 = rng.nextInt(5) + 3; // 3 to 7
+    final c2 = rng.nextInt(5) + 2; // 2 to 6
+    final val = rng.nextInt(4) + 2; // 2 to 5
+    final factor = rng.nextInt(3) + 2; // 2 to 4
+    final insideConst = rng.nextInt(4) + 2; // 2 to 5
+
     final questions = <ModuleQuizQuestion>[
       // Level 1: Foundations (Q1 to Q3)
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm2_q01',
         subLessonTitle: 'Like and Unlike Terms',
         question: 'Which of the following pairs contains LIKE TERMS?',
         type: QuizQuestionType.multipleChoice,
-        options: ['4x and 9x', '3x and 3y', '5x and 5x²'],
+        options: ['${c1}$v and ${c1 + 5}$v', '${c1}$v and ${c1}z', '${c1}$v and ${c1}$v²'],
         correctIndex: 0,
-        explanation: 'Like terms must have the exact same variable raised to the exact same exponent (x).',
+        explanation: 'Like terms must have the exact same variable raised to the exact same exponent ($v).',
         difficulty: 1,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm2_q02',
         subLessonTitle: 'Combining Like Terms',
-        question: 'Simplify: 5x + 3x',
+        question: 'Simplify: ${c1}$v + ${c2}$v',
         type: QuizQuestionType.multipleChoice,
-        options: ['8x', '8x²', '15x'],
+        options: ['${c1 + c2}$v', '${c1 + c2}$v²', '${c1 * c2}$v'],
         correctIndex: 0,
-        explanation: 'Add the coefficients (5 + 3 = 8) and keep the variable part identical (8x).',
+        explanation: 'Add the coefficients ($c1 + $c2 = ${c1 + c2}) and keep the variable part identical (${c1 + c2}$v).',
         difficulty: 1,
       ),
       const ModuleQuizQuestion(
@@ -656,34 +672,34 @@ Return ONLY a JSON object with this EXACT structure:
       ),
 
       // Level 2: Procedural Operations (Q4 to Q7)
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm2_q04',
         subLessonTitle: 'Distributive Property',
-        question: 'Expand: 3(x + 4)',
+        question: 'Expand: $factor($v + $insideConst)',
         type: QuizQuestionType.multipleChoice,
-        options: ['3x + 12', '3x + 4', '7x'],
+        options: ['$factor$v + ${factor * insideConst}', '$factor$v + $insideConst', '${factor + insideConst}$v'],
         correctIndex: 0,
-        explanation: 'Multiply the outside factor by each inside term: 3(x) + 3(4) = 3x + 12.',
+        explanation: 'Multiply the outside factor by each inside term: $factor($v) + $factor($insideConst) = $factor$v + ${factor * insideConst}.',
         difficulty: 2,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm2_q05',
         subLessonTitle: 'Distributive Property with Subtraction',
-        question: 'Expand: 2(x − 5)',
+        question: 'Expand: $factor($v − $insideConst)',
         type: QuizQuestionType.multipleChoice,
-        options: ['2x − 10', '2x − 5', '2x + 10'],
+        options: ['$factor$v − ${factor * insideConst}', '$factor$v − $insideConst', '$factor$v + ${factor * insideConst}'],
         correctIndex: 0,
-        explanation: 'Distribute 2 to both terms: 2(x) + 2(−5) = 2x − 10.',
+        explanation: 'Distribute $factor to both terms: $factor($v) + $factor(−$insideConst) = $factor$v − ${factor * insideConst}.',
         difficulty: 2,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm2_q06',
         subLessonTitle: 'Evaluating Expressions',
-        question: 'If x = 4, evaluate the expression: 3x + 2',
+        question: 'If $v = $val, evaluate the expression: ${c1}$v + $c2',
         type: QuizQuestionType.multipleChoice,
-        options: ['14', '18', '24'],
+        options: ['${(c1 * val) + c2}', '${(c1 * val) + c2 + 4}', '${c1 * (val + c2)}'],
         correctIndex: 0,
-        explanation: 'Substitute 4 for x: 3(4) + 2 = 12 + 2 = 14.',
+        explanation: 'Substitute $val for $v: $c1($val) + $c2 = ${c1 * val} + $c2 = ${(c1 * val) + c2}.',
         difficulty: 2,
       ),
       const ModuleQuizQuestion(
@@ -698,34 +714,34 @@ Return ONLY a JSON object with this EXACT structure:
       ),
 
       // Level 3: Multi-Step Mastery (Q8 to Q10)
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm2_q08',
         subLessonTitle: 'Simplifying Expressions',
-        question: 'Simplify the expression by combining like terms: 6k + 4 − 2k + 9',
+        question: 'Simplify the expression by combining like terms: ${c1 + 3}$v + $c2 − ${c1}$v + ${c2 + 5}',
         type: QuizQuestionType.multipleChoice,
-        options: ['4k + 13', '8k + 13', '4k + 5'],
+        options: ['3$v + ${2 * c2 + 5}', '${2 * c1 + 3}$v + ${2 * c2 + 5}', '3$v + 5'],
         correctIndex: 0,
-        explanation: 'Group like terms: (6k − 2k) + (4 + 9) = 4k + 13.',
+        explanation: 'Group like terms: (${c1 + 3}$v − ${c1}$v) + ($c2 + ${c2 + 5}) = 3$v + ${2 * c2 + 5}.',
         difficulty: 3,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm2_q09',
         subLessonTitle: 'Distribute & Combine',
-        question: 'Simplify completely: 3(x + 2) + 4x',
+        question: 'Simplify completely: $factor($v + 2) + ${c2}$v',
         type: QuizQuestionType.multipleChoice,
-        options: ['7x + 6', '7x + 2', '3x + 6'],
+        options: ['${factor + c2}$v + ${factor * 2}', '${factor + c2}$v + 2', '$factor$v + ${factor * 2}'],
         correctIndex: 0,
-        explanation: 'Distribute first: 3x + 6 + 4x. Then combine like terms: (3x + 4x) + 6 = 7x + 6.',
+        explanation: 'Distribute first: $factor$v + ${factor * 2} + ${c2}$v. Combine like terms: ($factor$v + ${c2}$v) + ${factor * 2} = ${factor + c2}$v + ${factor * 2}.',
         difficulty: 3,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm2_q10',
         subLessonTitle: 'Multi-Variable Substitution',
-        question: 'If a = 3 and b = 5, evaluate the expression: 2a + 3b',
+        question: 'If a = $val and b = $insideConst, evaluate the expression: 2a + 3b',
         type: QuizQuestionType.multipleChoice,
-        options: ['21', '16', '30'],
+        options: ['${2 * val + 3 * insideConst}', '${2 * val + insideConst}', '${val + 3 * insideConst}'],
         correctIndex: 0,
-        explanation: 'Substitute: 2(3) + 3(5) = 6 + 15 = 21.',
+        explanation: 'Substitute: 2($val) + 3($insideConst) = ${2 * val} + ${3 * insideConst} = ${2 * val + 3 * insideConst}.',
         difficulty: 3,
       ),
     ];
@@ -740,60 +756,87 @@ Return ONLY a JSON object with this EXACT structure:
   }
 
   ModuleQuiz _buildModule3SeedQuiz(Random rng) {
+    final vars = ['x', 'y', 'k', 'm', 'w', 'p', 'a', 'n'];
+    final v = vars[rng.nextInt(vars.length)];
+    final multCoeff = rng.nextInt(5) + 3; // 3 to 7
+    final targetX = rng.nextInt(6) + 2; // 2 to 7
+    final multTotal = multCoeff * targetX;
+    final addConst = rng.nextInt(8) + 3; // 3 to 10
+    final subConst = rng.nextInt(7) + 2; // 2 to 8
+    final twoStepAns = rng.nextInt(5) + 2; // 2 to 6
+    final twoStepA = rng.nextInt(3) + 2; // 2 to 4
+    final twoStepB = rng.nextInt(5) + 2; // 2 to 6
+    final twoStepTotal = twoStepA * twoStepAns + twoStepB;
+
     final questions = <ModuleQuizQuestion>[
       // Level 1: Foundations (Q1 to Q3)
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm3_q01',
         subLessonTitle: 'Understanding Equations',
         question: 'Which of the following is an EQUATION?',
         type: QuizQuestionType.multipleChoice,
-        options: ['3x + 2', '4y − 7', '3x + 2 = 11', '5a'],
+        options: ['3$v + 2', '4y − 7', '3$v + 2 = 11', '5$v'],
         correctIndex: 2,
         explanation:
             'An equation must contain an equals sign (=) stating that two expressions have equal value.',
         difficulty: 1,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm3_q02',
         subLessonTitle: 'Inverse Operations',
-        question: 'What operation undoes: x + 8',
+        question: 'What operation undoes: $v + $addConst',
         type: QuizQuestionType.multipleChoice,
-        options: ['+8', '−8', '×8', '÷8'],
+        options: ['+$addConst', '−$addConst', '×$addConst', '÷$addConst'],
         correctIndex: 1,
         explanation:
-            'Subtraction is the inverse operation of addition (+8 − 8 = 0).',
+            'Subtraction is the inverse operation of addition (+$addConst − $addConst = 0).',
         difficulty: 1,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm3_q03',
         subLessonTitle: 'One-Step Equations',
-        question: 'Solve for x: x − 6 = 9',
+        question: 'Solve for $v: $v − $subConst = $addConst',
         type: QuizQuestionType.multipleChoice,
-        options: ['x = 3', 'x = 15', 'x = 54', 'x = −3'],
+        options: [
+          '$v = ${addConst - subConst}',
+          '$v = ${addConst + subConst}',
+          '$v = ${addConst * subConst}',
+          '$v = ${-addConst}',
+        ],
         correctIndex: 1,
-        explanation: 'Add 6 to both sides: x = 9 + 6 = 15.',
+        explanation: 'Add $subConst to both sides: $v = $addConst + $subConst = ${addConst + subConst}.',
         difficulty: 1,
       ),
 
       // Level 2: Procedural Operations (Q4 to Q7)
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm3_q04',
         subLessonTitle: 'Multiplication Equations',
-        question: 'Solve for x: 5x = 30',
+        question: 'Solve for $v: ${multCoeff}$v = $multTotal',
         type: QuizQuestionType.multipleChoice,
-        options: ['x = 25', 'x = 6', 'x = 150', 'x = 5'],
+        options: [
+          '$v = ${multTotal - multCoeff}',
+          '$v = $targetX',
+          '$v = ${multTotal * multCoeff}',
+          '$v = ${targetX + 2}',
+        ],
         correctIndex: 1,
-        explanation: 'Divide both sides by 5: 30 ÷ 5 = 6.',
+        explanation: 'Divide both sides by $multCoeff: $multTotal ÷ $multCoeff = $targetX.',
         difficulty: 2,
       ),
-      const ModuleQuizQuestion(
+      ModuleQuizQuestion(
         id: 'm3_q05',
         subLessonTitle: 'Two-Step Equations',
-        question: 'Solve for x: 3x + 4 = 19',
+        question: 'Solve for $v: ${twoStepA}$v + $twoStepB = $twoStepTotal',
         type: QuizQuestionType.multipleChoice,
-        options: ['x = 5', 'x = 7', 'x = 8', 'x = 23'],
+        options: [
+          '$v = $twoStepAns',
+          '$v = ${twoStepAns + 2}',
+          '$v = ${twoStepAns + 3}',
+          '$v = ${twoStepTotal + twoStepB}',
+        ],
         correctIndex: 0,
-        explanation: 'Subtract 4 (3x = 15), then divide by 3: x = 5.',
+        explanation: 'Subtract $twoStepB (${twoStepA}$v = ${twoStepTotal - twoStepB}), then divide by $twoStepA: $v = $twoStepAns.',
         difficulty: 2,
       ),
       const ModuleQuizQuestion(

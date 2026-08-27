@@ -74,16 +74,15 @@ class SupabaseQuestRepository implements QuestRepository {
 
   @override
   Future<List<QuestLevelProgress>> fetchLandProgress(String landId) async {
-    final localList = await _loadLocalLandProgress(landId);
-    final localMap = {for (final p in localList) p.levelNumber: p};
-
     String? userId;
     try {
       userId = _client.auth.currentUser?.id;
     } catch (_) {}
 
+    final effectiveUserId = userId ?? 'guest';
+
     if (userId == null) {
-      return localList;
+      return _loadLocalLandProgress(landId, userId: effectiveUserId);
     }
 
     try {
@@ -98,41 +97,32 @@ class SupabaseQuestRepository implements QuestRepository {
         return rows.map((row) => QuestLevelProgress.fromJson(row)).toList();
       });
 
-      // Merge remote with local (best score wins)
-      for (final remote in remoteList) {
-        final local = localMap[remote.levelNumber];
-        if (local == null || remote.starsEarned >= local.starsEarned) {
-          localMap[remote.levelNumber] = remote;
-        }
-      }
-
-      final merged = localMap.values.toList()
-        ..sort((a, b) => a.levelNumber.compareTo(b.levelNumber));
-
-      await _saveLocalLandProgress(landId, merged);
-      return merged;
+      // Remote Supabase database is canonical for this user
+      await _saveLocalLandProgress(landId, remoteList, userId: effectiveUserId);
+      return remoteList;
     } catch (e) {
       debugPrint('QuestRepository fetchLandProgress fallback to local: $e');
-      return localList;
+      return _loadLocalLandProgress(landId, userId: effectiveUserId);
     }
   }
 
   @override
   Future<int> fetchTotalStars() async {
-    int localTotal = 0;
-    for (final land in ['balands', 'pairadise']) {
-      final list = await _loadLocalLandProgress(land);
-      for (final p in list) {
-        localTotal += p.starsEarned;
-      }
-    }
-
     String? userId;
     try {
       userId = _client.auth.currentUser?.id;
     } catch (_) {}
 
+    final effectiveUserId = userId ?? 'guest';
+
     if (userId == null) {
+      int localTotal = 0;
+      for (final land in ['balands', 'pairadise']) {
+        final list = await _loadLocalLandProgress(land, userId: effectiveUserId);
+        for (final p in list) {
+          localTotal += p.starsEarned;
+        }
+      }
       return localTotal;
     }
 
@@ -150,9 +140,16 @@ class SupabaseQuestRepository implements QuestRepository {
         return total;
       });
 
-      return remoteTotal > localTotal ? remoteTotal : localTotal;
+      return remoteTotal;
     } catch (e) {
       debugPrint('QuestRepository fetchTotalStars fallback: $e');
+      int localTotal = 0;
+      for (final land in ['balands', 'pairadise']) {
+        final list = await _loadLocalLandProgress(land, userId: effectiveUserId);
+        for (final p in list) {
+          localTotal += p.starsEarned;
+        }
+      }
       return localTotal;
     }
   }
@@ -165,8 +162,15 @@ class SupabaseQuestRepository implements QuestRepository {
     required int moveCount,
     required bool reasoningPassed,
   }) async {
-    // 1. Immediately persist to local cache (SharedPreferences)
-    final currentList = await _loadLocalLandProgress(landId);
+    String? userId;
+    try {
+      userId = _client.auth.currentUser?.id;
+    } catch (_) {}
+    final effectiveUserId = userId ?? 'guest';
+
+    // 1. Immediately persist to user-namespaced local cache
+    final currentList =
+        await _loadLocalLandProgress(landId, userId: effectiveUserId);
     final map = {for (final p in currentList) p.levelNumber: p};
     final existing = map[levelNumber];
 
@@ -181,7 +185,7 @@ class SupabaseQuestRepository implements QuestRepository {
         reasoningPassed || (existing?.reasoningPassed ?? false);
 
     final updated = QuestLevelProgress(
-      userId: existing?.userId ?? _client.auth.currentUser?.id ?? '',
+      userId: effectiveUserId,
       landId: landId,
       levelNumber: levelNumber,
       starsEarned: bestStars,
@@ -191,14 +195,13 @@ class SupabaseQuestRepository implements QuestRepository {
     );
 
     map[levelNumber] = updated;
-    await _saveLocalLandProgress(landId, map.values.toList());
+    await _saveLocalLandProgress(
+      landId,
+      map.values.toList(),
+      userId: effectiveUserId,
+    );
 
     // 2. Persist to Supabase if authenticated
-    String? userId;
-    try {
-      userId = _client.auth.currentUser?.id;
-    } catch (_) {}
-
     if (userId == null) return;
 
     try {
@@ -259,10 +262,16 @@ class SupabaseQuestRepository implements QuestRepository {
   // Local Cache Helpers (SharedPreferences)
   // ---------------------------------------------------------------------------
 
-  Future<List<QuestLevelProgress>> _loadLocalLandProgress(String landId) async {
+  Future<List<QuestLevelProgress>> _loadLocalLandProgress(
+    String landId, {
+    String? userId,
+  }) async {
     try {
+      final effectiveUserId =
+          userId ?? _client.auth.currentUser?.id ?? 'guest';
       final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString('quest_progress_$landId');
+      final key = 'quest_progress_${effectiveUserId}_$landId';
+      final raw = prefs.getString(key);
       if (raw == null || raw.isEmpty) return [];
       final list = jsonDecode(raw) as List<dynamic>;
       return list
@@ -277,12 +286,16 @@ class SupabaseQuestRepository implements QuestRepository {
 
   Future<void> _saveLocalLandProgress(
     String landId,
-    List<QuestLevelProgress> progressList,
-  ) async {
+    List<QuestLevelProgress> progressList, {
+    String? userId,
+  }) async {
     try {
+      final effectiveUserId =
+          userId ?? _client.auth.currentUser?.id ?? 'guest';
       final prefs = await SharedPreferences.getInstance();
+      final key = 'quest_progress_${effectiveUserId}_$landId';
       final raw = jsonEncode(progressList.map((p) => p.toJson()).toList());
-      await prefs.setString('quest_progress_$landId', raw);
+      await prefs.setString(key, raw);
     } catch (e) {
       debugPrint('QuestRepository _saveLocalLandProgress error: $e');
     }

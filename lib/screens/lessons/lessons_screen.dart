@@ -420,18 +420,15 @@ class _QuizHubBannerCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Flexible(
-                        child: Text(
-                          'Quizzes & Mastery',
-                          style: GoogleFonts.nunito(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.text,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                      Text(
+                        'Quiz Hub',
+                        style: GoogleFonts.nunito(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.text,
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
@@ -439,21 +436,29 @@ class _QuizHubBannerCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'QUIZ HUB',
+                          'MASTERY',
                           style: GoogleFonts.nunito(
-                            fontSize: 9,
+                            fontSize: 8.5,
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  Text(
-                    'Score ≥60% on quizzes to unlock new modules',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
+                  const SizedBox(height: 2),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Score at least 60% to unlock new modules',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
                     ),
                   ),
                 ],

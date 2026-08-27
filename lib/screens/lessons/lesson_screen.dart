@@ -641,28 +641,65 @@ class _LessonScreenState extends State<LessonScreen> {
 
   /// Summary step — lesson completion review.
   Widget _buildSummaryStep(LessonStep step) {
+    final rawTitle = step.title ?? 'Lesson Complete!';
+    final cleanTitle = rawTitle
+        .replaceAll(RegExp(r'[\u{1F300}-\u{1F9FF}]', unicode: true), '')
+        .trim();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 8),
-        if (step.title != null)
-          Text(
-            step.title!,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.heading2.copyWith(
-              color: AppColors.text,
-              fontWeight: FontWeight.w900,
+        Text(
+          cleanTitle,
+          textAlign: TextAlign.center,
+          style: AppTextStyles.heading2.copyWith(
+            color: AppColors.text,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Center(
+          child: XyMascot(
+            asset: AppAssets.xyGo,
+            size: 136,
+            shadowBlur: 8.0,
+            shadowOpacity: 0.22,
+          ),
+        ),
+        const SizedBox(height: 18),
+        if (step.xyDialogue != null) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.border,
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadow.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Text(
+              step.xyDialogue!,
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.text,
+                height: 1.6,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
-        const SizedBox(height: 16),
-        if (step.xyDialogue != null)
-          XySpeechBubble(
-            message: step.xyDialogue!,
-            xyAsset: step.xyAsset ?? AppAssets.xyQuestion,
-            xySize: 48,
-          ),
+          const SizedBox(height: 16),
+        ],
         if (step.bodyText != null) ...[
-          const SizedBox(height: 20),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(22),
