@@ -11,6 +11,7 @@ import 'package:algebrix/screens/lessons/lesson_screen.dart';
 import 'package:algebrix/screens/quiz/quiz_hub_screen.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
+import 'package:algebrix/data/module3_content.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/core/animations/app_page_route.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
@@ -31,8 +32,13 @@ class _LessonsScreenState extends State<LessonsScreen> {
   Widget build(BuildContext context) {
     final quizProvider = context.watch<QuizProvider>();
     final isModule2Unlocked = quizProvider.isModuleUnlocked('module2');
+    final isModule3Unlocked = quizProvider.isModuleUnlocked('module3');
 
-    final allLessons = [...module1.lessons, ...module2.lessons];
+    final allLessons = [
+      ...module1.lessons,
+      ...module2.lessons,
+      ...module3.lessons,
+    ];
     final filteredLessons = _searchQuery.isEmpty
         ? <LessonContent>[]
         : allLessons.where((l) {
@@ -147,14 +153,39 @@ class _LessonsScreenState extends State<LessonsScreen> {
 
                 const SizedBox(height: 16),
 
-                // Module 3 — Solving Equations (Locked)
-                _LockedModuleCard(
-                  title: 'Solving Equations',
-                  description: 'One-step, two-step, and multi-step equations.',
-                  moduleNumber: 3,
-                  icon: '⚖️',
-                  accentColor: AppColors.mint,
-                ),
+                // Module 3 — Solving Equations (Dynamic Unlock)
+                if (isModule3Unlocked)
+                  _ModuleCard(
+                    module: module3,
+                    moduleNumber: 3,
+                    accentColor: AppColors.mint,
+                    isLocked: false,
+                    onTap: () {
+                      final lessonProvider = context.read<LessonProvider>();
+                      lessonProvider.startModule(module3);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const ModuleOverviewScreen(),
+                        ),
+                      );
+                    },
+                  )
+                else
+                  _LockedModuleCard(
+                    title: module3.title,
+                    description: 'Pass Module 2 Quiz with at least 60% to unlock.',
+                    moduleNumber: 3,
+                    icon: '⚖️',
+                    accentColor: AppColors.mint,
+                    onTapLocked: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Score at least 60% on the Module 2 Quiz to unlock Module 3!'),
+                          backgroundColor: AppColors.mint,
+                        ),
+                      );
+                    },
+                  ),
 
                 const SizedBox(height: 16),
 
@@ -542,7 +573,9 @@ class _FilteredLessonCard extends StatelessWidget {
       onTap: () {
         final parentModule = module1.lessons.any((l) => l.lessonId == lesson.lessonId)
             ? module1
-            : module2;
+            : (module2.lessons.any((l) => l.lessonId == lesson.lessonId)
+                ? module2
+                : module3);
         lessonProvider.startModule(parentModule);
         lessonProvider.startLesson(lesson);
         Navigator.of(context).push(

@@ -241,8 +241,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Header
-      expect(find.text('PAIRADISE'), findsOneWidget);
-      expect(find.text('Level 1 • The Land of Pairs'), findsOneWidget);
+      expect(find.text('PAIRADISE I'), findsOneWidget);
+      expect(find.text('The Land of Pairs'), findsOneWidget);
 
       // Clues
       expect(find.text('x + y = 7'), findsOneWidget);
@@ -286,7 +286,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Header
-      expect(find.text('Level 3 • The Land of Pairs'), findsOneWidget);
+      expect(find.text('PAIRADISE III'), findsOneWidget);
+      expect(find.text('The Land of Pairs'), findsOneWidget);
 
       // Clues
       expect(find.text('x + y = 8'), findsOneWidget);

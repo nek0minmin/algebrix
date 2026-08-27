@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
+import 'package:algebrix/data/module3_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_model.dart';
 import 'package:algebrix/services/module_quiz_service.dart';
@@ -122,6 +123,32 @@ void main() {
         expect(lowerQ, isNot(contains('what is a variable')));
         expect(lowerQ, isNot(contains('what is a constant')));
         expect(lowerQ, isNot(contains('what is an algebraic expression')));
+      }
+    });
+
+    test('Module 3 generates exactly 10 progressive items strictly within Module 3 scope', () async {
+      final quiz = await quizService.generateQuiz(module: module3);
+
+      expect(quiz.moduleId, 'module3');
+      expect(quiz.questions.length, 10);
+
+      // Verify difficulty progression (3 Foundations, 4 Procedural, 3 Mastery)
+      for (var i = 0; i < 3; i++) {
+        expect(quiz.questions[i].difficulty, 1);
+      }
+      for (var i = 3; i < 7; i++) {
+        expect(quiz.questions[i].difficulty, 2);
+      }
+      for (var i = 7; i < 10; i++) {
+        expect(quiz.questions[i].difficulty, 3);
+      }
+
+      // Verify strict scope: all questions must be equations / inverse operations / variables on both sides / parentheses / checking
+      for (final q in quiz.questions) {
+        final lowerQ = q.question.toLowerCase();
+        expect(lowerQ, isNot(contains('system of equations')));
+        expect(lowerQ, isNot(contains('quadratic formula')));
+        expect(lowerQ, isNot(contains('inequality')));
       }
     });
 

@@ -729,6 +729,9 @@ class _LessonPickerSheet extends StatelessWidget {
     final module2Options = noteLessonOptions
         .where((opt) => opt.moduleId == 'module2')
         .toList(growable: false);
+    final module3Options = noteLessonOptions
+        .where((opt) => opt.moduleId == 'module3')
+        .toList(growable: false);
 
     return FractionallySizedBox(
       heightFactor: 0.82,
@@ -805,6 +808,13 @@ class _LessonPickerSheet extends StatelessWidget {
                   _buildModuleHeader('Module 2 • Operations & Simplification', AppColors.purple, AppColors.lightPurple),
                   const SizedBox(height: 8),
                   ...module2Options.map((opt) => _buildLessonTile(context, opt, lessonProvider)),
+
+                  const SizedBox(height: 16),
+
+                  // Module 3 Section
+                  _buildModuleHeader('Module 3 • Solving Equations', AppColors.mint, AppColors.mint.withValues(alpha: 0.15)),
+                  const SizedBox(height: 8),
+                  ...module3Options.map((opt) => _buildLessonTile(context, opt, lessonProvider)),
                 ],
               ),
             ),

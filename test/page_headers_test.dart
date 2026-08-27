@@ -55,19 +55,19 @@ void main() {
     await pumpRootHeader(tester, width: 720);
 
     expect(xyForegroundImages(), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(108));
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(98));
     final title = tester.widget<Text>(find.text('Notes'));
     final subtitle = tester.widget<Text>(
       find.text('Keep your algebra ideas close.'),
     );
-    expect(title.style?.fontSize, 26);
+    expect(title.style?.fontSize, 25);
     expect(title.style?.fontWeight, FontWeight.w900);
-    expect(subtitle.style?.fontSize, 14.5);
+    expect(subtitle.style?.fontSize, 13.5);
     expect(subtitle.style?.fontWeight, FontWeight.w600);
 
     await pumpRootHeader(tester, width: 320, textScale: 1.3);
     expect(xyForegroundImages(), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(92));
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(70));
     expect(tester.takeException(), isNull);
   });
 
@@ -79,7 +79,7 @@ void main() {
     await pumpRootHeader(tester, width: 720, searchPlaceholder: 'Search Lessons');
 
     expect(xyForegroundImages(), findsOneWidget);
-    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(108));
+    expect(tester.getSize(find.byKey(const Key('page-header-xy'))), const Size.square(98));
     expect(find.text('Search Lessons'), findsOneWidget);
     expect(find.byIcon(Icons.search_rounded), findsOneWidget);
   });

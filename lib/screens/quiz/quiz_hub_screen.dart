@@ -9,6 +9,7 @@ import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
+import 'package:algebrix/data/module3_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_progress_model.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
@@ -31,6 +32,7 @@ class QuizHubScreen extends StatelessWidget {
 
     final m1Progress = quizProvider.getQuizProgress('module1');
     final m2Progress = quizProvider.getQuizProgress('module2');
+    final m3Progress = quizProvider.getQuizProgress('module3');
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -97,6 +99,12 @@ class QuizHubScreen extends StatelessWidget {
                         title: module2.title,
                         progress: m2Progress,
                         isUnlocked: quizProvider.isQuizUnlocked('module2', lessonProvider),
+                      ),
+                      _QuizBreakdownItem(
+                        moduleNumber: 3,
+                        title: module3.title,
+                        progress: m3Progress,
+                        isUnlocked: quizProvider.isQuizUnlocked('module3', lessonProvider),
                       ),
                     ],
                   ),
@@ -200,19 +208,58 @@ class QuizHubScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // ── 7. Future Module Quizzes (Locked Previews) ────────────
-                  _LockedFutureQuizCard(
+                  // ── 7. Module 3 Quiz Card ─────────────────────────────────
+                  _ModuleQuizHubCard(
+                    module: module3,
                     moduleNumber: 3,
-                    title: 'Solving Equations Quiz',
-                    prerequisite: 'Pass Module 2 Quiz (≥60%)',
                     accentColor: AppColors.mint,
+                    isUnlocked: quizProvider.isQuizUnlocked('module3', lessonProvider),
+                    progress: m3Progress,
+                    completedLessons: lessonProvider.completedLessonsInModule('module3'),
+                    totalLessons: module3.lessons.length,
+                    unlockRequirement: !quizProvider.isModuleUnlocked('module3')
+                        ? 'Score ≥60% on Module 2 Quiz'
+                        : 'Complete all 8 Module 3 lessons',
+                    onStart: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: ModuleQuizScreen(module: module3),
+                        ),
+                      );
+                    },
+                    onGoToLessons: () {
+                      if (!quizProvider.isModuleUnlocked('module3')) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Pass the Module 2 Quiz first with at least 60% to unlock Module 3!'),
+                            backgroundColor: AppColors.mint,
+                          ),
+                        );
+                        return;
+                      }
+                      lessonProvider.startModule(module3);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const ModuleOverviewScreen(),
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
+
+                  // ── 8. Future Module Quizzes (Locked Previews) ────────────
                   _LockedFutureQuizCard(
                     moduleNumber: 4,
                     title: 'Inequalities Quiz',
                     prerequisite: 'Pass Module 3 Quiz (≥60%)',
                     accentColor: AppColors.yellow,
+                  ),
+                  const SizedBox(height: 12),
+                  _LockedFutureQuizCard(
+                    moduleNumber: 5,
+                    title: 'Linear Relationships Quiz',
+                    prerequisite: 'Pass Module 4 Quiz (≥60%)',
+                    accentColor: AppColors.info,
                   ),
                 ],
               ),
@@ -432,7 +479,7 @@ class _AnalyticsSummaryCardState extends State<_AnalyticsSummaryCard> {
               Expanded(
                 child: _MetricTile(
                   label: 'Quizzes Passed',
-                  value: '$passedCount / 2',
+                  value: '$passedCount / 3',
                   icon: Icons.check_circle_outline_rounded,
                   color: AppColors.pink,
                 ),
@@ -554,31 +601,29 @@ class _AnalyticsSummaryCardState extends State<_AnalyticsSummaryCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 1. Top row: Module Pill on left, Status badge on right
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          'Module ${item.moduleNumber}',
-                          style: GoogleFonts.nunito(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.purple,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.lightPurple,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
                           child: Text(
-                            item.title,
+                            'Module ${item.moduleNumber}',
                             style: GoogleFonts.nunito(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.text,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.purple,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (isPassed)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                             decoration: BoxDecoration(
                               color: AppColors.lightMint,
                               borderRadius: BorderRadius.circular(8),
@@ -594,7 +639,7 @@ class _AnalyticsSummaryCardState extends State<_AnalyticsSummaryCard> {
                           )
                         else if (hasAttempted)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                             decoration: BoxDecoration(
                               color: AppColors.extraLightPink,
                               borderRadius: BorderRadius.circular(8),
@@ -610,7 +655,7 @@ class _AnalyticsSummaryCardState extends State<_AnalyticsSummaryCard> {
                           )
                         else
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                             decoration: BoxDecoration(
                               color: AppColors.divider,
                               borderRadius: BorderRadius.circular(8),
@@ -625,6 +670,18 @@ class _AnalyticsSummaryCardState extends State<_AnalyticsSummaryCard> {
                             ),
                           ),
                       ],
+                    ),
+                    const SizedBox(height: 6),
+
+                    // 2. Dedicated Full-Width Title Row
+                    Text(
+                      item.title,
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.text,
+                        height: 1.2,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     if (hasAttempted)

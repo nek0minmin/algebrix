@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
+import 'package:algebrix/data/module3_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/lesson_progress_model.dart';
 import 'package:algebrix/services/progress_repository.dart';
@@ -102,17 +103,19 @@ class LessonProvider extends ChangeNotifier {
         _repository.fetchCurrentProfile(),
         _repository.fetchModuleProgress(module1.id),
         _repository.fetchModuleProgress(module2.id),
+        _repository.fetchModuleProgress(module3.id),
       ]);
       if (!_isCurrentAccount(accountId, generation)) return;
 
       final profile = results[0] as LearningProfileSnapshot;
       final m1Progress = results[1] as List<LessonProgress>;
       final m2Progress = results[2] as List<LessonProgress>;
+      final m3Progress = results[3] as List<LessonProgress>;
       if (profile.userId != accountId) {
         throw StateError('Progress was returned for a different account.');
       }
 
-      final combined = [...m1Progress, ...m2Progress];
+      final combined = [...m1Progress, ...m2Progress, ...m3Progress];
 
       _profile = profile;
       _persistedProgress
@@ -138,7 +141,9 @@ class LessonProvider extends ChangeNotifier {
           lessonId,
           () => LessonProgress(
             userId: accountId,
-            moduleId: lessonId.startsWith('m2_') ? 'module2' : 'module1',
+            moduleId: lessonId.startsWith('m3_')
+                ? 'module3'
+                : (lessonId.startsWith('m2_') ? 'module2' : 'module1'),
             lessonId: lessonId,
             contentVersion: 1,
             status: LessonProgressStatus.completed,
@@ -454,7 +459,11 @@ class LessonProvider extends ChangeNotifier {
 
   /// Returns true only if all content-bearing lessons in the module are completed.
   bool isModuleCompleted(String moduleId) {
-    final module = moduleId == 'module1' ? module1 : (moduleId == 'module2' ? module2 : null);
+    final module = moduleId == 'module1'
+        ? module1
+        : (moduleId == 'module2'
+            ? module2
+            : (moduleId == 'module3' ? module3 : null));
     if (module == null || module.lessons.isEmpty) return false;
     final relevantLessons = module.lessons.where((l) => l.steps.isNotEmpty);
     if (relevantLessons.isEmpty) return false;
@@ -463,7 +472,11 @@ class LessonProvider extends ChangeNotifier {
 
   /// Returns the count of completed lessons in the given module.
   int completedLessonsInModule(String moduleId) {
-    final module = moduleId == 'module1' ? module1 : (moduleId == 'module2' ? module2 : null);
+    final module = moduleId == 'module1'
+        ? module1
+        : (moduleId == 'module2'
+            ? module2
+            : (moduleId == 'module3' ? module3 : null));
     if (module == null) return 0;
     return module.lessons.where((l) => _completedLessonIds.contains(l.lessonId)).length;
   }

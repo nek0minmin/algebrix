@@ -208,12 +208,16 @@ class _NoteActions extends StatelessWidget {
       child: OutlinedButton.icon(
         key: const Key('edit-note-button'),
         onPressed: isDeleting ? null : onEdit,
-        icon: const Icon(Icons.edit_outlined),
+        icon: const Icon(Icons.edit_outlined, size: 18),
         label: const Text('Edit note'),
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(0, 50),
+          minimumSize: const Size(0, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           foregroundColor: AppColors.pink,
           side: const BorderSide(color: AppColors.pink, width: 1.3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           textStyle: AppTextStyles.buttonSmall,
         ),
       ),
@@ -223,33 +227,27 @@ class _NoteActions extends StatelessWidget {
       child: OutlinedButton.icon(
         key: const Key('delete-note-button'),
         onPressed: isDeleting ? null : onDelete,
-        icon: const Icon(Icons.delete_outline_rounded),
+        icon: const Icon(Icons.delete_outline_rounded, size: 18),
         label: const Text('Delete note'),
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(0, 50),
+          minimumSize: const Size(0, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           foregroundColor: AppColors.error,
           side: const BorderSide(color: AppColors.error, width: 1.2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           textStyle: AppTextStyles.buttonSmall,
         ),
       ),
     );
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 320) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [editButton, const SizedBox(height: 10), deleteButton],
-          );
-        }
-        return Row(
-          children: [
-            Expanded(child: editButton),
-            const SizedBox(width: 12),
-            Expanded(child: deleteButton),
-          ],
-        );
-      },
+    return Row(
+      children: [
+        Expanded(child: editButton),
+        const SizedBox(width: 12),
+        Expanded(child: deleteButton),
+      ],
     );
   }
 }

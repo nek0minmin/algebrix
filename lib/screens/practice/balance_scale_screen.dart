@@ -358,6 +358,22 @@ class _BalanceScaleScreenState extends State<BalanceScaleScreen> {
   }
 }
 
+String _toRoman(int n) {
+  const romanMap = {
+    10: 'X',
+    9: 'IX',
+    8: 'VIII',
+    7: 'VII',
+    6: 'VI',
+    5: 'V',
+    4: 'IV',
+    3: 'III',
+    2: 'II',
+    1: 'I',
+  };
+  return romanMap[n] ?? '$n';
+}
+
 // ─── Game HUD Title Header (BADLANDS • LEVEL • MODE) ─────────────────────────
 
 class _BalanceScaleGameHeader extends StatelessWidget {
@@ -379,9 +395,10 @@ class _BalanceScaleGameHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = isQuestMode
-        ? 'Level $levelNumber • Balance Scale'
-        : 'Practice Arena • Balance Scale';
+    final titleText = isQuestMode && levelNumber != null
+        ? '${landName.toUpperCase()} ${_toRoman(levelNumber!)}'
+        : landName.toUpperCase();
+    final subtitle = isQuestMode ? 'Balance Scale' : 'Practice Arena';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
@@ -422,7 +439,7 @@ class _BalanceScaleGameHeader extends StatelessWidget {
           // BADLANDS (LEVEL) (MODE) Clean Capsule
           Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(22),
@@ -443,11 +460,11 @@ class _BalanceScaleGameHeader extends StatelessWidget {
                 children: [
                   // Singular color scale icon badge
                   Container(
-                    width: 32,
-                    height: 32,
+                    width: 28,
+                    height: 28,
                     decoration: BoxDecoration(
                       color: AppColors.lightPurple,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: AppColors.purple.withValues(alpha: 0.25),
                         width: 1,
@@ -457,34 +474,38 @@ class _BalanceScaleGameHeader extends StatelessWidget {
                     child: const Icon(
                       Icons.balance_rounded,
                       color: AppColors.purple,
-                      size: 19,
+                      size: 16,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Flexible(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          landName.toUpperCase(),
-                          style: GoogleFonts.fredoka(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.4,
-                            color: const Color(0xFF4A3E8F),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            titleText,
+                            style: GoogleFonts.fredoka(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.1,
+                              color: const Color(0xFF4A3E8F),
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
-                        Text(
-                          subtitle,
-                          style: GoogleFonts.nunito(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textSecondary,
-                            letterSpacing: 0.2,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            subtitle,
+                            style: GoogleFonts.nunito(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textSecondary,
+                              letterSpacing: 0.2,
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -493,11 +514,11 @@ class _BalanceScaleGameHeader extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
 
-          // Stars Capsule
+          // Stars Capsule (Compact (star) 30 format)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
               color: const Color(0xFFFFF9E6),
               borderRadius: BorderRadius.circular(20),
@@ -515,14 +536,14 @@ class _BalanceScaleGameHeader extends StatelessWidget {
               children: [
                 Image.asset(
                   AppAssets.star,
-                  width: 16,
-                  height: 16,
+                  width: 18,
+                  height: 18,
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '$starsEarned/$maxStars',
+                  '$starsEarned',
                   style: GoogleFonts.nunito(
-                    fontSize: 12.5,
+                    fontSize: 13.5,
                     fontWeight: FontWeight.w900,
                     color: AppColors.text,
                   ),
@@ -561,7 +582,7 @@ class _EquationAndMascotHeader extends StatelessWidget {
 
   String _resolveSpeechPrompt() {
     if (isSolved) return 'Awesome! You balanced and isolated x! 🎉';
-    if (moveCount == 0) return 'Keep both sides balanced! Isolate x step-by-step.';
+    if (moveCount == 0) return 'Isolate x and keep both sides balanced!';
     if (moveCount <= optimalMoves) return 'Great move! What operation will isolate x next?';
     return 'Tip: Try eliminating the constant term first!';
   }
@@ -569,7 +590,7 @@ class _EquationAndMascotHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(26),
@@ -590,91 +611,83 @@ class _EquationAndMascotHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // 1. Top Row: (Solve for x) farthest left, (Reset button) farthest right
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // (Solve for x) Badge
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.extraLightPink,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.pink.withValues(alpha: 0.25),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  'Solve for x',
+                  style: GoogleFonts.nunito(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.darkPink,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+              // Reset / Retry Button
+              BouncyPressable(
+                shrinkFactor: 0.88,
+                enableHaptics: true,
+                onTap: onReset,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.extraLightPink,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.pink.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.refresh_rounded,
+                    color: AppColors.pink,
+                    size: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // 2. Middle Row: Xy Mascot (Left) + [(0/3 moves) farthest right & Equation full line] (Right)
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Prominent Xy Mascot
+              // Responsive Xy Mascot
               XyMascot(
                 asset: _resolveMascotAsset(),
-                size: 88,
-                shadowBlur: 5.0,
-                shadowOpacity: 0.2,
+                size: 76,
+                shadowBlur: 4.0,
+                shadowOpacity: 0.18,
               ),
               const SizedBox(width: 14),
 
-              // Target Equation Details & Top Actions
+              // Right Column
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top Row: "Solve for x" Badge (Left) + Retry Button (Right)
+                    // (0/3 moves) Badge aligned farthest right
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.extraLightPink,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            'Solve for x',
-                            style: GoogleFonts.nunito(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.darkPink,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ),
-                        // Reset/Retry Button on Top Right
-                        BouncyPressable(
-                          shrinkFactor: 0.88,
-                          enableHaptics: true,
-                          onTap: onReset,
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: AppColors.extraLightPink,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.pink.withValues(alpha: 0.35),
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.refresh_rounded,
-                              color: AppColors.pink,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    // Equation + Moves Counter Badge
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            problem.equation,
-                            style: GoogleFonts.nunito(
-                              fontSize: 25,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.text,
-                              letterSpacing: 0.3,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        // Moves Counter Badge
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 9,
@@ -703,13 +716,33 @@ class _EquationAndMascotHeader extends StatelessWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 4),
+
+                    // Full Equation on its OWN single line with FittedBox
+                    SizedBox(
+                      width: double.infinity,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          problem.equation,
+                          style: GoogleFonts.nunito(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.text,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          // Companion Guide Dialogue
+          const SizedBox(height: 12),
+
+          // 3. Companion Guide Dialogue: (idea) Isolate x and keep both sides balanced!
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -964,20 +997,22 @@ class _AnimatedBalanceScaleState extends State<_AnimatedBalanceScale>
                         ),
                         const SizedBox(width: 8),
                         Flexible(
-                          child: Text(
-                            isHovered
-                                ? 'Release to apply to BOTH sides! 🎯'
-                                : (widget.isSolved
-                                    ? '⚖️ EQUATION BALANCED & SOLVED!'
-                                    : '🎯 Drop here → Apply to BOTH sides'),
-                            style: GoogleFonts.nunito(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w900,
-                              color: isHovered || widget.isSolved
-                                  ? const Color(0xFF0F7263)
-                                  : AppColors.text,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              isHovered
+                                  ? 'Release to apply to BOTH sides! 🎯'
+                                  : (widget.isSolved
+                                      ? '⚖️ EQUATION BALANCED & SOLVED!'
+                                      : '🎯 Drop here → Apply to BOTH sides'),
+                              style: GoogleFonts.nunito(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w900,
+                                color: isHovered || widget.isSolved
+                                    ? const Color(0xFF0F7263)
+                                    : AppColors.text,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

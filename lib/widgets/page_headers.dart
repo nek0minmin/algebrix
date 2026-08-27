@@ -59,7 +59,8 @@ class RootPageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewportWidth = MediaQuery.sizeOf(context).width;
     final useCompactAction = viewportWidth < 560;
-    final mascotSize = viewportWidth < 360 ? 92.0 : 108.0;
+    // Responsive mascot sizing: increased 7-9% to balance prominence and layout clearance
+    final mascotSize = (viewportWidth * 0.22).roundToDouble().clamp(70.0, 98.0);
 
     return Center(
       child: ConstrainedBox(
@@ -75,8 +76,8 @@ class RootPageHeader extends StatelessWidget {
                   supportingText: subtitle,
                   mascotAsset: _resolveMascotAsset(),
                   mascotSize: mascotSize,
-                  titleSize: 26,
-                  supportingTextSize: 14.5,
+                  titleSize: viewportWidth < 360 ? 22 : 25,
+                  supportingTextSize: viewportWidth < 360 ? 12.5 : 13.5,
                   searchBar: searchBar,
                   searchPlaceholder: searchPlaceholder,
                   onSearchChanged: onSearchChanged,
@@ -254,7 +255,7 @@ class _PageHeaderIdentity extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   supportingText!,
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.nunito(
                     color: AppColors.textSecondary,
@@ -361,6 +362,7 @@ class AlgebrixAppBar extends StatelessWidget implements PreferredSizeWidget {
   const AlgebrixAppBar({
     super.key,
     required this.title,
+    this.subtitle,
     this.onBack,
     this.icon = Icons.arrow_back_rounded,
     this.actions,
@@ -368,6 +370,7 @@ class AlgebrixAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   final String title;
+  final String? subtitle;
   final VoidCallback? onBack;
   final IconData icon;
   final List<Widget>? actions;
@@ -417,16 +420,51 @@ class AlgebrixAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                title,
-                style: GoogleFonts.nunito(
-                  color: AppColors.text,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 20,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              child: subtitle != null
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            title,
+                            style: GoogleFonts.nunito(
+                              color: AppColors.text,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 18,
+                              height: 1.15,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          subtitle!,
+                          style: GoogleFonts.nunito(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            height: 1.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    )
+                  : FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        title,
+                        style: GoogleFonts.nunito(
+                          color: AppColors.text,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
             ),
             if (actions case final actions?) ...[
               const SizedBox(width: 8),

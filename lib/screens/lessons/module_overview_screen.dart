@@ -825,9 +825,12 @@ class _ModuleHeroHeaderBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final totalCount = module.lessons.length;
     final progress = totalCount > 0 ? completedCount / totalCount : 0.0;
+    final isModule3 = module.id == 'module3';
     final isModule2 = module.id == 'module2';
-    final accentColor = isModule2 ? AppColors.purple : AppColors.pink;
-    final moduleNum = isModule2 ? 2 : 1;
+    final accentColor = isModule3
+        ? AppColors.mint
+        : (isModule2 ? AppColors.purple : AppColors.pink);
+    final moduleNum = isModule3 ? 3 : (isModule2 ? 2 : 1);
 
     return Container(
       padding: const EdgeInsets.all(20),

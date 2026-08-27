@@ -4,6 +4,7 @@ import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
+import 'package:algebrix/data/module3_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/screens/practice/quest_map_screen.dart';
 import 'package:algebrix/screens/quiz/quiz_hub_screen.dart';
@@ -175,6 +176,16 @@ class PracticeScreen extends StatelessWidget {
                 icon: Icons.auto_awesome_rounded,
                 accentColor: AppColors.purple,
                 surfaceColor: AppColors.lightPurple,
+              ),
+              const SizedBox(height: 12),
+
+              // Module 3 Option
+              _buildModuleQuizOptionTile(
+                ctx,
+                module: module3,
+                icon: Icons.balance_rounded,
+                accentColor: AppColors.mint,
+                surfaceColor: AppColors.mint.withValues(alpha: 0.15),
               ),
             ],
           ),

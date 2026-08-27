@@ -90,10 +90,15 @@ void main() {
     expect(find.text('MODULE 1 QUIZ'), findsOneWidget);
     expect(find.text('Welcome to Algebra!'), findsOneWidget);
     expect(find.text('MODULE 2 QUIZ'), findsOneWidget);
+    expect(find.text('MODULE 3 QUIZ'), findsOneWidget);
+    expect(find.text('Solving Equations'), findsOneWidget);
 
     // Module 1 is locked because 0/6 lessons are completed
     expect(find.text('Complete all 6 Module 1 lessons'), findsOneWidget);
     expect(find.text('Tap to view lessons (0/6)'), findsOneWidget);
+
+    // Module 3 is locked because Module 2 quiz is not passed
+    expect(find.text('Score ≥60% on Module 2 Quiz'), findsOneWidget);
 
     // Expand analytics breakdown
     expect(find.text('View Detailed Breakdown'), findsOneWidget);

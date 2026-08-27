@@ -254,6 +254,22 @@ class _PairadiseScreenState extends State<PairadiseScreen> {
 // Top HUD Bar (Teal Theme)
 // =============================================================================
 
+String _toRoman(int n) {
+  const romanMap = {
+    10: 'X',
+    9: 'IX',
+    8: 'VIII',
+    7: 'VII',
+    6: 'VI',
+    5: 'V',
+    4: 'IV',
+    3: 'III',
+    2: 'II',
+    1: 'I',
+  };
+  return romanMap[n] ?? '$n';
+}
+
 class _PairadiseGameHeader extends StatelessWidget {
   const _PairadiseGameHeader({
     required this.levelNumber,
@@ -308,7 +324,7 @@ class _PairadiseGameHeader extends StatelessWidget {
           // PAIRADISE Capsule (Teal)
           Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(22),
@@ -328,11 +344,11 @@ class _PairadiseGameHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 32,
-                    height: 32,
+                    width: 28,
+                    height: 28,
                     decoration: BoxDecoration(
                       color: const Color(0xFFE0F2F1),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: const Color(0xFF80CBC4),
                         width: 1,
@@ -342,7 +358,7 @@ class _PairadiseGameHeader extends StatelessWidget {
                     child: const Icon(
                       Icons.spa_rounded,
                       color: Color(0xFF00897B),
-                      size: 19,
+                      size: 16,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -351,25 +367,29 @@ class _PairadiseGameHeader extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          'PAIRADISE',
-                          style: GoogleFonts.fredoka(
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.2,
-                            color: const Color(0xFF00897B),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'PAIRADISE ${_toRoman(levelNumber)}',
+                            style: GoogleFonts.fredoka(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.1,
+                              color: const Color(0xFF00897B),
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
-                        Text(
-                          'Level $levelNumber • The Land of Pairs',
-                          style: GoogleFonts.nunito(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textSecondary,
-                            letterSpacing: 0.2,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'The Land of Pairs',
+                            style: GoogleFonts.nunito(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textSecondary,
+                              letterSpacing: 0.2,
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -378,37 +398,37 @@ class _PairadiseGameHeader extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
 
-          // Total Stars Pill
+          // Total Stars Pill (Compact (star) 30 format)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFFFFF9E6),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFFFFD54F).withValues(alpha: 0.5),
+                color: const Color(0xFFFFE082),
                 width: 1.5,
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: const Color(0xFFFFD54F).withValues(alpha: 0.15),
+                  color: Color(0x18FFA000),
                   blurRadius: 8,
-                  offset: const Offset(0, 3),
+                  offset: Offset(0, 3),
                 ),
               ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Image.asset(AppAssets.star, width: 16, height: 16),
+                Image.asset(AppAssets.star, width: 18, height: 18),
                 const SizedBox(width: 4),
                 Text(
-                  '$starsEarned/$maxStars',
+                  '$starsEarned',
                   style: GoogleFonts.nunito(
-                    fontSize: 12.5,
+                    fontSize: 13.5,
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFF8D6E63),
+                    color: AppColors.text,
                   ),
                 ),
               ],

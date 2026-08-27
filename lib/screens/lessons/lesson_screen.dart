@@ -135,7 +135,8 @@ class _LessonScreenState extends State<LessonScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AlgebrixAppBar(
-        title: '$moduleTitle: ${lesson.title}',
+        title: lesson.title,
+        subtitle: moduleTitle,
         onBack: () => _showExitDialog(context),
       ),
       body: Stack(

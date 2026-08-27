@@ -1,5 +1,6 @@
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
+import 'package:algebrix/data/module3_content.dart';
 
 class NoteLessonOption {
   const NoteLessonOption({
@@ -44,6 +45,17 @@ final List<NoteLessonOption> noteLessonOptions = List.unmodifiable([
       keywords: _keywordsFor(entry.value.lessonId),
     ),
   ),
+  ...module3.lessons.asMap().entries.map(
+    (entry) => NoteLessonOption(
+      moduleId: module3.id,
+      moduleName: 'Module 3: ${module3.title}',
+      lessonId: entry.value.lessonId,
+      lessonNumber: '3.${entry.key + 1}',
+      title: entry.value.title,
+      label: '3.${entry.key + 1} • ${entry.value.title}',
+      keywords: _keywordsFor(entry.value.lessonId),
+    ),
+  ),
 ]);
 
 List<String> _keywordsFor(String lessonId) {
@@ -61,6 +73,14 @@ List<String> _keywordsFor(String lessonId) {
     'm2_l5' => const ['multiplying expressions', 'foil', 'binomial multiplication', 'product of expressions', 'multiply binomials'],
     'm2_l6' => const ['dividing expressions', 'divide expressions', 'cancel terms', 'quotient of expressions'],
     'm2_l7' => const ['algebraic fraction', 'algebraic fractions', 'rational expression', 'fraction simplification', 'numerator', 'denominator'],
+    'm3_l1' => const ['equation', 'equations', 'equals sign', 'has the same value as', 'equality', 'balance', 'solution'],
+    'm3_l2' => const ['inverse operation', 'inverse operations', 'opposite operations', 'undo addition', 'undo multiplication', 'both sides'],
+    'm3_l3' => const ['one-step equation', 'one step equation', 'single move', 'undoing', 'isolate variable'],
+    'm3_l4' => const ['two-step equation', 'two step equation', 'think backwards', 'reverse order', 'retrace steps'],
+    'm3_l5' => const ['variables on both sides', 'variable on both sides', 'collecting like terms', 'both sides of equation'],
+    'm3_l6' => const ['equations with parentheses', 'parentheses in equations', 'distribute then solve', 'distributive equation'],
+    'm3_l7' => const ['checking solutions', 'check solution', 'verify solution', 'substitute back', 'solver habit', 'self check'],
+    'm3_l8' => const ['equation quest', 'equation challenge', 'module 3 challenge', 'master equations'],
     _ => const [],
   };
 }

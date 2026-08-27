@@ -120,6 +120,10 @@ class QuizProvider extends ChangeNotifier {
       return isModuleUnlocked('module2') &&
           lessonProvider.isModuleCompleted('module2');
     }
+    if (moduleId == 'module3') {
+      return isModuleUnlocked('module3') &&
+          lessonProvider.isModuleCompleted('module3');
+    }
     return false;
   }
 

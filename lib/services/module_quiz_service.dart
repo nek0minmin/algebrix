@@ -39,7 +39,9 @@ class ModuleQuizService {
 
   /// Builds a dedicated, strict system prompt tailored to the requested module's exact curriculum.
   String _buildSystemPrompt(ModuleContent module) {
-    if (module.id == 'module2') {
+    if (module.id == 'module3') {
+      return _buildModule3SystemPrompt();
+    } else if (module.id == 'module2') {
       return _buildModule2SystemPrompt();
     } else {
       return _buildModule1SystemPrompt();
@@ -144,6 +146,57 @@ Return ONLY a JSON object with this EXACT structure:
       "options": ["4x and 9x", "3x and 3y", "5x and 5x²"],
       "correctIndex": 0,
       "explanation": "Like terms share the exact same variable and exponent (x).",
+      "difficulty": 1
+    }
+  ]
+}
+''';
+  }
+
+  String _buildModule3SystemPrompt() {
+    return '''
+You are Xy, the expert educational AI quiz master in Algebrix.
+Create an engaging, 10-item progressive algebra quiz strictly based on Module 3 ("Solving Equations").
+
+MODULE 3 SCOPE (ONLY USE THESE 7 LESSONS):
+• Understanding Equations: What makes an equation, equality as a physical balance, definition of a solution (testing candidate values).
+• Inverse Operations: Addition ↔ Subtraction, Multiplication ↔ Division, performing identical operations on BOTH sides to maintain balance.
+• One-Step Equations: Solving addition, subtraction, multiplication, and division equations in one inverse step (e.g. x − 6 = 9 ⇒ x = 15; 5x = 30 ⇒ x = 6).
+• Two-Step Equations: Reversing operations in backward order (undoing +/− before ×/÷, e.g. 3x + 4 = 19 ⇒ 3x = 15 ⇒ x = 5).
+• Variables on Both Sides: Collecting variable terms on one side and constants on the other (e.g. 5x + 1 = 3x + 9 ⇒ 2x = 8 ⇒ x = 4).
+• Equations with Parentheses: Distributive property with equations (e.g. 2(x + 3) = 16 ⇒ 2x + 6 = 16 ⇒ x = 5; 3(x + 1) + x = 15 ⇒ x = 3).
+• Checking Solutions: Substituting answers back into the original equation to verify equality (e.g. For 4x − 5 = 19 with x = 6: 4(6) − 5 = 19 ✓).
+
+STRICT NEGATIVE CONSTRAINTS (FORBIDDEN IN MODULE 3):
+❌ DO NOT ask questions about Systems of Linear Equations (two variables x and y simultaneously, e.g. x + y = 7).
+❌ DO NOT ask questions about Quadratic Equations (e.g. x² − 4 = 0 or quadratic formula).
+❌ DO NOT ask questions about Inequalities (<, >, ≤, ≥).
+❌ DO NOT ask questions about Fractional coefficients or complex rational expressions.
+
+10-QUESTION PROGRESSION BREAKDOWN:
+- Questions 1 to 3 (Difficulty: 1, Foundations): Identifying equations vs expressions, inverse operations pairs, basic one-step equations.
+- Questions 4 to 7 (Difficulty: 2, Procedural Operations): One-step multiplication/division, two-step equations, variables on both sides, why both sides must be modified.
+- Questions 8 to 10 (Difficulty: 3, Multi-Step Mastery): Distributive property equations with parentheses, multi-step combination equations, solution verification check.
+
+MATHEMATICAL RIGOR & EXPLANATION RULES:
+1. Every calculation MUST be exact. Verify the math before outputting choices!
+2. The correct answer MUST be present in the options list and match correctIndex.
+3. NEVER include internal chain-of-thought, reasoning steps, or scratchpad text in the explanation or question.
+4. When asking to solve an equation, state the equation clearly: e.g. "Solve for x: 3x + 4 = 19".
+5. Mix Question Types: "multipleChoice" (3 or 4 options) and "trueFalse" (2 options).
+6. Zero-Emoji Rule: NEVER include hint emojis in question text or options.
+
+Return ONLY a JSON object with this EXACT structure:
+{
+  "questions": [
+    {
+      "id": "m3_q1",
+      "subLessonTitle": "Understanding Equations",
+      "question": "Which of the following is an equation?",
+      "type": "multipleChoice",
+      "options": ["3x + 2", "4y − 7", "3x + 2 = 11"],
+      "correctIndex": 2,
+      "explanation": "An equation must contain an equals sign (=) stating two expressions have the same value.",
       "difficulty": 1
     }
   ]
@@ -435,11 +488,13 @@ Return ONLY a JSON object with this EXACT structure:
     return trimmed;
   }
 
-  /// High-quality dynamic seed bank for Module 1 & Module 2 with 10 progressive items strictly within scope.
+  /// High-quality dynamic seed bank for Modules 1, 2, and 3 with 10 progressive items strictly within scope.
   ModuleQuiz _generateSeedBankQuiz(ModuleContent module) {
     final rng = Random();
 
-    if (module.id == 'module2') {
+    if (module.id == 'module3') {
+      return _buildModule3SeedQuiz(rng);
+    } else if (module.id == 'module2') {
       return _buildModule2SeedQuiz(rng);
     } else {
       return _buildModule1SeedQuiz(rng);
@@ -678,6 +733,138 @@ Return ONLY a JSON object with this EXACT structure:
     return ModuleQuiz(
       moduleId: 'module2',
       moduleTitle: 'Working with Expressions',
+      questions: questions,
+      generatedAt: DateTime.now(),
+      providerUsed: 'Algebrix Curated Seed Bank',
+    );
+  }
+
+  ModuleQuiz _buildModule3SeedQuiz(Random rng) {
+    final questions = <ModuleQuizQuestion>[
+      // Level 1: Foundations (Q1 to Q3)
+      const ModuleQuizQuestion(
+        id: 'm3_q01',
+        subLessonTitle: 'Understanding Equations',
+        question: 'Which of the following is an EQUATION?',
+        type: QuizQuestionType.multipleChoice,
+        options: ['3x + 2', '4y − 7', '3x + 2 = 11', '5a'],
+        correctIndex: 2,
+        explanation:
+            'An equation must contain an equals sign (=) stating that two expressions have equal value.',
+        difficulty: 1,
+      ),
+      const ModuleQuizQuestion(
+        id: 'm3_q02',
+        subLessonTitle: 'Inverse Operations',
+        question: 'What operation undoes: x + 8',
+        type: QuizQuestionType.multipleChoice,
+        options: ['+8', '−8', '×8', '÷8'],
+        correctIndex: 1,
+        explanation:
+            'Subtraction is the inverse operation of addition (+8 − 8 = 0).',
+        difficulty: 1,
+      ),
+      const ModuleQuizQuestion(
+        id: 'm3_q03',
+        subLessonTitle: 'One-Step Equations',
+        question: 'Solve for x: x − 6 = 9',
+        type: QuizQuestionType.multipleChoice,
+        options: ['x = 3', 'x = 15', 'x = 54', 'x = −3'],
+        correctIndex: 1,
+        explanation: 'Add 6 to both sides: x = 9 + 6 = 15.',
+        difficulty: 1,
+      ),
+
+      // Level 2: Procedural Operations (Q4 to Q7)
+      const ModuleQuizQuestion(
+        id: 'm3_q04',
+        subLessonTitle: 'Multiplication Equations',
+        question: 'Solve for x: 5x = 30',
+        type: QuizQuestionType.multipleChoice,
+        options: ['x = 25', 'x = 6', 'x = 150', 'x = 5'],
+        correctIndex: 1,
+        explanation: 'Divide both sides by 5: 30 ÷ 5 = 6.',
+        difficulty: 2,
+      ),
+      const ModuleQuizQuestion(
+        id: 'm3_q05',
+        subLessonTitle: 'Two-Step Equations',
+        question: 'Solve for x: 3x + 4 = 19',
+        type: QuizQuestionType.multipleChoice,
+        options: ['x = 5', 'x = 7', 'x = 8', 'x = 23'],
+        correctIndex: 0,
+        explanation: 'Subtract 4 (3x = 15), then divide by 3: x = 5.',
+        difficulty: 2,
+      ),
+      const ModuleQuizQuestion(
+        id: 'm3_q06',
+        subLessonTitle: 'Preserving Equality',
+        question:
+            'True or False: Performing an operation on only one side of an equation preserves its equality.',
+        type: QuizQuestionType.trueFalse,
+        options: ['True', 'False'],
+        correctIndex: 1,
+        explanation:
+            'False! You must perform the exact same operation on BOTH sides to keep the equation balanced.',
+        difficulty: 2,
+      ),
+      const ModuleQuizQuestion(
+        id: 'm3_q07',
+        subLessonTitle: 'Variables on Both Sides',
+        question: 'Solve for x: 5x + 1 = 3x + 9',
+        type: QuizQuestionType.multipleChoice,
+        options: ['x = 2', 'x = 4', 'x = 5', 'x = 8'],
+        correctIndex: 1,
+        explanation:
+            'Subtract 3x (2x + 1 = 9), subtract 1 (2x = 8), divide by 2: x = 4.',
+        difficulty: 2,
+      ),
+
+      // Level 3: Multi-Step Mastery (Q8 to Q10)
+      const ModuleQuizQuestion(
+        id: 'm3_q08',
+        subLessonTitle: 'Equations with Parentheses',
+        question: 'Solve for x: 2(x + 3) = 16',
+        type: QuizQuestionType.multipleChoice,
+        options: ['x = 5', 'x = 6.5', 'x = 8', 'x = 10'],
+        correctIndex: 0,
+        explanation:
+            'Distribute 2 (2x + 6 = 16), subtract 6 (2x = 10), divide by 2: x = 5.',
+        difficulty: 3,
+      ),
+      const ModuleQuizQuestion(
+        id: 'm3_q09',
+        subLessonTitle: 'Mixed Multi-Step Equation',
+        question: 'Solve for x: 3(x + 1) + x = 15',
+        type: QuizQuestionType.multipleChoice,
+        options: ['x = 2', 'x = 3', 'x = 4', 'x = 5'],
+        correctIndex: 1,
+        explanation:
+            'Distribute: 3x + 3 + x = 15 ⇒ 4x + 3 = 15 ⇒ 4x = 12 ⇒ x = 3.',
+        difficulty: 3,
+      ),
+      const ModuleQuizQuestion(
+        id: 'm3_q10',
+        subLessonTitle: 'Checking Solutions',
+        question:
+            'You solved 4x − 5 = 19 and got x = 6. Which substitution proves the solution is correct?',
+        type: QuizQuestionType.multipleChoice,
+        options: [
+          '4 + 6 − 5 = 19',
+          '4(6) − 5 = 19',
+          '4(19) − 5 = 6',
+          '6 − 5 = 19',
+        ],
+        correctIndex: 1,
+        explanation:
+            'Substitute 6 into 4x − 5: 4(6) − 5 = 24 − 5 = 19, which matches the right side (19 = 19 ✓).',
+        difficulty: 3,
+      ),
+    ];
+
+    return ModuleQuiz(
+      moduleId: 'module3',
+      moduleTitle: 'Solving Equations',
       questions: questions,
       generatedAt: DateTime.now(),
       providerUsed: 'Algebrix Curated Seed Bank',

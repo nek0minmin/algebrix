@@ -984,7 +984,7 @@ class _FloatingGameHud extends StatelessWidget {
               onTap: onLandTap,
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(22),
@@ -1005,11 +1005,11 @@ class _FloatingGameHud extends StatelessWidget {
                   children: [
                     // Singular color scale / palm icon badge
                     Container(
-                      width: 32,
-                      height: 32,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
                         color: landIconBg,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: landIconColor.withValues(alpha: 0.25),
                           width: 1,
@@ -1019,12 +1019,12 @@ class _FloatingGameHud extends StatelessWidget {
                       child: Icon(
                         landIcon,
                         color: landIconColor,
-                        size: 19,
+                        size: 16,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 7),
 
-                    // Centered Text with Stylized Font
+                    // Centered Text with Scalable Font
                     Flexible(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -1035,34 +1035,38 @@ class _FloatingGameHud extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Flexible(
-                                child: Text(
-                                  landName.toUpperCase(),
-                                  style: GoogleFonts.fredoka(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.2,
-                                    color: landTitleColor,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    landName.toUpperCase(),
+                                    style: GoogleFonts.fredoka(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.0,
+                                      color: landTitleColor,
+                                    ),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              const SizedBox(width: 3),
+                              const SizedBox(width: 2),
                               Icon(
                                 Icons.keyboard_arrow_down_rounded,
-                                size: 18,
+                                size: 16,
                                 color: landIconColor.withValues(alpha: 0.7),
                               ),
                             ],
                           ),
-                          Text(
-                            landSubtitle,
-                            style: GoogleFonts.nunito(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textSecondary,
-                              letterSpacing: 0.2,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              landSubtitle,
+                              style: GoogleFonts.nunito(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textSecondary,
+                                letterSpacing: 0.2,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -1072,11 +1076,11 @@ class _FloatingGameHud extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
 
-          // Stars Progress Capsule
+          // Stars Progress Capsule (Compact (star) 30 format)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
               color: const Color(0xFFFFF9E6),
               borderRadius: BorderRadius.circular(20),
@@ -1087,7 +1091,7 @@ class _FloatingGameHud extends StatelessWidget {
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x18FFA000),
-                  blurRadius: 10,
+                  blurRadius: 8,
                   offset: Offset(0, 3),
                 ),
               ],
@@ -1097,14 +1101,14 @@ class _FloatingGameHud extends StatelessWidget {
               children: [
                 Image.asset(
                   AppAssets.star,
-                  width: 22,
-                  height: 22,
+                  width: 18,
+                  height: 18,
                 ),
-                const SizedBox(width: 5),
+                const SizedBox(width: 4),
                 Text(
-                  '$starsEarned/$maxStars',
+                  '$starsEarned',
                   style: GoogleFonts.nunito(
-                    fontSize: 14,
+                    fontSize: 13.5,
                     fontWeight: FontWeight.w900,
                     color: AppColors.text,
                   ),
