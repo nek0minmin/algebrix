@@ -3,6 +3,9 @@ import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
 
+import 'package:algebrix/core/constants/app_assets.dart';
+import 'package:algebrix/widgets/xy_mascot.dart';
+
 /// Continue Learning card for the dashboard with tactile spring press.
 class LessonCard extends StatelessWidget {
   final String lessonTitle;
@@ -47,24 +50,57 @@ class LessonCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Mascot Pink Square Icon
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.extraLightPink,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppColors.pink.withValues(alpha: 0.25),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Center(
+                    child: XyMascot(
+                      asset: AppAssets.xyLessons,
+                      size: 28,
+                      shadowBlur: 0,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // Title and Module info
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         moduleTitle,
-                        style: AppTextStyles.subtitle2,
+                        style: AppTextStyles.subtitle2.copyWith(
+                          fontSize: 11.5,
+                          color: AppColors.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         lessonTitle,
-                        style: AppTextStyles.subtitle1,
+                        style: AppTextStyles.subtitle1.copyWith(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 6),
                 const Icon(
                   Icons.chevron_right_rounded,
                   color: AppColors.subtitle,

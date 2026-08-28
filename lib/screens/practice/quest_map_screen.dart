@@ -185,34 +185,34 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                                   ),
                                 ),
                               ] else ...[
-                                // Pairadise Waypoint 1 (Lower Lagoon)
+                                // Pairadise Waypoint 1 (Lower Lagoon - Bottom)
                                 Positioned(
                                   left: mapWidth * 0.10,
                                   top: _mapCanvasHeight * 0.65,
                                   child: _MapMascotWaypoint(
-                                    asset: AppAssets.xyWelcome,
-                                    size: 140,
+                                    asset: AppAssets.xyAndChemieShades,
+                                    size: 145,
                                     bubbleText: 'Welcome to Pairadise! 🌴',
                                     bubbleColor: AppColors.mint,
                                   ),
                                 ),
-                                // Pairadise Waypoint 2 (Mid Isles)
+                                // Pairadise Waypoint 2 (Mid Isles - Middle)
                                 Positioned(
                                   right: mapWidth * 0.08,
                                   top: _mapCanvasHeight * 0.38,
                                   child: _MapMascotWaypoint(
-                                    asset: AppAssets.xyIdea,
+                                    asset: AppAssets.xyAndChemiePair,
                                     size: 145,
                                     bubbleText: 'Twin symmetry! ✨',
                                     bubbleColor: const Color(0xFF00897B),
                                   ),
                                 ),
-                                // Pairadise Waypoint 3 (Twin Summit)
+                                // Pairadise Waypoint 3 (Twin Summit - Upper)
                                 Positioned(
                                   left: mapWidth * 0.08,
                                   top: _mapCanvasHeight * 0.12,
                                   child: _MapMascotWaypoint(
-                                    asset: AppAssets.xyAndChemie,
+                                    asset: AppAssets.xyAndChemieCards,
                                     size: 145,
                                     bubbleText: 'Pair Masters! 🌺',
                                     bubbleColor: AppColors.pink,

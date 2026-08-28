@@ -150,35 +150,44 @@ class PairadiseProblemService {
     ),
 
     // =========================================================================
-    // Levels 5–7: Substitution (placeholder — mechanics coming soon)
+    // Level 5: Substitution Swap (Discovery)
     // =========================================================================
     PairadiseProblem(
       id: 'pairadise_l5',
       levelNumber: 5,
-      mechanic: PairadiseMechanic.substitution,
+      mechanic: PairadiseMechanic.discovery,
       clue1: 'y = x + 2',
       clue2: 'x + y = 8',
       solutionX: 3,
       solutionY: 5,
       candidateValues: [-3, -1, 1, 2, 3, 4, 5, 7],
-      optimalMoves: 3,
+      optimalMoves: 1,
       hasReasoningCheckpoint: false,
       introDialogue:
-          'Clue 1 tells us what y equals! Can we use that in Clue 2? 🔄',
+          'Clue 1 tells us that y is 2 more than x (y = x + 2)! 🔄\n\nFind the mystery values for x and y that satisfy BOTH clues!',
       hintDialogue:
-          'y = x + 2 means wherever you see y, you can write (x + 2) instead!',
+          'If y = x + 2, plug it into x + y = 8. Then x + (x + 2) = 8, so 2x + 2 = 8.',
     ),
 
+    // =========================================================================
+    // Level 6: Twin Variables (Elimination + Reasoning Checkpoint)
+    // =========================================================================
     PairadiseProblem(
       id: 'pairadise_l6',
       levelNumber: 6,
-      mechanic: PairadiseMechanic.substitution,
+      mechanic: PairadiseMechanic.elimination,
       clue1: 'x = 2y - 1',
       clue2: 'x + y = 8',
       solutionX: 5,
       solutionY: 3,
-      candidateValues: [-2, -1, 1, 2, 3, 4, 5, 7],
-      optimalMoves: 3,
+      candidatePairs: [
+        CandidatePair(x: 1, y: 7),
+        CandidatePair(x: 3, y: 5),
+        CandidatePair(x: 5, y: 3),
+        CandidatePair(x: 7, y: 1),
+        CandidatePair(x: 9, y: -1),
+      ],
+      optimalMoves: 4,
       hasReasoningCheckpoint: true,
       reasoningQuestion:
           'When substituting x = 2y - 1 into x + y = 8, what single-variable equation do we get?',
@@ -189,83 +198,103 @@ class PairadiseProblemService {
       ],
       correctReasoningIndex: 0,
       introDialogue:
-          'This time, Clue 1 tells us what x equals in terms of y! 🔄',
+          'Detective challenge! 🔎\n\nAll candidate pairs add up to 8. But only ONE satisfies x = 2y - 1!\n\nCross out the imposters!',
       hintDialogue:
-          'Replace x with (2y - 1) in the second equation and simplify.',
+          'For each pair, calculate 2y - 1 and see if it equals x. For (3, 5): 2(5) - 1 = 9 ≠ 3.',
     ),
 
+    // =========================================================================
+    // Level 7: Dual Step Pairs (Discovery)
+    // =========================================================================
     PairadiseProblem(
       id: 'pairadise_l7',
       levelNumber: 7,
-      mechanic: PairadiseMechanic.substitution,
+      mechanic: PairadiseMechanic.discovery,
       clue1: 'y = 3x - 4',
       clue2: '2x + y = 11',
       solutionX: 3,
       solutionY: 5,
       candidateValues: [-4, -2, 1, 2, 3, 4, 5, 8],
-      optimalMoves: 3,
+      optimalMoves: 1,
       hasReasoningCheckpoint: false,
       introDialogue:
-          'A trickier substitution! Can you replace y in Clue 2 using Clue 1? 🔄',
+          'Dual step pairs! ⚡\n\nClue 1 has multiplication and subtraction: y = 3x - 4.\n\nFind the mystery x and y that satisfy both clues!',
       hintDialogue:
-          'y = 3x - 4, so plug that into 2x + y = 11 to get a single equation with just x.',
+          'Try x = 3. What is y = 3(3) - 4? Then test: does 2(3) + 5 = 11?',
     ),
 
     // =========================================================================
-    // Levels 8–9: Cancelation / Elimination Method (placeholder)
+    // Level 8: Equation Stacking (Elimination)
     // =========================================================================
     PairadiseProblem(
       id: 'pairadise_l8',
       levelNumber: 8,
-      mechanic: PairadiseMechanic.cancelation,
+      mechanic: PairadiseMechanic.elimination,
       clue1: 'x + y = 10',
       clue2: 'x - y = 4',
       solutionX: 7,
       solutionY: 3,
-      candidateValues: [-3, -1, 2, 3, 4, 5, 7, 9],
-      optimalMoves: 2,
+      candidatePairs: [
+        CandidatePair(x: 4, y: 6),
+        CandidatePair(x: 5, y: 5),
+        CandidatePair(x: 6, y: 4),
+        CandidatePair(x: 7, y: 3),
+        CandidatePair(x: 8, y: 2),
+        CandidatePair(x: 9, y: 1),
+      ],
+      optimalMoves: 5,
       hasReasoningCheckpoint: false,
       introDialogue:
-          'Stack the equations! When +y and -y meet... 💥 they cancel!',
+          'Stack the equations! 💥\n\nWhen +y and -y meet, they cancel out!\n\nEliminate the candidate pairs that don\'t satisfy x - y = 4.',
       hintDialogue:
-          'Add the left sides together and the right sides together. What happens to y?',
+          'For each pair, subtract y from x. For (6, 4): 6 - 4 = 2 ≠ 4, so eliminate it!',
     ),
 
+    // =========================================================================
+    // Level 9: Advanced Cancelation (Discovery)
+    // =========================================================================
     PairadiseProblem(
       id: 'pairadise_l9',
       levelNumber: 9,
-      mechanic: PairadiseMechanic.cancelation,
+      mechanic: PairadiseMechanic.discovery,
       clue1: '2x + y = 13',
       clue2: '2x - y = 7',
       solutionX: 5,
       solutionY: 3,
       candidateValues: [-2, -1, 1, 2, 3, 4, 5, 8],
-      optimalMoves: 2,
+      optimalMoves: 1,
       hasReasoningCheckpoint: false,
       introDialogue:
-          'The equations share 2x! When you stack them, +y and -y will cancel! 💥',
+          'Both clues have 2x! ⚡\n\nAdding both equations cancels +y and -y, giving 4x = 20.\n\nFind the values for x and y!',
       hintDialogue:
-          'Add both equations. The +y and -y cancel, leaving just an equation with x.',
+          'If 4x = 20, then x = 5. Now plug x = 5 into 2x + y = 13 to find y!',
     ),
 
     // =========================================================================
-    // Level 10: The Twin Gate — Free Choice (placeholder)
+    // Level 10: The Twin Gate (Elimination Boss Challenge)
     // =========================================================================
     PairadiseProblem(
       id: 'pairadise_l10',
       levelNumber: 10,
-      mechanic: PairadiseMechanic.freeChoice,
+      mechanic: PairadiseMechanic.elimination,
       clue1: '2x + y = 11',
       clue2: 'x - y = 1',
       solutionX: 4,
       solutionY: 3,
-      candidateValues: [-3, -1, 1, 2, 3, 4, 5, 7],
-      optimalMoves: 2,
+      candidatePairs: [
+        CandidatePair(x: 1, y: 9),
+        CandidatePair(x: 2, y: 7),
+        CandidatePair(x: 3, y: 5),
+        CandidatePair(x: 4, y: 3),
+        CandidatePair(x: 5, y: 1),
+        CandidatePair(x: 6, y: -1),
+      ],
+      optimalMoves: 5,
       hasReasoningCheckpoint: false,
       introDialogue:
-          '🔐 THE TWIN GATE\n\nTwo locks. Two unknowns. Choose your strategy!\n\n🔄 Substitute or 💥 Eliminate — it\'s your call.',
+          '🔐 THE TWIN GATE — FINAL CHALLENGE!\n\nAll candidate pairs satisfy 2x + y = 11.\n\nEliminate the imposters to unlock the Twin Summit!',
       hintDialogue:
-          'From Clue 2: y = x - 1. Substitute into Clue 1: 2x + (x - 1) = 11.',
+          'Check each pair against x - y = 1. Only (4, 3) gives 4 - 3 = 1!',
     ),
   ];
 }

@@ -316,20 +316,25 @@ class _QuizHeroBannerCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.lightPink),
-                  ),
-                  child: Text(
-                    'ALGEBRA MASTERY',
-                    style: GoogleFonts.nunito(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.darkPink,
-                      letterSpacing: 1.1,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.lightPink),
+                    ),
+                    child: Text(
+                      'ALGEBRA MASTERY',
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.darkPink,
+                        letterSpacing: 1.0,
+                      ),
+                      maxLines: 1,
                     ),
                   ),
                 ),
@@ -919,19 +924,19 @@ class _ModuleQuizHubCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
                   color: isUnlocked ? AppColors.extraLightPink : AppColors.divider,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   isUnlocked ? Icons.psychology_rounded : Icons.lock_outline_rounded,
                   color: isUnlocked ? AppColors.pink : AppColors.subtitle,
-                  size: 22,
+                  size: 19,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -939,40 +944,43 @@ class _ModuleQuizHubCard extends StatelessWidget {
                     Text(
                       'MODULE $moduleNumber QUIZ',
                       style: GoogleFonts.nunito(
-                        fontSize: 11,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w900,
                         color: isUnlocked ? AppColors.darkPink : AppColors.subtitle,
-                        letterSpacing: 1.1,
+                        letterSpacing: 1.0,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       module.title,
                       style: GoogleFonts.nunito(
-                        fontSize: 16.5,
+                        fontSize: 14.5,
                         fontWeight: FontWeight.w900,
                         color: isUnlocked ? AppColors.text : AppColors.textSecondary,
+                        height: 1.2,
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               // Status Badge
               if (hasPassed)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                   decoration: BoxDecoration(
                     color: AppColors.lightMint,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.check_circle_rounded, color: AppColors.mint, size: 14),
-                      const SizedBox(width: 4),
+                      const Icon(Icons.check_circle_rounded, color: AppColors.mint, size: 13),
+                      const SizedBox(width: 3.5),
                       Text(
-                        'Passed (${bestPercent.round()}%)',
+                        '${bestPercent.round()}%',
                         style: GoogleFonts.nunito(
-                          fontSize: 11,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w900,
                           color: const Color(0xFF0F7263),
                         ),
@@ -980,15 +988,38 @@ class _ModuleQuizHubCard extends StatelessWidget {
                     ],
                   ),
                 )
+              else if (isUnlocked && attempts > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFEBEE),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.cancel_rounded, color: AppColors.error, size: 13),
+                      const SizedBox(width: 3.5),
+                      Text(
+                        '${bestPercent.round()}%',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.error,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
               else if (isUnlocked)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                   decoration: BoxDecoration(
                     color: AppColors.extraLightPink,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    attempts > 0 ? 'Needs Review (${bestPercent.round()}%)' : 'Ready to Take',
+                    'Ready',
                     style: GoogleFonts.nunito(
                       fontSize: 11,
                       fontWeight: FontWeight.w900,
@@ -998,16 +1029,16 @@ class _ModuleQuizHubCard extends StatelessWidget {
                 )
               else
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                   decoration: BoxDecoration(
                     color: AppColors.divider,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.lock_rounded, size: 12, color: AppColors.subtitle),
-                      const SizedBox(width: 4),
+                      const Icon(Icons.lock_rounded, size: 11, color: AppColors.subtitle),
+                      const SizedBox(width: 3.5),
                       Text(
                         'Locked',
                         style: GoogleFonts.nunito(

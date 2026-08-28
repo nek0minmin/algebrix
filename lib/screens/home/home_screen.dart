@@ -266,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 36),
                 ],
               ],
             ),
@@ -573,7 +573,7 @@ class _DashboardNoteCard extends StatelessWidget {
             enableHaptics: true,
             onTap: onTap,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, aiFeedback != null ? 6 : 16),
+              padding: EdgeInsets.fromLTRB(18, 18, 18, aiFeedback != null ? 8 : 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -583,7 +583,7 @@ class _DashboardNoteCard extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                           decoration: BoxDecoration(
                             color: AppColors.extraLightPink,
                             borderRadius: BorderRadius.circular(8),
@@ -602,7 +602,7 @@ class _DashboardNoteCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Updated ${formatNoteUpdatedAt(note.updatedAt)}',
+                        formatNoteUpdatedAt(note.updatedAt),
                         style: GoogleFonts.nunito(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
@@ -611,13 +611,13 @@ class _DashboardNoteCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
 
                   // Title
                   Text(
                     note.title,
                     style: GoogleFonts.nunito(
-                      fontSize: 16,
+                      fontSize: 16.5,
                       fontWeight: FontWeight.w900,
                       color: AppColors.text,
                     ),
@@ -629,8 +629,8 @@ class _DashboardNoteCard extends StatelessWidget {
                     note.displayContent,
                     style: AppTextStyles.body2.copyWith(
                       color: AppColors.textSecondary,
-                      fontSize: 13.5,
-                      height: 1.45,
+                      fontSize: 14,
+                      height: 1.5,
                     ),
                   ),
                 ],
