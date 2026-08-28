@@ -272,10 +272,9 @@ class PairadiseProvider extends ChangeNotifier {
     if (_eliminatedPairIndices.contains(pairIndex)) return false;
 
     final pair = _currentProblem!.candidatePairs[pairIndex];
-    final satisfiesClue2 =
-        _currentProblem!.evaluateClue2(pair.x, pair.y) ?? false;
+    final isSolution = _currentProblem!.checkSolution(pair.x, pair.y);
 
-    if (satisfiesClue2) {
+    if (isSolution) {
       // This is the correct pair — don't allow elimination
       return false;
     }

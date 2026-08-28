@@ -1287,10 +1287,13 @@ class _CandidatePairsGrid extends StatelessWidget {
     final problem = provider.currentProblem;
     if (problem == null) return const SizedBox.shrink();
 
+    final remaining = provider.remainingPairCount;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
               child: Text(
@@ -1302,12 +1305,31 @@ class _CandidatePairsGrid extends StatelessWidget {
                 ),
               ),
             ),
-            Text(
-              'Tap to eliminate',
-              style: GoogleFonts.nunito(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textSecondary,
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+              decoration: BoxDecoration(
+                color: remaining == 1
+                    ? AppColors.lightMint
+                    : const Color(0xFFE0F2F1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: remaining == 1
+                      ? AppColors.mint.withValues(alpha: 0.5)
+                      : const Color(0xFF80CBC4).withValues(alpha: 0.5),
+                ),
+              ),
+              child: Text(
+                remaining == 1
+                    ? '⭐ Pair Found!'
+                    : '$remaining left',
+                style: GoogleFonts.nunito(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: remaining == 1
+                      ? const Color(0xFF0F7263)
+                      : const Color(0xFF00897B),
+                ),
               ),
             ),
           ],
@@ -1322,54 +1344,24 @@ class _CandidatePairsGrid extends StatelessWidget {
             final tileHeight = (tileWidth * 0.58).clamp(52.0, 68.0);
             final fontSize = (tileWidth * 0.17).clamp(14.0, 18.0);
 
-            final pairs = problem.candidatePairs;
-            final row1 = pairs.length >= 3 ? pairs.sublist(0, 3) : pairs;
-            final row2 = pairs.length >= 6
-                ? pairs.sublist(3, 6)
-                : (pairs.length > 3 ? pairs.sublist(3) : <CandidatePair>[]);
-
-            return Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: row1.asMap().entries.map((e) {
-                    final index = e.key;
-                    final pair = e.value;
-                    return SizedBox(
-                      width: tileWidth,
-                      height: tileHeight,
-                      child: _buildCandidateCard(
-                        index: index,
-                        pair: pair,
-                        provider: provider,
-                        problem: problem,
-                        fontSize: fontSize,
-                      ),
-                    );
-                  }).toList(),
-                ),
-                if (row2.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: row2.asMap().entries.map((e) {
-                      final index = e.key + 3;
-                      final pair = e.value;
-                      return SizedBox(
-                        width: tileWidth,
-                        height: tileHeight,
-                        child: _buildCandidateCard(
-                          index: index,
-                          pair: pair,
-                          provider: provider,
-                          problem: problem,
-                          fontSize: fontSize,
-                        ),
-                      );
-                    }).toList(),
+            return Wrap(
+              spacing: spacing,
+              runSpacing: 10.0,
+              children: problem.candidatePairs.asMap().entries.map((e) {
+                final index = e.key;
+                final pair = e.value;
+                return SizedBox(
+                  width: tileWidth,
+                  height: tileHeight,
+                  child: _buildCandidateCard(
+                    index: index,
+                    pair: pair,
+                    provider: provider,
+                    problem: problem,
+                    fontSize: fontSize,
                   ),
-                ],
-              ],
+                );
+              }).toList(),
             );
           },
         ),

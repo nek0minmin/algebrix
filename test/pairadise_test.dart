@@ -214,6 +214,31 @@ void main() {
       expect(provider.eliminatedPairIndices.contains(3), isFalse);
       expect(provider.remainingPairCount, 5);
     });
+
+    test('L6 eliminates imposters successfully and protects the solution pair', () {
+      final provider = PairadiseProvider();
+      provider.initLevelProblem(6);
+
+      // (1, 7) at index 0 is an imposter (1 != 2(7)-1) -> eliminate
+      expect(provider.eliminatePair(0), isTrue);
+      expect(provider.remainingPairCount, 4);
+
+      // (3, 5) at index 1 is an imposter (3 != 2(5)-1) -> eliminate
+      expect(provider.eliminatePair(1), isTrue);
+      expect(provider.remainingPairCount, 3);
+
+      // (5, 3) at index 2 is the correct solution (5 == 2(3)-1) -> reject elimination
+      expect(provider.eliminatePair(2), isFalse);
+      expect(provider.remainingPairCount, 3);
+
+      // (7, 1) at index 3 is an imposter -> eliminate
+      expect(provider.eliminatePair(3), isTrue);
+      expect(provider.remainingPairCount, 2);
+
+      // (9, -1) at index 4 is an imposter -> eliminate
+      expect(provider.eliminatePair(4), isTrue);
+      expect(provider.remainingPairCount, 1);
+    });
   });
 
   group('PairadiseScreen Widget Tests', () {
@@ -312,6 +337,26 @@ void main() {
       expect(find.text('y = x + 2'), findsOneWidget);
       expect(find.text('x + y = 8'), findsOneWidget);
       expect(find.text('Test Pair'), findsOneWidget);
+    });
+
+    testWidgets('renders L6 Elimination and crosses out imposter on tap', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(430, 1000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(createWidgetUnderTest(levelNumber: 6));
+      await tester.pumpAndSettle();
+
+      expect(find.text('PAIRADISE VI'), findsOneWidget);
+      expect(find.text('5 left'), findsOneWidget);
+      expect(find.text('(1, 7)'), findsOneWidget);
+      expect(find.text('(5, 3)'), findsOneWidget);
+
+      // Tap (1, 7) to eliminate imposter
+      await tester.tap(find.text('(1, 7)'));
+      await tester.pumpAndSettle();
+
+      // Count decreases to 4 left
+      expect(find.text('4 left'), findsOneWidget);
     });
 
     testWidgets('renders L10 Elimination boss challenge screen', (tester) async {
