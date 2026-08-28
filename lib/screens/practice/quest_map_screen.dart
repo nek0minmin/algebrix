@@ -749,26 +749,16 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                 onPressed: () {
                   Navigator.of(sheetCtx).pop();
                   if (isPairadise) {
-                    // L1-4 have playable mechanics; L5-10 coming soon
-                    if (def.levelNumber <= 4) {
-                      Navigator.push(
-                        context,
-                        AppPageRoute(
-                          child: PairadiseScreen(
-                            questLevelNumber: def.levelNumber,
-                          ),
+                    Navigator.push(
+                      context,
+                      AppPageRoute(
+                        child: PairadiseScreen(
+                          questLevelNumber: def.levelNumber,
                         ),
-                      ).then((_) {
-                        provider.loadQuestMap();
-                      });
-                    } else {
-                      showAlgebrixSnackBar(
-                        context,
-                        message:
-                            'Pairadise Level ${def.levelNumber} mechanics are coming soon! Stay tuned for twin adventures! 🌴✨',
-                        icon: Icons.spa_rounded,
-                      );
-                    }
+                      ),
+                    ).then((_) {
+                      provider.loadQuestMap();
+                    });
                   } else {
                     Navigator.push(
                       context,

@@ -300,5 +300,31 @@ void main() {
       expect(find.text('(5, 3)'), findsOneWidget);
       expect(find.text('(6, 2)'), findsOneWidget);
     });
+
+    testWidgets('renders L5 Discovery screen and can test pair', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(430, 1000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(createWidgetUnderTest(levelNumber: 5));
+      await tester.pumpAndSettle();
+
+      expect(find.text('PAIRADISE V'), findsOneWidget);
+      expect(find.text('y = x + 2'), findsOneWidget);
+      expect(find.text('x + y = 8'), findsOneWidget);
+      expect(find.text('Test Pair'), findsOneWidget);
+    });
+
+    testWidgets('renders L10 Elimination boss challenge screen', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(430, 1000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(createWidgetUnderTest(levelNumber: 10));
+      await tester.pumpAndSettle();
+
+      expect(find.text('PAIRADISE X'), findsOneWidget);
+      expect(find.text('2x + y = 11'), findsOneWidget);
+      expect(find.text('x - y = 1'), findsOneWidget);
+      expect(find.text('(4, 3)'), findsOneWidget);
+    });
   });
 }

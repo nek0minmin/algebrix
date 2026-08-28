@@ -51,7 +51,7 @@ class LessonCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                // Mascot Pink Square Icon
+                // Books Pink Square Icon
                 Container(
                   width: 44,
                   height: 44,
@@ -63,11 +63,10 @@ class LessonCard extends StatelessWidget {
                       width: 1.0,
                     ),
                   ),
-                  child: Center(
-                    child: XyMascot(
-                      asset: AppAssets.xyLessons,
-                      size: 28,
-                      shadowBlur: 0,
+                  child: const Center(
+                    child: Text(
+                      '📚',
+                      style: TextStyle(fontSize: 22),
                     ),
                   ),
                 ),
