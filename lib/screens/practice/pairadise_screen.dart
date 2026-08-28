@@ -245,7 +245,7 @@ class _PairadiseScreenState extends State<PairadiseScreen> {
 }
 
 // =============================================================================
-// Top HUD Bar (Teal Primary + Yellow Star Accent)
+// Top HUD Bar (Mint Green + Sand Yellow Star Pill)
 // =============================================================================
 
 String _toRoman(int n) {
@@ -283,7 +283,7 @@ class _PairadiseGameHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
       child: Row(
         children: [
-          // Circular Back Button (Teal Border)
+          // Circular Back Button (Mint Green Border)
           BouncyPressable(
             shrinkFactor: 0.9,
             enableHaptics: true,
@@ -295,12 +295,12 @@ class _PairadiseGameHeader extends StatelessWidget {
                 color: Colors.white,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFF80CBC4),
+                  color: const Color(0xFF80DFCE),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF00897B).withValues(alpha: 0.08),
+                    color: const Color(0xFF00C49F).withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -308,14 +308,14 @@ class _PairadiseGameHeader extends StatelessWidget {
               ),
               child: const Icon(
                 Icons.arrow_back_rounded,
-                color: Color(0xFF00897B),
+                color: Color(0xFF059669),
                 size: 22,
               ),
             ),
           ),
           const SizedBox(width: 10),
 
-          // PAIRADISE Capsule (Primary Teal)
+          // PAIRADISE Capsule (Mint Green Theme)
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -323,12 +323,12 @@ class _PairadiseGameHeader extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(
-                  color: const Color(0xFF80CBC4),
+                  color: const Color(0xFF80DFCE),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF00897B).withValues(alpha: 0.08),
+                    color: const Color(0xFF00C49F).withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -341,17 +341,17 @@ class _PairadiseGameHeader extends StatelessWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE0F2F1),
+                      color: const Color(0xFFE6F9F4),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: const Color(0xFF80CBC4),
+                        color: const Color(0xFF80DFCE),
                         width: 1,
                       ),
                     ),
                     alignment: Alignment.center,
                     child: const Icon(
                       Icons.spa_rounded,
-                      color: Color(0xFF00897B),
+                      color: Color(0xFF059669),
                       size: 16,
                     ),
                   ),
@@ -369,7 +369,7 @@ class _PairadiseGameHeader extends StatelessWidget {
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.1,
-                              color: const Color(0xFF00897B),
+                              color: const Color(0xFF059669),
                             ),
                           ),
                         ),
@@ -394,19 +394,19 @@ class _PairadiseGameHeader extends StatelessWidget {
           ),
           const SizedBox(width: 8),
 
-          // Total Stars Pill (Yellow Accent)
+          // Total Stars Pill (Sand Yellow Accent)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF9E6),
+              color: const Color(0xFFFEF3C7),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFFFFE082),
+                color: const Color(0xFFFDE68A),
                 width: 1.5,
               ),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x18FFA000),
+                  color: Color(0x18F59E0B),
                   blurRadius: 8,
                   offset: Offset(0, 3),
                 ),
@@ -422,7 +422,7 @@ class _PairadiseGameHeader extends StatelessWidget {
                   style: GoogleFonts.nunito(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFF8D6E63),
+                    color: const Color(0xFF92400E),
                   ),
                 ),
               ],
@@ -435,7 +435,7 @@ class _PairadiseGameHeader extends StatelessWidget {
 }
 
 // =============================================================================
-// Mascot Companion (Teal) & Target Clues Header Card
+// Mascot Companion (Mint Green) & Target Clues Header Card
 // =============================================================================
 
 class _PairadiseMascotAndClueHeader extends StatelessWidget {
@@ -459,12 +459,12 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFF80CBC4),
+          color: const Color(0xFF80DFCE),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00897B).withValues(alpha: 0.08),
+            color: const Color(0xFF00C49F).withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -477,20 +477,20 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Prominent Xy Mascot Circle in Soft Teal
+              // Prominent Xy Mascot Circle in Soft Mint Green
               Container(
                 width: 68,
                 height: 68,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFE0F2F1),
+                  color: const Color(0xFFE6F9F4),
                   border: Border.all(
-                    color: const Color(0xFF80CBC4),
+                    color: const Color(0xFF80DFCE),
                     width: 2.0,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF00897B).withValues(alpha: 0.12),
+                      color: const Color(0xFF00C49F).withValues(alpha: 0.12),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -521,10 +521,10 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE1F5FE),
+                        color: const Color(0xFFE0F2FE),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: const Color(0xFF81D4FA),
+                          color: const Color(0xFF7DD3FC),
                           width: 1,
                         ),
                       ),
@@ -536,7 +536,7 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.8,
-                          color: const Color(0xFF0277BD),
+                          color: const Color(0xFF0369A1),
                         ),
                       ),
                     ),
@@ -556,14 +556,14 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Speech Bubble Instruction Card (Soft Teal)
+          // Speech Bubble Instruction Card (Soft Mint Green)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0F2F1).withValues(alpha: 0.85),
+              color: const Color(0xFFE6F9F4).withValues(alpha: 0.85),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: const Color(0xFF80CBC4).withValues(alpha: 0.7),
+                color: const Color(0xFF80DFCE).withValues(alpha: 0.7),
                 width: 1.2,
               ),
             ),
@@ -572,14 +572,14 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
               style: GoogleFonts.nunito(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
-                color: const Color(0xFF00695C),
+                color: const Color(0xFF065F46),
                 height: 1.35,
               ),
             ),
           ),
           const SizedBox(height: 14),
 
-          // Clue 1 Card (Primary Teal)
+          // Clue 1 Card (Mint Green)
           _ClueCard(
             clueNumber: 1,
             clueText: problem.clue1,
@@ -607,7 +607,7 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
 }
 
 // =============================================================================
-// Sleek Clue Card (Primary Teal & Light Blue Accent)
+// Sleek Clue Card (Mint Green & Light Blue Accents)
 // =============================================================================
 
 class _ClueCard extends StatelessWidget {
@@ -628,12 +628,14 @@ class _ClueCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color cardBg = Colors.white;
-    Color cardBorder = const Color(0xFF80CBC4).withValues(alpha: 0.85);
+    Color cardBorder = clueNumber == 1
+        ? const Color(0xFF80DFCE).withValues(alpha: 0.85)
+        : const Color(0xFF7DD3FC).withValues(alpha: 0.85);
 
     if (hasChecked) {
       if (passed) {
-        cardBg = const Color(0xFFE8F5E9);
-        cardBorder = const Color(0xFF4CAF50);
+        cardBg = const Color(0xFFE6F9F4);
+        cardBorder = const Color(0xFF10B981);
       } else {
         cardBg = AppColors.extraLightPink;
         cardBorder = AppColors.pink;
@@ -641,8 +643,8 @@ class _ClueCard extends StatelessWidget {
     }
 
     final badgeColor = clueNumber == 1
-        ? const Color(0xFF00897B)
-        : const Color(0xFF0288D1);
+        ? const Color(0xFF059669)
+        : const Color(0xFF0284C7);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -694,7 +696,7 @@ class _ClueCard extends StatelessWidget {
           else if (hasChecked)
             Icon(
               passed ? Icons.check_circle_rounded : Icons.cancel_rounded,
-              color: passed ? const Color(0xFF2E7D32) : AppColors.error,
+              color: passed ? const Color(0xFF059669) : AppColors.error,
               size: 22,
             )
           else
@@ -710,7 +712,7 @@ class _ClueCard extends StatelessWidget {
 }
 
 // =============================================================================
-// Discovery Mode: 3D Mystery Value Slots (Light Blue for x & Teal for y)
+// Discovery Mode: 3D Mystery Value Slots (Light Blue for x & Mint Green for y)
 // =============================================================================
 
 class _MysteryValueSlots extends StatelessWidget {
@@ -726,8 +728,8 @@ class _MysteryValueSlots extends StatelessWidget {
         Expanded(
           child: _TactileValueDropSlot(
             variableName: 'x',
-            variableColor: const Color(0xFF0288D1),
-            slotLightBg: const Color(0xFFE1F5FE),
+            variableColor: const Color(0xFF0284C7),
+            slotLightBg: const Color(0xFFE0F2FE),
             value: provider.assignedX,
             onClear: () => provider.assignX(0),
             onAccept: (val) => provider.assignX(val),
@@ -735,12 +737,12 @@ class _MysteryValueSlots extends StatelessWidget {
         ),
         const SizedBox(width: 14),
 
-        // Right Slot: Variable Y (Primary Teal)
+        // Right Slot: Variable Y (Mint Green)
         Expanded(
           child: _TactileValueDropSlot(
             variableName: 'y',
-            variableColor: const Color(0xFF00897B),
-            slotLightBg: const Color(0xFFE0F2F1),
+            variableColor: const Color(0xFF059669),
+            slotLightBg: const Color(0xFFE6F9F4),
             value: provider.assignedY,
             onClear: () => provider.assignY(0),
             onAccept: (val) => provider.assignY(val),
@@ -1069,16 +1071,16 @@ class _TactileNumberTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Primary Teal + Light Blue (for x) + Yellow Accent Dots
-    const primaryTeal = Color(0xFF00897B);
-    const lightBlue = Color(0xFF0288D1);
-    const yellowAccent = Color(0xFFFFA000);
+    // Mint Green + Light Blue (for x) + Sand Yellow Accent Dots
+    const mintGreen = Color(0xFF059669);
+    const lightBlue = Color(0xFF0284C7);
+    const sandYellow = Color(0xFFF59E0B);
 
     final Color tileBg = isAssigned
-        ? (assignedTag == 'x' ? const Color(0xFFE1F5FE) : const Color(0xFFE0F2F1))
-        : (isDragging ? const Color(0xFFE0F2F1) : Colors.white);
+        ? (assignedTag == 'x' ? const Color(0xFFE0F2FE) : const Color(0xFFE6F9F4))
+        : (isDragging ? const Color(0xFFE6F9F4) : Colors.white);
 
-    final Color activeColor = assignedTag == 'x' ? lightBlue : primaryTeal;
+    final Color activeColor = assignedTag == 'x' ? lightBlue : mintGreen;
 
     return Container(
       width: tileWidth,
@@ -1089,14 +1091,14 @@ class _TactileNumberTile extends StatelessWidget {
         border: Border.all(
           color: isAssigned || isDragging
               ? activeColor
-              : const Color(0xFF80CBC4),
+              : const Color(0xFF80DFCE),
           width: isAssigned || isDragging ? 2.0 : 1.5,
         ),
         boxShadow: [
           BoxShadow(
             color: isDragging
                 ? activeColor.withValues(alpha: 0.35)
-                : const Color(0xFF00897B).withValues(alpha: 0.18),
+                : const Color(0xFF00C49F).withValues(alpha: 0.18),
             blurRadius: isDragging ? 14 : 0,
             offset: Offset(0, isDragging ? 6 : 3),
           ),
@@ -1123,11 +1125,11 @@ class _TactileNumberTile extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _dot(yellowAccent),
+                  _dot(sandYellow),
                   const SizedBox(width: 2.5),
-                  _dot(yellowAccent),
+                  _dot(sandYellow),
                   const SizedBox(width: 2.5),
-                  _dot(yellowAccent),
+                  _dot(sandYellow),
                 ],
               ),
             ],
@@ -1171,7 +1173,7 @@ class _TactileNumberTile extends StatelessWidget {
 }
 
 // =============================================================================
-// Pairadise Custom Tactile Teal CTA Button (NO Shadows, NO Borders)
+// Pairadise Custom Tactile Mint Green CTA Button (NO Shadows, NO Borders)
 // =============================================================================
 
 class _PairadiseCTAButton extends StatelessWidget {
@@ -1200,7 +1202,7 @@ class _PairadiseCTAButton extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         height: height,
         decoration: BoxDecoration(
-          color: isEnabled ? const Color(0xFF00897B) : const Color(0xFFE0F2F1),
+          color: isEnabled ? const Color(0xFF00C49F) : const Color(0xFFE6F9F4),
           borderRadius: BorderRadius.circular(30),
           // ZERO shadows as explicitly requested by user
         ),
@@ -1212,7 +1214,7 @@ class _PairadiseCTAButton extends StatelessWidget {
             if (icon != null) ...[
               Icon(
                 icon,
-                color: isEnabled ? Colors.white : const Color(0xFF80CBC4),
+                color: isEnabled ? Colors.white : const Color(0xFF80DFCE),
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -1223,7 +1225,7 @@ class _PairadiseCTAButton extends StatelessWidget {
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 0.5,
-                color: isEnabled ? Colors.white : const Color(0xFF80CBC4),
+                color: isEnabled ? Colors.white : const Color(0xFF80DFCE),
               ),
             ),
           ],
@@ -1234,7 +1236,7 @@ class _PairadiseCTAButton extends StatelessWidget {
 }
 
 // =============================================================================
-// Action Controls (Soft, Borderless, Shadowless Teal Test Pair CTA Button)
+// Action Controls (Soft, Borderless, Shadowless Mint Green Test Pair CTA Button)
 // =============================================================================
 
 class _TestPairControls extends StatelessWidget {
@@ -1296,13 +1298,13 @@ class _CandidatePairsGrid extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
               decoration: BoxDecoration(
                 color: remaining == 1
-                    ? AppColors.lightMint
-                    : const Color(0xFFFFF9E6),
+                    ? const Color(0xFFE6F9F4)
+                    : const Color(0xFFFEF3C7),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: remaining == 1
-                      ? AppColors.mint.withValues(alpha: 0.5)
-                      : const Color(0xFFFFE082),
+                      ? const Color(0xFF80DFCE)
+                      : const Color(0xFFFDE68A),
                 ),
               ),
               child: Text(
@@ -1313,8 +1315,8 @@ class _CandidatePairsGrid extends StatelessWidget {
                   fontSize: 11,
                   fontWeight: FontWeight.w900,
                   color: remaining == 1
-                      ? const Color(0xFF0F7263)
-                      : const Color(0xFF8D6E63),
+                      ? const Color(0xFF059669)
+                      : const Color(0xFF92400E),
                 ),
               ),
             ),
@@ -1406,8 +1408,8 @@ class _TactilePairCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color cardBg = Colors.white;
-    Color borderColor = const Color(0xFF80CBC4);
-    Color rimColor = const Color(0xFF00897B);
+    Color borderColor = const Color(0xFF80DFCE);
+    Color rimColor = const Color(0xFF00C49F);
     Color textColor = AppColors.text;
 
     if (isEliminated) {
@@ -1416,10 +1418,10 @@ class _TactilePairCard extends StatelessWidget {
       rimColor = AppColors.pink.withValues(alpha: 0.3);
       textColor = AppColors.subtitle;
     } else if (isConfirmed || isLastRemaining) {
-      cardBg = const Color(0xFFE8F5E9);
-      borderColor = const Color(0xFF4CAF50);
-      rimColor = const Color(0xFF2E7D32);
-      textColor = const Color(0xFF2E7D32);
+      cardBg = const Color(0xFFE6F9F4);
+      borderColor = const Color(0xFF10B981);
+      rimColor = const Color(0xFF059669);
+      textColor = const Color(0xFF059669);
     }
 
     return AnimatedContainer(
@@ -1438,8 +1440,8 @@ class _TactilePairCard extends StatelessWidget {
                 ),
                 BoxShadow(
                   color: (isConfirmed
-                          ? const Color(0xFF2E7D32)
-                          : const Color(0xFF00897B))
+                          ? const Color(0xFF059669)
+                          : const Color(0xFF00C49F))
                       .withValues(alpha: isConfirmed ? 0.18 : 0.08),
                   blurRadius: isConfirmed ? 8 : 4,
                   offset: const Offset(0, 4),
@@ -1782,7 +1784,7 @@ class _PairadiseCelebrationDialogState
                           style: GoogleFonts.nunito(
                             fontSize: 18.5,
                             fontWeight: FontWeight.w900,
-                            color: const Color(0xFF00897B),
+                            color: const Color(0xFF059669),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -1802,16 +1804,16 @@ class _PairadiseCelebrationDialogState
               ),
               const SizedBox(height: 14),
 
-              // Solved Recap Card (Teal)
+              // Solved Recap Card (Mint Green)
               Container(
                 width: double.infinity,
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2F1),
+                  color: const Color(0xFFE6F9F4),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFF80CBC4),
+                    color: const Color(0xFF80DFCE),
                     width: 1.2,
                   ),
                 ),
@@ -1827,7 +1829,7 @@ class _PairadiseCelebrationDialogState
                             vertical: 3.5,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00897B),
+                            color: const Color(0xFF059669),
                             borderRadius: BorderRadius.circular(7),
                           ),
                           child: Text(
@@ -1849,7 +1851,7 @@ class _PairadiseCelebrationDialogState
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: const Color(0xFF00897B),
+                              color: const Color(0xFF059669),
                               width: 1.2,
                             ),
                           ),
@@ -1858,7 +1860,7 @@ class _PairadiseCelebrationDialogState
                             style: GoogleFonts.nunito(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w900,
-                              color: const Color(0xFF00897B),
+                              color: const Color(0xFF059669),
                             ),
                           ),
                         ),
@@ -1881,7 +1883,7 @@ class _PairadiseCelebrationDialogState
                         style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFF00897B),
+                          color: const Color(0xFF059669),
                         ),
                       ),
                     ),
@@ -1910,12 +1912,12 @@ class _PairadiseCelebrationDialogState
                   borderColor = AppColors.error;
                   borderWidth = 2.0;
                 } else if (isSuccess || isHighlightedCorrect) {
-                  bgColor = const Color(0xFFE0F2F1);
-                  borderColor = const Color(0xFF00897B);
+                  bgColor = const Color(0xFFE6F9F4);
+                  borderColor = const Color(0xFF059669);
                   borderWidth = 2.0;
                 } else if (isSelected) {
-                  bgColor = const Color(0xFFE0F2F1);
-                  borderColor = const Color(0xFF00897B);
+                  bgColor = const Color(0xFFE6F9F4);
+                  borderColor = const Color(0xFF059669);
                   borderWidth = 2.0;
                 }
 
@@ -1946,7 +1948,7 @@ class _PairadiseCelebrationDialogState
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: isSuccess || isHighlightedCorrect
-                                  ? const Color(0xFF00897B)
+                                   ? const Color(0xFF059669)
                                   : isWrong
                                       ? AppColors.error
                                       : Colors.white,
@@ -1990,7 +1992,7 @@ class _PairadiseCelebrationDialogState
                           else if (isSuccess || isHighlightedCorrect)
                             const Icon(
                               Icons.check_rounded,
-                              color: Color(0xFF00897B),
+                              color: Color(0xFF059669),
                               size: 20,
                             ),
                         ],
@@ -2021,7 +2023,7 @@ class _PairadiseCelebrationDialogState
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: const Color(0xFF80CBC4), width: 1.8),
+        border: Border.all(color: const Color(0xFF80DFCE), width: 1.8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.12),
@@ -2029,7 +2031,7 @@ class _PairadiseCelebrationDialogState
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: const Color(0xFF00BFA5).withValues(alpha: 0.1),
+            color: const Color(0xFF00C49F).withValues(alpha: 0.1),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -2038,11 +2040,11 @@ class _PairadiseCelebrationDialogState
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Mascot with soft celebration aura
+          // Mascot with soft celebration aura (Mint Green)
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
-              color: Color(0xFFE0F2F1),
+              color: Color(0xFFE6F9F4),
               shape: BoxShape.circle,
             ),
             child: XyMascot(
@@ -2054,14 +2056,14 @@ class _PairadiseCelebrationDialogState
           ),
           const SizedBox(height: 14),
 
-          // Star Capsule Banner
+          // Star Capsule Banner (Sand Yellow)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF9E6),
+              color: const Color(0xFFFEF3C7),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: const Color(0xFFFFE082),
+                color: const Color(0xFFFDE68A),
                 width: 1.5,
               ),
             ),
@@ -2092,13 +2094,13 @@ class _PairadiseCelebrationDialogState
           ),
           const SizedBox(height: 12),
 
-          // Title & Subtitle in Teal
+          // Title & Subtitle in Mint Green
           Text(
             label,
             style: GoogleFonts.nunito(
               fontSize: 24,
               fontWeight: FontWeight.w900,
-              color: const Color(0xFF00897B),
+              color: const Color(0xFF059669),
               letterSpacing: 0.3,
             ),
           ),
@@ -2117,16 +2119,16 @@ class _PairadiseCelebrationDialogState
           ),
           const SizedBox(height: 14),
 
-          // Solved Concept Recap Card
+          // Solved Concept Recap Card (Mint Green)
           Container(
             width: double.infinity,
             margin: const EdgeInsets.only(bottom: 14),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0F2F1),
+              color: const Color(0xFFE6F9F4),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFF80CBC4),
+                color: const Color(0xFF80DFCE),
                 width: 1.2,
               ),
             ),
@@ -2140,7 +2142,7 @@ class _PairadiseCelebrationDialogState
                       style: GoogleFonts.nunito(
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
-                        color: const Color(0xFF00897B),
+                        color: const Color(0xFF059669),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -2149,7 +2151,7 @@ class _PairadiseCelebrationDialogState
                       style: GoogleFonts.nunito(
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
-                        color: const Color(0xFF00897B),
+                        color: const Color(0xFF059669),
                       ),
                     ),
                   ],
@@ -2161,14 +2163,14 @@ class _PairadiseCelebrationDialogState
                   style: GoogleFonts.nunito(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF00897B),
+                    color: const Color(0xFF059669),
                   ),
                 ),
               ],
             ),
           ),
 
-          // Rewards Pods
+          // Rewards Pods (Sand Yellow + Mint Green)
           Row(
             children: [
               Expanded(
@@ -2176,10 +2178,10 @@ class _PairadiseCelebrationDialogState
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.lightYellow,
+                    color: const Color(0xFFFEF3C7),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFFFFE082),
+                      color: const Color(0xFFFDE68A),
                       width: 1.2,
                     ),
                   ),
@@ -2190,7 +2192,7 @@ class _PairadiseCelebrationDialogState
                         style: GoogleFonts.nunito(
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFF8D6E63),
+                          color: const Color(0xFF92400E),
                         ),
                       ),
                       Text(
@@ -2214,14 +2216,14 @@ class _PairadiseCelebrationDialogState
                     color: (isCheckpoint
                             ? provider.reasoningPassed
                             : provider.failedTests == 0)
-                        ? const Color(0xFFE0F2F1)
+                        ? const Color(0xFFE6F9F4)
                         : AppColors.extraLightPink,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: (isCheckpoint
                               ? provider.reasoningPassed
                               : provider.failedTests == 0)
-                          ? const Color(0xFF80CBC4)
+                          ? const Color(0xFF80DFCE)
                           : AppColors.pink,
                       width: 1.2,
                     ),
@@ -2240,7 +2242,7 @@ class _PairadiseCelebrationDialogState
                           color: (isCheckpoint
                                   ? provider.reasoningPassed
                                   : provider.failedTests == 0)
-                              ? const Color(0xFF00897B)
+                              ? const Color(0xFF059669)
                               : AppColors.pink,
                         ),
                       ),
