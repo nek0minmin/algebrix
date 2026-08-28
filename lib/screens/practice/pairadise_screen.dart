@@ -120,7 +120,7 @@ class _PairadiseScreenState extends State<PairadiseScreen> {
     const int maxStars = 30;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4FBFB),
+      backgroundColor: const Color(0xFFFAF8F5),
       body: SafeArea(
         child: Column(
           children: [
@@ -295,12 +295,12 @@ class _PairadiseGameHeader extends StatelessWidget {
                 color: Colors.white,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFF80CBC4),
+                  color: const Color(0xFFFFE082),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF00BFA5).withValues(alpha: 0.1),
+                    color: const Color(0xFFFFA000).withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -308,14 +308,14 @@ class _PairadiseGameHeader extends StatelessWidget {
               ),
               child: const Icon(
                 Icons.arrow_back_rounded,
-                color: Color(0xFF00897B),
+                color: Color(0xFF5D4037),
                 size: 22,
               ),
             ),
           ),
           const SizedBox(width: 10),
 
-          // PAIRADISE Capsule (Teal)
+          // PAIRADISE Capsule (Warm Sand Yellow)
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -323,12 +323,12 @@ class _PairadiseGameHeader extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(
-                  color: const Color(0xFF80CBC4),
+                  color: const Color(0xFFFFE082),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF00BFA5).withValues(alpha: 0.08),
+                    color: const Color(0xFFFFA000).withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -341,17 +341,17 @@ class _PairadiseGameHeader extends StatelessWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE0F2F1),
+                      color: const Color(0xFFFFF9E6),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: const Color(0xFF80CBC4),
+                        color: const Color(0xFFFFE082),
                         width: 1,
                       ),
                     ),
                     alignment: Alignment.center,
                     child: const Icon(
                       Icons.spa_rounded,
-                      color: Color(0xFF00897B),
+                      color: Color(0xFFFFA000),
                       size: 16,
                     ),
                   ),
@@ -369,7 +369,7 @@ class _PairadiseGameHeader extends StatelessWidget {
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.1,
-                              color: const Color(0xFF00897B),
+                              color: const Color(0xFF5D4037),
                             ),
                           ),
                         ),
@@ -450,21 +450,11 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
     final moveCount = provider.moveCount;
     final optimalMoves = provider.optimalMoves;
 
-    // Mood asset & prompt
-    String mascotAsset = AppAssets.xyPractice;
-    String companionPrompt = problem.mechanic == PairadiseMechanic.discovery
-        ? 'Find values for 🩵 x and 🩵 y that make both clues true!'
-        : 'Cross out candidate pairs until only the 1 true mystery pair remains!';
-
-    if (provider.phase == PairadisePhase.pairFound) {
-      mascotAsset = AppAssets.xyHappy;
-      companionPrompt = 'Mystery Pair Found! Both clues agree! 🎉';
-    } else if (provider.phase == PairadisePhase.pairFailed) {
-      mascotAsset = AppAssets.xyExplaining;
-      companionPrompt = problem.mechanic == PairadiseMechanic.discovery
-          ? 'Not quite! Check which clue failed and try a different pair.'
-          : 'Not quite! The remaining pair doesn\'t satisfy both clues. Tap crossed-out tiles to un-cross them!';
-    }
+    // Stable instruction prompt as requested
+    final String companionPrompt =
+        problem.mechanic == PairadiseMechanic.discovery
+            ? 'Find values for x and y that make both equations true.'
+            : 'Cross out candidate pairs until only the 1 true mystery pair remains.';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -472,12 +462,12 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFF80CBC4),
+          color: const Color(0xFFFFE082),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00BFA5).withValues(alpha: 0.08),
+            color: const Color(0xFFFFA000).withValues(alpha: 0.07),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -486,24 +476,24 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Top Row: Big Mascot Avatar + Mode (Teal)
+          // Top Row: Big Mascot Avatar + Mode (Warm Amber)
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Prominent Xy Mascot Circle in Teal
+              // Prominent Xy Mascot Circle in Warm Sand
               Container(
                 width: 68,
                 height: 68,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFE0F2F1),
+                  color: const Color(0xFFFFF9E6),
                   border: Border.all(
-                    color: const Color(0xFF80CBC4),
+                    color: const Color(0xFFFFE082),
                     width: 2.0,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF00BFA5).withValues(alpha: 0.12),
+                      color: const Color(0xFFFFA000).withValues(alpha: 0.12),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -511,7 +501,11 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
                 ),
                 child: Center(
                   child: XyMascot(
-                    asset: mascotAsset,
+                    asset: provider.phase == PairadisePhase.pairFound
+                        ? AppAssets.xyHappy
+                        : (provider.phase == PairadisePhase.pairFailed
+                            ? AppAssets.xyExplaining
+                            : AppAssets.xyPractice),
                     size: 56,
                     shadowBlur: 3.0,
                     shadowOpacity: 0.15,
@@ -523,18 +517,32 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      problem.mechanic == PairadiseMechanic.discovery
-                          ? 'DISCOVERY PUZZLE'
-                          : 'ELIMINATION PUZZLE',
-                      style: GoogleFonts.nunito(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.8,
-                        color: const Color(0xFF00897B),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3D0),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFFFE082),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        problem.mechanic == PairadiseMechanic.discovery
+                            ? 'DISCOVERY PUZZLE'
+                            : 'ELIMINATION PUZZLE',
+                        style: GoogleFonts.nunito(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                          color: const Color(0xFF8D6E63),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       'Find Mystery Pair (x, y)',
                       style: GoogleFonts.nunito(
@@ -550,14 +558,14 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Speech Bubble Instruction Card (Teal)
+          // Speech Bubble Instruction Card (Warm Sand)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0F2F1).withValues(alpha: 0.7),
+              color: const Color(0xFFFFFDF5),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: const Color(0xFF80CBC4).withValues(alpha: 0.6),
+                color: const Color(0xFFFFE082).withValues(alpha: 0.8),
                 width: 1.2,
               ),
             ),
@@ -566,14 +574,14 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
               style: GoogleFonts.nunito(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
-                color: const Color(0xFF00897B),
+                color: const Color(0xFF5D4037),
                 height: 1.35,
               ),
             ),
           ),
           const SizedBox(height: 14),
 
-          // Clue 1 Card (BLUE)
+          // Clue 1 Card (Warm Sand + Amber)
           _ClueCard(
             clueNumber: 1,
             clueText: problem.clue1,
@@ -585,7 +593,7 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Clue 2 Card (BLUE)
+          // Clue 2 Card (Warm Sand + Teal)
           _ClueCard(
             clueNumber: 2,
             clueText: problem.clue2,
@@ -601,7 +609,7 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
 }
 
 // =============================================================================
-// Sleek Clue Card (Clean BLUE Theme)
+// Sleek Clue Card (Warm Sand & Amber/Teal Theme)
 // =============================================================================
 
 class _ClueCard extends StatelessWidget {
@@ -621,18 +629,22 @@ class _ClueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color cardBg = const Color(0xFFF0F9FF);
-    Color cardBorder = const Color(0xFFB3E5FC);
+    Color cardBg = const Color(0xFFFFFDF7);
+    Color cardBorder = const Color(0xFFFFE082).withValues(alpha: 0.85);
 
     if (hasChecked) {
       if (passed) {
-        cardBg = const Color(0xFFE1F5FE);
-        cardBorder = const Color(0xFF0288D1);
+        cardBg = const Color(0xFFE8F5E9);
+        cardBorder = const Color(0xFF4CAF50);
       } else {
         cardBg = AppColors.extraLightPink;
         cardBorder = AppColors.pink;
       }
     }
+
+    final badgeColor = clueNumber == 1
+        ? const Color(0xFFFFA000)
+        : const Color(0xFF00897B);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -647,7 +659,7 @@ class _ClueCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
             decoration: BoxDecoration(
-              color: const Color(0xFF0288D1),
+              color: badgeColor,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -673,24 +685,24 @@ class _ClueCard extends StatelessWidget {
             ),
           ),
           if (isChecking)
-            const SizedBox(
+            SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0288D1)),
+                valueColor: AlwaysStoppedAnimation<Color>(badgeColor),
               ),
             )
           else if (hasChecked)
             Icon(
               passed ? Icons.check_circle_rounded : Icons.cancel_rounded,
-              color: passed ? const Color(0xFF0288D1) : AppColors.error,
+              color: passed ? const Color(0xFF2E7D32) : AppColors.error,
               size: 22,
             )
           else
-            const Icon(
+            Icon(
               Icons.search_rounded,
-              color: Color(0xFF81D4FA),
+              color: badgeColor.withValues(alpha: 0.5),
               size: 20,
             ),
         ],
@@ -700,7 +712,7 @@ class _ClueCard extends StatelessWidget {
 }
 
 // =============================================================================
-// Discovery Mode: 3D Mystery Value Slots (BLUE Theme for Mystery x & y)
+// Discovery Mode: 3D Mystery Value Slots (Warm Amber for x & Teal for y)
 // =============================================================================
 
 class _MysteryValueSlots extends StatelessWidget {
@@ -712,12 +724,12 @@ class _MysteryValueSlots extends StatelessWidget {
 
     return Row(
       children: [
-        // Left Slot: Variable X (BLUE Theme)
+        // Left Slot: Variable X (Warm Amber Theme)
         Expanded(
           child: _TactileValueDropSlot(
             variableName: 'x',
-            variableColor: const Color(0xFF0288D1),
-            slotLightBg: const Color(0xFFE1F5FE),
+            variableColor: const Color(0xFFE65100),
+            slotLightBg: const Color(0xFFFFF3E0),
             value: provider.assignedX,
             onClear: () => provider.assignX(0),
             onAccept: (val) => provider.assignX(val),
@@ -725,12 +737,12 @@ class _MysteryValueSlots extends StatelessWidget {
         ),
         const SizedBox(width: 14),
 
-        // Right Slot: Variable Y (BLUE Theme)
+        // Right Slot: Variable Y (Warm Seafoam/Teal Theme)
         Expanded(
           child: _TactileValueDropSlot(
             variableName: 'y',
-            variableColor: const Color(0xFF0288D1),
-            slotLightBg: const Color(0xFFE1F5FE),
+            variableColor: const Color(0xFF00897B),
+            slotLightBg: const Color(0xFFE0F2F1),
             value: provider.assignedY,
             onClear: () => provider.assignY(0),
             onAccept: (val) => provider.assignY(val),
@@ -810,14 +822,14 @@ class _TactileValueDropSlot extends StatelessWidget {
                   border: Border.all(
                     color: isHovered || isFilled
                         ? variableColor
-                        : const Color(0xFFB3E5FC),
+                        : const Color(0xFFFFE082),
                     width: isHovered ? 2.2 : 1.8,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: isHovered || isFilled
                           ? variableColor.withValues(alpha: 0.25)
-                          : const Color(0xFFB3E5FC).withValues(alpha: 0.35),
+                          : const Color(0xFFFFA000).withValues(alpha: 0.15),
                       offset: const Offset(0, 3.5),
                       blurRadius: 0,
                     ),
@@ -877,7 +889,7 @@ class _TactileValueDropSlot extends StatelessWidget {
 }
 
 // =============================================================================
-// Responsive Value Stones Grid (4x2 BLUE Tiles)
+// Responsive Value Stones Grid (Warm Sand Yellow Tiles)
 // =============================================================================
 
 class _PairadiseNumberPalette extends StatelessWidget {
@@ -1059,11 +1071,15 @@ class _TactileNumberTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // All math tiles are cleanly themed in vibrant BLUE
-    const accentColor = Color(0xFF0288D1);
+    // Warm sand yellow & tactile amber theme
+    const accentColor = Color(0xFFFFA000);
     final Color tileBg = isAssigned
-        ? const Color(0xFFE1F5FE)
-        : (isDragging ? const Color(0xFFE1F5FE) : Colors.white);
+        ? const Color(0xFFFFF8E1)
+        : (isDragging ? const Color(0xFFFFF8E1) : Colors.white);
+
+    final Color tagColor = assignedTag == 'x'
+        ? const Color(0xFFE65100)
+        : const Color(0xFF00897B);
 
     return Container(
       width: tileWidth,
@@ -1073,17 +1089,17 @@ class _TactileNumberTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isAssigned || isDragging
-              ? accentColor
-              : const Color(0xFF29B6F6).withValues(alpha: 0.5),
-          width: isAssigned || isDragging ? 2.2 : 1.8,
+              ? (assignedTag != null ? tagColor : accentColor)
+              : const Color(0xFFFFE082),
+          width: isAssigned || isDragging ? 2.0 : 1.5,
         ),
         boxShadow: [
           BoxShadow(
             color: isDragging
                 ? accentColor.withValues(alpha: 0.35)
-                : accentColor.withValues(alpha: 0.1),
-            blurRadius: isDragging ? 14 : 6,
-            offset: Offset(0, isDragging ? 6 : 3),
+                : const Color(0xFFFFA000).withValues(alpha: 0.12),
+            blurRadius: isDragging ? 14 : 4,
+            offset: Offset(0, isDragging ? 6 : 2.5),
           ),
         ],
       ),
@@ -1100,7 +1116,9 @@ class _TactileNumberTile extends StatelessWidget {
                   style: GoogleFonts.nunito(
                     fontSize: fontSize,
                     fontWeight: FontWeight.w900,
-                    color: isAssigned ? accentColor : AppColors.text,
+                    color: isAssigned
+                        ? (assignedTag != null ? tagColor : accentColor)
+                        : AppColors.text,
                   ),
                 ),
               ),
@@ -1125,7 +1143,7 @@ class _TactileNumberTile extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0288D1),
+                  color: tagColor,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -1391,20 +1409,20 @@ class _TactilePairCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color cardBg = Colors.white;
-    Color borderColor = const Color(0xFF81D4FA);
-    Color rimColor = const Color(0xFF0288D1);
+    Color borderColor = const Color(0xFFFFE082);
+    Color rimColor = const Color(0xFFFFA000);
     Color textColor = AppColors.text;
 
     if (isEliminated) {
-      cardBg = const Color(0xFFF9F0F2);
+      cardBg = const Color(0xFFFAF2F4);
       borderColor = AppColors.pink.withValues(alpha: 0.25);
       rimColor = AppColors.pink.withValues(alpha: 0.3);
       textColor = AppColors.subtitle;
     } else if (isConfirmed || isLastRemaining) {
-      cardBg = const Color(0xFFE1F5FE);
-      borderColor = const Color(0xFF0288D1);
-      rimColor = const Color(0xFF0288D1);
-      textColor = const Color(0xFF0288D1);
+      cardBg = const Color(0xFFE8F5E9);
+      borderColor = const Color(0xFF4CAF50);
+      rimColor = const Color(0xFF2E7D32);
+      textColor = const Color(0xFF2E7D32);
     }
 
     return AnimatedContainer(
@@ -1417,17 +1435,17 @@ class _TactilePairCard extends StatelessWidget {
             ? null
             : [
                 BoxShadow(
-                  color: rimColor,
-                  offset: const Offset(0, 3.5),
+                  color: rimColor.withValues(alpha: 0.18),
+                  offset: const Offset(0, 3),
                   blurRadius: 0,
                 ),
                 BoxShadow(
                   color: (isConfirmed
-                          ? const Color(0xFF0288D1)
-                          : Colors.black)
-                      .withValues(alpha: isConfirmed ? 0.2 : 0.06),
+                          ? const Color(0xFF2E7D32)
+                          : const Color(0xFFFFA000))
+                      .withValues(alpha: isConfirmed ? 0.18 : 0.08),
                   blurRadius: isConfirmed ? 8 : 4,
-                  offset: const Offset(0, 5),
+                  offset: const Offset(0, 4),
                 ),
               ],
       ),
