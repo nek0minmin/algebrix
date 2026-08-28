@@ -121,20 +121,22 @@ class PairadiseProvider extends ChangeNotifier {
 
   /// Calculate stars for a given test/mistake outcome.
   ///
-  /// - 3★: Tested right on the 1st try (0 mistakes)
-  /// - 2★: 1 mistake
-  /// - 1★: More than 1 mistake
+  /// - 3★: 1st checking + reasoning correct
+  /// - 2★: After 2 checkings + reasoning correct OR 1st checking + reasoning incorrect
+  /// - 1★: More than 2 checkings + reasoning incorrect
   int calculateStars(bool reasoningCorrect) {
     if (!_isSolved) return 0;
-    final mistakes = _failedTests;
+    final failed = _failedTests;
 
     if (_currentProblem?.hasReasoningCheckpoint == true) {
-      if (mistakes == 0 && reasoningCorrect) return 3;
-      if (mistakes <= 1 && (mistakes == 0 || reasoningCorrect)) return 2;
+      if (failed == 0 && reasoningCorrect) return 3;
+      if (failed <= 1 && reasoningCorrect) return 2;
+      if (failed == 0 && !reasoningCorrect) return 2;
+      if (failed >= 2 && reasoningCorrect) return 2;
       return 1;
     } else {
-      if (mistakes == 0) return 3;
-      if (mistakes == 1) return 2;
+      if (failed == 0) return 3;
+      if (failed <= 1) return 2;
       return 1;
     }
   }
@@ -230,7 +232,6 @@ class PairadiseProvider extends ChangeNotifier {
 
     await Future<void>.delayed(const Duration(milliseconds: 400));
 
-    // Record the move
     final isCorrect = _clue1Passed && _clue2Passed;
     _history.add(PairadiseStep(
       description: isCorrect
@@ -260,44 +261,74 @@ class PairadiseProvider extends ChangeNotifier {
     return isCorrect;
   }
 
-  /// Eliminates a candidate pair by index (Elimination mechanic).
+  /// Toggles elimination of a candidate pair by index (Elimination mechanic).
   ///
-  /// The pair is checked against clue 2. If the elimination is correct
-  /// (pair doesn't satisfy clue 2), it's crossed out. If the student
-  /// tries to eliminate the correct pair, the game gently prevents it.
-  ///
-  /// Returns true if the elimination was valid (pair was indeed wrong).
+  /// - Tapping an active pair crosses it out.
+  /// - Retapping an eliminated pair restores/un-crosses it.
+  /// - When exactly 1 pair remains uncrossed, the app automatically checks it.
+  Future<void> togglePairElimination(int pairIndex) async {
+    if (_currentProblem == null || _isSolved) return;
+    if (_phase == PairadisePhase.clue1Checking ||
+        _phase == PairadisePhase.clue2Checking) {
+      return;
+    }
+
+    if (_eliminatedPairIndices.contains(pairIndex)) {
+      // Undo crossing out
+      _eliminatedPairIndices.remove(pairIndex);
+      _phase = PairadisePhase.exploring;
+      _clue1Passed = false;
+      _clue2Passed = false;
+      _confirmedPairIndex = null;
+      notifyListeners();
+      return;
+    }
+
+    // Eliminate pair
+    _eliminatedPairIndices.add(pairIndex);
+    _phase = PairadisePhase.exploring;
+    _clue1Passed = false;
+    _clue2Passed = false;
+    notifyListeners();
+
+    // Check if exactly 1 pair remains
+    if (remainingPairCount == 1) {
+      final lastIndex = _currentProblem!.candidatePairs
+          .asMap()
+          .keys
+          .firstWhere((i) => !_eliminatedPairIndices.contains(i));
+      await checkRemainingCandidatePair(lastIndex);
+    }
+  }
+
+  /// Backward-compatible eliminate method for tests.
   bool eliminatePair(int pairIndex) {
     if (_currentProblem == null || _isSolved) return false;
     if (_eliminatedPairIndices.contains(pairIndex)) return false;
-
-    final pair = _currentProblem!.candidatePairs[pairIndex];
-    final isSolution = _currentProblem!.checkSolution(pair.x, pair.y);
-
-    if (isSolution) {
-      // This is the correct pair — don't allow elimination
-      return false;
-    }
-
     _eliminatedPairIndices.add(pairIndex);
-    _history.add(PairadiseStep(
-      description: '✂️ Eliminated (${pair.x}, ${pair.y})',
-      isCorrect: true,
-      eliminatedPairIndex: pairIndex,
-    ));
-
     notifyListeners();
     return true;
   }
 
-  /// Confirms a candidate pair as the solution (Elimination mechanic).
-  ///
-  /// Triggers the clue verification animation sequence.
-  /// Returns true if the confirmed pair is correct.
-  Future<bool> confirmPair(int pairIndex) async {
+  /// Backward-compatible un-eliminate method.
+  bool unEliminatePair(int pairIndex) {
     if (_currentProblem == null || _isSolved) return false;
-    if (_eliminatedPairIndices.contains(pairIndex)) return false;
+    if (!_eliminatedPairIndices.contains(pairIndex)) return false;
+    _eliminatedPairIndices.remove(pairIndex);
+    _phase = PairadisePhase.exploring;
+    _clue1Passed = false;
+    _clue2Passed = false;
+    notifyListeners();
+    return true;
+  }
 
+  /// Confirms and checks a candidate pair.
+  Future<bool> confirmPair(int pairIndex) =>
+      checkRemainingCandidatePair(pairIndex);
+
+  /// Checks the single remaining candidate pair against clues.
+  Future<bool> checkRemainingCandidatePair(int pairIndex) async {
+    if (_currentProblem == null || _isSolved) return false;
     final pair = _currentProblem!.candidatePairs[pairIndex];
     _confirmedPairIndex = pairIndex;
 
@@ -305,29 +336,29 @@ class PairadiseProvider extends ChangeNotifier {
     _phase = PairadisePhase.clue1Checking;
     notifyListeners();
 
-    await Future<void>.delayed(const Duration(milliseconds: 600));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
 
     _clue1Passed = _currentProblem!.evaluateClue1(pair.x, pair.y) ?? false;
     notifyListeners();
 
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
 
     // Phase 2: Check clue 2
     _phase = PairadisePhase.clue2Checking;
     notifyListeners();
 
-    await Future<void>.delayed(const Duration(milliseconds: 600));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
 
     _clue2Passed = _currentProblem!.evaluateClue2(pair.x, pair.y) ?? false;
     notifyListeners();
 
-    await Future<void>.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
 
     final isCorrect = _clue1Passed && _clue2Passed;
     _history.add(PairadiseStep(
       description: isCorrect
           ? '✅ Confirmed (${pair.x}, ${pair.y}) — Mystery Pair Found!'
-          : '❌ Confirmed (${pair.x}, ${pair.y}) — Wrong pair!',
+          : '❌ Checked (${pair.x}, ${pair.y}) — Fails clue verification!',
       isCorrect: isCorrect,
       testedX: pair.x,
       testedY: pair.y,
@@ -344,6 +375,7 @@ class PairadiseProvider extends ChangeNotifier {
       }
       _phase = PairadisePhase.pairFound;
     } else {
+      _failedTests++;
       _phase = PairadisePhase.pairFailed;
       _confirmedPairIndex = null;
     }

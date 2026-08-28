@@ -726,13 +726,15 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        bestMoves != null
-                            ? 'Best: $bestMoves ${bestMoves == 1 ? 'move' : 'moves'}'
-                            : 'Best: --',
+                        isPairadise
+                            ? (starsEarned > 0 ? 'Completed ⭐' : 'Ready to solve')
+                            : (bestMoves != null
+                                ? 'Best: $bestMoves ${bestMoves == 1 ? 'move' : 'moves'}'
+                                : 'Best: --'),
                         style: GoogleFonts.nunito(
-                          fontSize: 14.5,
+                          fontSize: 14,
                           fontWeight: FontWeight.w900,
-                          color: bestMoves != null
+                          color: (isPairadise ? starsEarned > 0 : bestMoves != null)
                               ? const Color(0xFF0F7263)
                               : AppColors.textSecondary,
                         ),

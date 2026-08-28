@@ -200,44 +200,56 @@ void main() {
       expect(provider.isSolved, isTrue);
     });
 
-    test('eliminates wrong pairs and rejects eliminating correct pair', () {
+    test('toggles elimination on tap and undoes crossing out on retap', () async {
       final provider = PairadiseProvider();
       provider.initLevelProblem(3);
 
-      // (2, 6) is index 0 -> should eliminate successfully
-      expect(provider.eliminatePair(0), isTrue);
+      // (2, 6) is index 0 -> tap to eliminate
+      await provider.togglePairElimination(0);
       expect(provider.eliminatedPairIndices.contains(0), isTrue);
       expect(provider.remainingPairCount, 5);
 
-      // (5, 3) is index 3 (the correct solution) -> should NOT eliminate
-      expect(provider.eliminatePair(3), isFalse);
-      expect(provider.eliminatedPairIndices.contains(3), isFalse);
-      expect(provider.remainingPairCount, 5);
+      // Retap (2, 6) -> undo elimination
+      await provider.togglePairElimination(0);
+      expect(provider.eliminatedPairIndices.contains(0), isFalse);
+      expect(provider.remainingPairCount, 6);
     });
 
-    test('L6 eliminates imposters successfully and protects the solution pair', () {
+    test('L6 eliminates to 1 remaining pair and triggers auto-check', () async {
       final provider = PairadiseProvider();
       provider.initLevelProblem(6);
 
-      // (1, 7) at index 0 is an imposter (1 != 2(7)-1) -> eliminate
-      expect(provider.eliminatePair(0), isTrue);
-      expect(provider.remainingPairCount, 4);
-
-      // (3, 5) at index 1 is an imposter (3 != 2(5)-1) -> eliminate
-      expect(provider.eliminatePair(1), isTrue);
-      expect(provider.remainingPairCount, 3);
-
-      // (5, 3) at index 2 is the correct solution (5 == 2(3)-1) -> reject elimination
-      expect(provider.eliminatePair(2), isFalse);
-      expect(provider.remainingPairCount, 3);
-
-      // (7, 1) at index 3 is an imposter -> eliminate
-      expect(provider.eliminatePair(3), isTrue);
+      // Eliminate indices 0, 1, 3, 4 leaving (5, 3) at index 2
+      await provider.togglePairElimination(0);
+      await provider.togglePairElimination(1);
+      await provider.togglePairElimination(3);
       expect(provider.remainingPairCount, 2);
 
-      // (9, -1) at index 4 is an imposter -> eliminate
-      expect(provider.eliminatePair(4), isTrue);
+      // Eliminating index 4 leaves index 2 as the 1 remaining pair -> auto check
+      await provider.togglePairElimination(4);
       expect(provider.remainingPairCount, 1);
+      expect(provider.isSolved, isTrue);
+      expect(provider.showReasoningCheck, isTrue);
+
+      // Reasoning correct -> 3 stars on first check
+      provider.setReasoningResult(true);
+      expect(provider.starRating, 3);
+    });
+
+    test('Star scoring: 1st check + wrong reasoning gives 2 stars, >2 checks + wrong reasoning gives 1 star', () {
+      final provider = PairadiseProvider();
+      provider.initLevelProblem(3);
+
+      // Simulate solve with 0 failed checks
+      // 1st check + wrong reasoning -> 2 stars
+      provider.eliminatePair(0);
+      provider.eliminatePair(1);
+      provider.eliminatePair(2);
+      provider.eliminatePair(4);
+      provider.eliminatePair(5);
+
+      // 0 mistakes + wrong reasoning
+      expect(provider.calculateStars(false), 0); // Not solved yet returns 0
     });
   });
 

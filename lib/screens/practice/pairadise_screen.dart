@@ -153,8 +153,7 @@ class _PairadiseScreenState extends State<PairadiseScreen> {
                               const _PairadiseMascotAndClueHeader(),
                               const SizedBox(height: 18),
 
-                              // Interactive Mechanics Area
-                              if (provider.currentProblem!.mechanic ==
+                                if (provider.currentProblem!.mechanic ==
                                   PairadiseMechanic.discovery) ...[
                                 // 3D Mystery Value Drop Slots (BLUE)
                                 const _MysteryValueSlots(),
@@ -171,11 +170,6 @@ class _PairadiseScreenState extends State<PairadiseScreen> {
                                 // Candidate Pairs Grid (BLUE Tiles)
                                 const _CandidatePairsGrid(),
                               ],
-
-                              const SizedBox(height: 20),
-
-                              // Step Attempt History Card (Teal)
-                              const _StepHistoryCard(),
                             ],
                           ),
                         ),
@@ -460,20 +454,16 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
     String mascotAsset = AppAssets.xyPractice;
     String companionPrompt = problem.mechanic == PairadiseMechanic.discovery
         ? 'Find values for 🩵 x and 🩵 y that make both clues true!'
-        : 'Eliminate the candidate pairs that fail Clue 2!';
+        : 'Cross out candidate pairs until only the 1 true mystery pair remains!';
 
     if (provider.phase == PairadisePhase.pairFound) {
       mascotAsset = AppAssets.xyHappy;
       companionPrompt = 'Mystery Pair Found! Both clues agree! 🎉';
     } else if (provider.phase == PairadisePhase.pairFailed) {
       mascotAsset = AppAssets.xyExplaining;
-      companionPrompt =
-          'Not quite! Check which clue failed and try a different pair.';
-    } else if (moveCount > optimalMoves) {
-      mascotAsset = AppAssets.xyExplaining;
-      companionPrompt = problem.hintDialogue;
-    } else if (moveCount > 0) {
-      companionPrompt = 'Great try! Find a pair that makes BOTH clues true.';
+      companionPrompt = problem.mechanic == PairadiseMechanic.discovery
+          ? 'Not quite! Check which clue failed and try a different pair.'
+          : 'Not quite! The remaining pair doesn\'t satisfy both clues. Tap crossed-out tiles to un-cross them!';
     }
 
     return Container(
@@ -496,7 +486,7 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Top Row: Big Mascot Avatar + Mode (Teal) + Moves (Teal)
+          // Top Row: Big Mascot Avatar + Mode (Teal)
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -548,31 +538,12 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
                     Text(
                       'Find Mystery Pair (x, y)',
                       style: GoogleFonts.nunito(
-                        fontSize: 14.5,
+                        fontSize: 15,
                         fontWeight: FontWeight.w900,
                         color: AppColors.text,
                       ),
                     ),
                   ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2F1),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: const Color(0xFF80CBC4),
-                    width: 1.2,
-                  ),
-                ),
-                child: Text(
-                  'Moves: $moveCount',
-                  style: GoogleFonts.nunito(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF00897B),
-                  ),
                 ),
               ),
             ],
@@ -1382,25 +1353,14 @@ class _CandidatePairsGrid extends StatelessWidget {
         provider.remainingPairCount == 1 && !isEliminated;
 
     return BouncyPressable(
-      shrinkFactor: isEliminated ? 1.0 : 0.92,
-      enableHaptics: !isEliminated,
+      shrinkFactor: 0.94,
+      enableHaptics: true,
       onTap: () {
-        if (provider.phase != PairadisePhase.exploring) return;
-
-        if (!isEliminated) {
-          final success = provider.eliminatePair(index);
-          // Removed spoiler validation snackbar — clean silent rejection
-          if (success) {
-            if (provider.remainingPairCount == 1) {
-              final lastIndex = problem.candidatePairs
-                  .asMap()
-                  .keys
-                  .firstWhere(
-                      (i) => !provider.eliminatedPairIndices.contains(i));
-              provider.confirmPair(lastIndex);
-            }
-          }
+        if (provider.phase == PairadisePhase.clue1Checking ||
+            provider.phase == PairadisePhase.clue2Checking) {
+          return;
         }
+        provider.togglePairElimination(index);
       },
       child: _TactilePairCard(
         pair: pair,
@@ -1831,7 +1791,7 @@ class _PairadiseCelebrationDialogState
               Container(
                 width: double.infinity,
                 margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE0F2F1),
                   borderRadius: BorderRadius.circular(16),
@@ -1840,50 +1800,69 @@ class _PairadiseCelebrationDialogState
                     width: 1.2,
                   ),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF00897B),
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                          child: Text(
+                            'MYSTERY PAIR',
+                            style: GoogleFonts.nunito(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 2.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: const Color(0xFF00897B),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Text(
+                            'x = ${widget.problem.solutionX}, y = ${widget.problem.solutionY}',
+                            style: GoogleFonts.nunito(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF00897B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     Container(
+                      width: double.infinity,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
+                        horizontal: 10,
+                        vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00897B),
-                        borderRadius: BorderRadius.circular(7),
+                        color: Colors.white.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        'MYSTERY PAIR',
-                        style: GoogleFonts.nunito(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        '${widget.problem.clue1} & ${widget.problem.clue2}',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w800,
-                          color: const Color(0xFF00897B),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFF00897B)),
-                      ),
-                      child: Text(
-                        '(${widget.problem.solutionX}, ${widget.problem.solutionY})',
+                        '${widget.problem.clue1}   •   ${widget.problem.clue2}',
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w900,
@@ -2110,7 +2089,11 @@ class _PairadiseCelebrationDialogState
           ),
           const SizedBox(height: 3),
           Text(
-            'Solved in ${provider.moveCount} moves • ${provider.optimalMoves} optimal',
+            isCheckpoint
+                ? (provider.reasoningPassed
+                    ? 'Mystery pair verified & reasoning mastered! 🌴'
+                    : 'Mystery pair verified! 🌴')
+                : 'Mystery pair verified! 🌴',
             style: GoogleFonts.nunito(
               fontSize: 13,
               fontWeight: FontWeight.w800,
@@ -2215,14 +2198,14 @@ class _PairadiseCelebrationDialogState
                   decoration: BoxDecoration(
                     color: (isCheckpoint
                             ? provider.reasoningPassed
-                            : provider.moveCount <= provider.optimalMoves)
+                            : provider.failedTests == 0)
                         ? const Color(0xFFE0F2F1)
                         : AppColors.extraLightPink,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: (isCheckpoint
                               ? provider.reasoningPassed
-                              : provider.moveCount <= provider.optimalMoves)
+                              : provider.failedTests == 0)
                           ? const Color(0xFF80CBC4)
                           : AppColors.pink,
                       width: 1.2,
@@ -2233,21 +2216,21 @@ class _PairadiseCelebrationDialogState
                       Text(
                         isCheckpoint
                             ? (provider.reasoningPassed ? 'Passed' : 'Review')
-                            : (provider.moveCount <= provider.optimalMoves
-                                ? 'Optimal'
-                                : 'Solved'),
+                            : (provider.failedTests == 0
+                                ? '1st Try!'
+                                : '${provider.failedTests + 1} Checks'),
                         style: GoogleFonts.nunito(
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
                           color: (isCheckpoint
                                   ? provider.reasoningPassed
-                                  : provider.moveCount <= provider.optimalMoves)
+                                  : provider.failedTests == 0)
                               ? const Color(0xFF00897B)
                               : AppColors.pink,
                         ),
                       ),
                       Text(
-                        isCheckpoint ? 'Checkpoint' : 'Efficiency',
+                        isCheckpoint ? 'Checkpoint' : 'Accuracy',
                         style: GoogleFonts.nunito(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
