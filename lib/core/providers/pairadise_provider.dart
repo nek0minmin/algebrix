@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:algebrix/models/pairadise_problem.dart';
 import 'package:algebrix/services/pairadise_problem_service.dart';
+import 'package:algebrix/services/sound_service.dart';
 
 /// A single recorded action in the Pairadise gameplay history.
 class PairadiseStep {
@@ -366,6 +367,7 @@ class PairadiseProvider extends ChangeNotifier {
 
     if (isCorrect) {
       _isSolved = true;
+      SoundService.playSuccess();
       if (_currentProblem?.hasReasoningCheckpoint == true) {
         _showReasoningCheck = true;
         _reasoningPassed = false;
@@ -376,6 +378,7 @@ class PairadiseProvider extends ChangeNotifier {
       _phase = PairadisePhase.pairFound;
     } else {
       _failedTests++;
+      SoundService.playWrong();
       _phase = PairadisePhase.pairFailed;
       _confirmedPairIndex = null;
     }

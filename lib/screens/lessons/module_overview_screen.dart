@@ -15,6 +15,7 @@ import 'package:algebrix/widgets/search_bar_widget.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
 import 'package:algebrix/core/animations/app_page_route.dart';
 import 'package:algebrix/widgets/page_headers.dart';
+import 'package:algebrix/services/sound_service.dart';
 
 /// Module Overview screen showing the module intro and lesson list with progressive unlocking.
 class ModuleOverviewScreen extends StatefulWidget {
@@ -486,7 +487,10 @@ class _LessonListItem extends StatelessWidget {
           children: [
             InkWell(
               borderRadius: BorderRadius.circular(20),
-              onTap: onExpansionChanged,
+              onTap: () {
+                SoundService.playTileSelect();
+                onExpansionChanged();
+              },
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(

@@ -7,6 +7,7 @@ import 'package:algebrix/screens/notes/note_lesson_options.dart';
 import 'package:algebrix/widgets/ai_feedback_card.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
+import 'package:algebrix/services/sound_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -28,6 +29,7 @@ class NoteDetailScreen extends StatelessWidget {
       MaterialPageRoute(builder: (_) => NoteFormScreen(note: currentNote)),
     );
     if (updated == true && context.mounted) {
+      SoundService.playComplete();
       showAlgebrixSnackBar(
         context,
         message: 'Study note updated.',
@@ -44,6 +46,7 @@ class NoteDetailScreen extends StatelessWidget {
       builder: (_) => _DeleteNoteDialog(note: currentNote),
     );
     if (deleted == true && context.mounted) {
+      SoundService.playComplete();
       Navigator.of(context).pop(true);
     }
   }

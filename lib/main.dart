@@ -23,6 +23,7 @@ import 'services/notes_repository.dart';
 import 'services/progress_repository.dart';
 import 'services/quest_repository.dart';
 import 'services/quiz_repository.dart';
+import 'services/sound_service.dart';
 import 'screens/splash/splash_screen.dart';
 
 void main() async {
@@ -34,6 +35,9 @@ void main() async {
   } catch (e) {
     debugPrint('Dotenv loading warning: $e');
   }
+
+  // Initialize Sound Effects Service
+  await SoundService.init();
 
   // Lock to portrait mode for optimal learning experience
   await SystemChrome.setPreferredOrientations([

@@ -28,6 +28,7 @@ import 'package:algebrix/screens/notes/note_detail_screen.dart';
 import 'package:algebrix/screens/notes/note_form_screen.dart';
 import 'package:algebrix/screens/notes/note_lesson_options.dart';
 import 'package:algebrix/services/ai_tutor_service.dart';
+import 'package:algebrix/services/sound_service.dart';
 import 'package:algebrix/widgets/ai_feedback_card.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
@@ -482,6 +483,7 @@ class _DashboardNoteCard extends StatelessWidget {
   final VoidCallback onTap;
 
   void _showInsightModal(BuildContext context, AiFeedbackResult feedback) {
+    SoundService.playStar();
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,

@@ -18,6 +18,7 @@ import 'package:algebrix/widgets/lesson/activities/ordering_activity.dart';
 import 'package:algebrix/widgets/lesson/activities/term_selection_activity.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
 import 'package:algebrix/widgets/page_headers.dart';
+import 'package:algebrix/services/sound_service.dart';
 
 /// Main Lesson Viewer — the core interactive learning experience.
 ///
@@ -39,11 +40,13 @@ class _LessonScreenState extends State<LessonScreen> {
     final lessonProvider = context.read<LessonProvider>();
     if (lessonProvider.isRecording) return;
     if (!isCorrect) {
+      SoundService.playWrong();
       setState(() => _lastAnswerCorrect = false);
       await lessonProvider.answerQuestion(false);
       return;
     }
 
+    SoundService.playSuccess();
     final xpAwarded = await lessonProvider.answerQuestion(true);
     if (!mounted) return;
     if (xpAwarded == null) {

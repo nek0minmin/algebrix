@@ -8,6 +8,7 @@ import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_model.dart';
 import 'package:algebrix/services/module_quiz_service.dart';
+import 'package:algebrix/services/sound_service.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
@@ -50,6 +51,12 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
     _loadQuiz();
   }
 
+  @override
+  void dispose() {
+    SoundService.stopQuizLoadingLoop();
+    super.dispose();
+  }
+
   bool _isCountingDown = false;
   int _countdownStep = 3;
 
@@ -66,11 +73,15 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
       _isFinished = false;
     });
 
+    SoundService.startQuizLoadingLoop();
+
     try {
       final quiz = await _quizService.generateQuiz(module: widget.module);
+      SoundService.stopQuizLoadingLoop();
       if (!mounted) return;
       await _startCountdown(quiz);
     } catch (e) {
+      SoundService.stopQuizLoadingLoop();
       if (!mounted) return;
       setState(() {
         _errorMessage = 'Could not generate quiz: $e';
@@ -98,16 +109,22 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
       _isCountingDown = true;
       _countdownStep = 3;
     });
+    SoundService.playCountdownTick();
 
     for (int step = 2; step >= 0; step--) {
-      await Future.delayed(const Duration(milliseconds: 650));
+      await Future.delayed(const Duration(milliseconds: 700));
       if (!mounted) return;
       setState(() {
         _countdownStep = step;
       });
+      if (step > 0) {
+        SoundService.playCountdownTick();
+      } else {
+        SoundService.playCountdownGo();
+      }
     }
 
-    await Future.delayed(const Duration(milliseconds: 650));
+    await Future.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;
     setState(() {
       _isCountingDown = false;
@@ -116,6 +133,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
 
   void _handleSelectOption(int index) {
     if (_isAnswered || _quiz == null) return;
+    SoundService.playTileSelect();
     setState(() {
       _selectedChoiceIndex = index;
     });
@@ -126,6 +144,12 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
 
     final currentQ = _quiz!.questions[_currentIndex];
     final isCorrect = _selectedChoiceIndex == currentQ.correctIndex;
+
+    if (isCorrect) {
+      SoundService.playSuccess();
+    } else {
+      SoundService.playWrong();
+    }
 
     setState(() {
       _isAnswered = true;
@@ -146,6 +170,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
         _isAnswered = false;
       });
     } else {
+      SoundService.playComplete();
       setState(() {
         _isFinished = true;
       });

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
@@ -116,13 +117,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           height: 120,
                         ),
                         const SizedBox(height: 24),
-                        const Text(
+                        Text(
                           'ALGEBRIX',
-                          style: TextStyle(
+                          style: GoogleFonts.nunito(
                             fontSize: 32,
                             fontWeight: FontWeight.w900,
-                            color: AppColors.pink,
-                            letterSpacing: 2,
+                            color: AppColors.text,
+                            letterSpacing: 3,
                           ),
                         ),
                       ],

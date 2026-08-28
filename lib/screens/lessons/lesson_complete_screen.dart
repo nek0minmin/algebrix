@@ -8,6 +8,7 @@ import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/secondary_button.dart';
 import 'package:algebrix/screens/lessons/lesson_screen.dart';
+import 'package:algebrix/services/sound_service.dart';
 
 /// Celebration screen shown after completing a lesson.
 /// Displays XP earned, Xy happy mascot, and navigation options.
@@ -31,6 +32,7 @@ class _LessonCompleteScreenState extends State<LessonCompleteScreen>
   @override
   void initState() {
     super.initState();
+    SoundService.playComplete();
 
     _scaleController = AnimationController(
       vsync: this,

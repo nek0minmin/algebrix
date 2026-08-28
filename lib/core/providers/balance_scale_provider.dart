@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:algebrix/services/math_api_service.dart';
+import 'package:algebrix/services/sound_service.dart';
 
 class BalanceScaleStep {
   const BalanceScaleStep({
@@ -192,6 +193,7 @@ class BalanceScaleProvider extends ChangeNotifier {
 
     if ((isLeftX && isRightTarget) || (isRightX && isLeftTarget)) {
       _isSolved = true;
+      SoundService.playSuccess();
       // Award XP based on star rating
       switch (starRating) {
         case 3:
@@ -215,6 +217,12 @@ class BalanceScaleProvider extends ChangeNotifier {
     final isCorrect = selectedIndex == _currentProblem!.correctReasoningIndex;
     _reasoningPassed = isCorrect;
     _showReasoningCheck = false;
+
+    if (isCorrect) {
+      SoundService.playSuccess();
+    } else {
+      SoundService.playWrong();
+    }
 
     // Update XP earned based on final star rating
     switch (starRating) {

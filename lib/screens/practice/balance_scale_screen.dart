@@ -5,6 +5,7 @@ import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/balance_scale_provider.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/services/math_api_service.dart';
+import 'package:algebrix/services/sound_service.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/secondary_button.dart';
@@ -1616,6 +1617,7 @@ class _DraggableNumberBlockState extends State<_DraggableNumberBlock>
           offset: Offset(0, _bobAnimation.value),
           child: Draggable<ScaleOp>(
             data: widget.scaleOp,
+            onDragStarted: () => SoundService.playTileSelect(),
             feedback: Material(
               color: Colors.transparent,
               child: Transform.scale(
@@ -1644,7 +1646,11 @@ class _DraggableNumberBlockState extends State<_DraggableNumberBlock>
             child: BouncyPressable(
               shrinkFactor: 0.93,
               enableHaptics: true,
-              onTap: widget.onTap,
+              enableSound: false,
+              onTap: () {
+                SoundService.playTileSelect();
+                widget.onTap();
+              },
               child: _NumberBlockWidget(
                 scaleOp: widget.scaleOp,
                 isDragging: false,
@@ -1899,7 +1905,10 @@ class _ReasoningAndCelebrationDialogState
   void _triggerStars(int starRating) {
     for (int i = 0; i < starRating; i++) {
       Future.delayed(Duration(milliseconds: 150 + (i * 180)), () {
-        if (mounted) _starControllers[i].forward();
+        if (mounted) {
+          SoundService.playStar();
+          _starControllers[i].forward();
+        }
       });
     }
   }
@@ -1919,6 +1928,8 @@ class _ReasoningAndCelebrationDialogState
 
     final provider = context.read<BalanceScaleProvider>();
     final isCorrect = index == widget.problem.correctReasoningIndex;
+
+    SoundService.playTileSelect();
 
     setState(() {
       _selectedIndex = index;

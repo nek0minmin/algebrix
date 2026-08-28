@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../services/sound_service.dart';
 
 /// Tactile spring-physics pressable wrapper.
 ///
 /// Compresses slightly on press down (scale: [shrinkFactor]), bounces back
-/// with spring curve on release, and triggers subtle haptic feedback.
+/// with spring curve on release, and triggers subtle haptic feedback and click audio.
 class BouncyPressable extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
   final double shrinkFactor;
   final Duration duration;
   final bool enableHaptics;
+  final bool enableSound;
   final HitTestBehavior behavior;
 
   const BouncyPressable({
@@ -20,6 +22,7 @@ class BouncyPressable extends StatefulWidget {
     this.shrinkFactor = 0.96,
     this.duration = const Duration(milliseconds: 140),
     this.enableHaptics = true,
+    this.enableSound = true,
     this.behavior = HitTestBehavior.opaque,
   });
 
@@ -62,6 +65,9 @@ class _BouncyPressableState extends State<BouncyPressable>
     if (widget.onTap == null) return;
     if (widget.enableHaptics) {
       HapticFeedback.selectionClick();
+    }
+    if (widget.enableSound) {
+      SoundService.playClick();
     }
     _controller.forward();
   }

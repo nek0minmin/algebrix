@@ -4,6 +4,7 @@ import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/providers/pairadise_provider.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/models/pairadise_problem.dart';
+import 'package:algebrix/services/sound_service.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
 import 'package:algebrix/widgets/secondary_button.dart';
@@ -1028,7 +1029,9 @@ class _PairadiseNumberPalette extends StatelessWidget {
       child: BouncyPressable(
         shrinkFactor: 0.92,
         enableHaptics: true,
+        enableSound: false,
         onTap: () {
+          SoundService.playTileSelect();
           if (provider.assignedX == null || provider.assignedX == 0) {
             provider.assignX(val);
           } else if (provider.assignedY == null || provider.assignedY == 0) {
@@ -1197,7 +1200,12 @@ class _PairadiseCTAButton extends StatelessWidget {
     return BouncyPressable(
       shrinkFactor: isEnabled ? 0.96 : 1.0,
       enableHaptics: isEnabled,
-      onTap: onPressed,
+      onTap: isEnabled
+          ? () {
+              SoundService.playClick();
+              onPressed!();
+            }
+          : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         height: height,
@@ -1377,6 +1385,7 @@ class _CandidatePairsGrid extends StatelessWidget {
             provider.phase == PairadisePhase.clue2Checking) {
           return;
         }
+        SoundService.playEliminate();
         provider.togglePairElimination(index);
       },
       child: _TactilePairCard(
@@ -1652,7 +1661,10 @@ class _PairadiseCelebrationDialogState
   void _triggerStars(int starRating) {
     for (int i = 0; i < starRating; i++) {
       Future.delayed(Duration(milliseconds: 150 + (i * 180)), () {
-        if (mounted) _starControllers[i].forward();
+        if (mounted) {
+          SoundService.playStar();
+          _starControllers[i].forward();
+        }
       });
     }
   }
@@ -1673,6 +1685,8 @@ class _PairadiseCelebrationDialogState
     final provider = context.read<PairadiseProvider>();
     final isCorrect = index == widget.problem.correctReasoningIndex;
 
+    SoundService.playTileSelect();
+
     setState(() {
       _selectedIndex = index;
       _showError = !isCorrect;
@@ -1680,6 +1694,7 @@ class _PairadiseCelebrationDialogState
     });
 
     if (!isCorrect) {
+      SoundService.playWrong();
       _shakeController.forward(from: 0);
       showAlgebrixSnackBar(
         context,
@@ -1693,6 +1708,7 @@ class _PairadiseCelebrationDialogState
         provider.submitReasoningAnswer(index);
       });
     } else {
+      SoundService.playSuccess();
       Future.delayed(const Duration(milliseconds: 600), () {
         if (!mounted) return;
         provider.submitReasoningAnswer(index);

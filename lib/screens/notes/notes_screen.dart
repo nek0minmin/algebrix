@@ -10,6 +10,7 @@ import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/core/animations/app_page_route.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
+import 'package:algebrix/services/sound_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,6 +24,7 @@ class NotesScreen extends StatelessWidget {
       context,
     ).push<bool>(AppPageRoute(child: const NoteFormScreen()));
     if (created == true && context.mounted) {
+      SoundService.playComplete();
       showAlgebrixSnackBar(
         context,
         message: 'Study note created.',
@@ -37,6 +39,7 @@ class NotesScreen extends StatelessWidget {
       AppPageRoute(child: NoteDetailScreen(note: note)),
     );
     if (deleted == true && context.mounted) {
+      SoundService.playComplete();
       showAlgebrixSnackBar(
         context,
         message: 'Study note deleted.',

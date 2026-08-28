@@ -12,6 +12,7 @@ import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/notes/math_formatting_bar.dart';
+import 'package:algebrix/services/sound_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -101,24 +102,27 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
     // Check if Xy's analysis suggests a better-fitting lesson tag
     final newFeedback = aiProvider.currentFeedback;
-    if (newFeedback != null && newFeedback.providerUsed != 'Algebrix Topic Guard') {
-      final suggestedLesson = detectBestFittingLesson(
-        title: title,
-        content: content,
-        keyConcept: newFeedback.keyConcept,
-        aiTitle: newFeedback.title,
-        aiMessage: newFeedback.message,
-      );
-
-      if (suggestedLesson != null && suggestedLesson.lessonId != _lessonId) {
-        setState(() {
-          _lessonId = suggestedLesson.lessonId;
-        });
-        showAlgebrixSnackBar(
-          context,
-          message: '✨ Xy updated lesson tag to "${suggestedLesson.title}" based on your note!',
-          icon: Icons.auto_awesome_rounded,
+    if (newFeedback != null) {
+      SoundService.playStar();
+      if (newFeedback.providerUsed != 'Algebrix Topic Guard') {
+        final suggestedLesson = detectBestFittingLesson(
+          title: title,
+          content: content,
+          keyConcept: newFeedback.keyConcept,
+          aiTitle: newFeedback.title,
+          aiMessage: newFeedback.message,
         );
+
+        if (suggestedLesson != null && suggestedLesson.lessonId != _lessonId) {
+          setState(() {
+            _lessonId = suggestedLesson.lessonId;
+          });
+          showAlgebrixSnackBar(
+            context,
+            message: '✨ Xy updated lesson tag to "${suggestedLesson.title}" based on your note!',
+            icon: Icons.auto_awesome_rounded,
+          );
+        }
       }
     }
   }
@@ -274,6 +278,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
     if (!mounted) return;
     if (success) {
+      SoundService.playComplete();
       Navigator.of(context).pop(true);
       return;
     }
@@ -287,6 +292,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
   }
 
   void _insertPrompt(_ThinkingPrompt prompt) {
+    SoundService.playClick();
     final value = _contentController.value;
     final rawOffset = value.selection.isValid
         ? value.selection.extentOffset

@@ -7,6 +7,7 @@ import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/models/user_model.dart';
+import 'package:algebrix/services/sound_service.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/streak_badge.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
@@ -221,6 +222,11 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
 
+            const SizedBox(height: 20),
+
+            // Sound Effects & Audio Preferences Section
+            const _SoundSettingsCard(),
+
             const SizedBox(height: 28),
 
             // Logout Button
@@ -295,6 +301,103 @@ class _BadgeItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SoundSettingsCard extends StatefulWidget {
+  const _SoundSettingsCard();
+
+  @override
+  State<_SoundSettingsCard> createState() => _SoundSettingsCardState();
+}
+
+class _SoundSettingsCardState extends State<_SoundSettingsCard> {
+  bool _soundEnabled = SoundService.isSoundEnabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Audio & Sound',
+            style: AppTextStyles.heading3.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: _soundEnabled
+                          ? AppColors.lightMint
+                          : AppColors.divider.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      _soundEnabled
+                          ? Icons.volume_up_rounded
+                          : Icons.volume_off_rounded,
+                      color: _soundEnabled ? AppColors.mint : AppColors.subtitle,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sound Effects',
+                        style: GoogleFonts.nunito(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.text,
+                        ),
+                      ),
+                      Text(
+                        _soundEnabled
+                            ? 'Tactile math pops & chimes enabled'
+                            : 'Audio muted',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.subtitle,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Switch.adaptive(
+                value: _soundEnabled,
+                activeColor: AppColors.mint,
+                onChanged: (val) async {
+                  await SoundService.setSoundEnabled(val);
+                  if (val) {
+                    SoundService.playClick();
+                  }
+                  setState(() {
+                    _soundEnabled = val;
+                  });
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
