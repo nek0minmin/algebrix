@@ -219,14 +219,15 @@ void main() {
       final provider = PairadiseProvider();
       provider.initLevelProblem(6);
 
-      // Eliminate indices 0, 1, 3, 4 leaving (5, 3) at index 2
+      // Eliminate indices 0, 1, 2, 3 leaving (5, 3) and (6, 2)
       await provider.togglePairElimination(0);
       await provider.togglePairElimination(1);
+      await provider.togglePairElimination(2);
       await provider.togglePairElimination(3);
       expect(provider.remainingPairCount, 2);
 
-      // Eliminating index 4 leaves index 2 as the 1 remaining pair -> auto check
-      await provider.togglePairElimination(4);
+      // Eliminating index 5 leaves index 4 (5, 3) as the 1 remaining pair -> auto check
+      await provider.togglePairElimination(5);
       expect(provider.remainingPairCount, 1);
       expect(provider.isSolved, isTrue);
       expect(provider.showReasoningCheck, isTrue);
@@ -359,7 +360,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('PAIRADISE VI'), findsOneWidget);
-      expect(find.text('5 left'), findsOneWidget);
+      expect(find.text('6 left'), findsOneWidget);
       expect(find.text('(1, 7)'), findsOneWidget);
       expect(find.text('(5, 3)'), findsOneWidget);
 
@@ -367,8 +368,8 @@ void main() {
       await tester.tap(find.text('(1, 7)'));
       await tester.pumpAndSettle();
 
-      // Count decreases to 4 left
-      expect(find.text('4 left'), findsOneWidget);
+      // Count decreases to 5 left
+      expect(find.text('5 left'), findsOneWidget);
     });
 
     testWidgets('renders L10 Elimination boss challenge screen', (tester) async {

@@ -120,11 +120,11 @@ class _PairadiseScreenState extends State<PairadiseScreen> {
     const int maxStars = 30;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8F5),
+      backgroundColor: const Color(0xFFF9FBFA),
       body: SafeArea(
         child: Column(
           children: [
-            // Top HUD Bar (Teal)
+            // Top HUD Bar (Teal + Yellow Star Pill)
             _PairadiseGameHeader(
               levelNumber: _currentLevelNumber ?? 1,
               starsEarned: starsEarned,
@@ -138,7 +138,7 @@ class _PairadiseScreenState extends State<PairadiseScreen> {
                   ? const Center(
                       child: CircularProgressIndicator(
                         valueColor:
-                            AlwaysStoppedAnimation<Color>(Color(0xFF00BFA5)),
+                            AlwaysStoppedAnimation<Color>(Color(0xFF00897B)),
                       ),
                     )
                   : !provider.isLevelPlayable
@@ -149,17 +149,17 @@ class _PairadiseScreenState extends State<PairadiseScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // Mascot Companion (Teal) + Clues (BLUE) Header Card
+                              // Mascot Companion + Clues Header Card
                               const _PairadiseMascotAndClueHeader(),
                               const SizedBox(height: 18),
 
                                 if (provider.currentProblem!.mechanic ==
                                   PairadiseMechanic.discovery) ...[
-                                // 3D Mystery Value Drop Slots (BLUE)
+                                // 3D Mystery Value Drop Slots (Light Blue for x, Teal for y)
                                 const _MysteryValueSlots(),
                                 const SizedBox(height: 18),
 
-                                // Responsive Value Stones Grid (BLUE Tiles)
+                                // Responsive Value Stones Grid
                                 const _PairadiseNumberPalette(),
                                 const SizedBox(height: 20),
 
@@ -167,7 +167,7 @@ class _PairadiseScreenState extends State<PairadiseScreen> {
                                 const _TestPairControls(),
                               ] else if (provider.currentProblem!.mechanic ==
                                   PairadiseMechanic.elimination) ...[
-                                // Candidate Pairs Grid (BLUE Tiles)
+                                // Candidate Pairs Grid (3x2 Grid)
                                 const _CandidatePairsGrid(),
                               ],
                             ],
@@ -195,7 +195,7 @@ class _PairadiseScreenState extends State<PairadiseScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF00BFA5).withValues(alpha: 0.08),
+                color: const Color(0xFF00897B).withValues(alpha: 0.08),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -245,7 +245,7 @@ class _PairadiseScreenState extends State<PairadiseScreen> {
 }
 
 // =============================================================================
-// Top HUD Bar (Teal Theme)
+// Top HUD Bar (Teal Primary + Yellow Star Accent)
 // =============================================================================
 
 String _toRoman(int n) {
@@ -283,7 +283,7 @@ class _PairadiseGameHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
       child: Row(
         children: [
-          // Circular Back Button
+          // Circular Back Button (Teal Border)
           BouncyPressable(
             shrinkFactor: 0.9,
             enableHaptics: true,
@@ -295,12 +295,12 @@ class _PairadiseGameHeader extends StatelessWidget {
                 color: Colors.white,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFFFFE082),
+                  color: const Color(0xFF80CBC4),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFFA000).withValues(alpha: 0.08),
+                    color: const Color(0xFF00897B).withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -308,14 +308,14 @@ class _PairadiseGameHeader extends StatelessWidget {
               ),
               child: const Icon(
                 Icons.arrow_back_rounded,
-                color: Color(0xFF5D4037),
+                color: Color(0xFF00897B),
                 size: 22,
               ),
             ),
           ),
           const SizedBox(width: 10),
 
-          // PAIRADISE Capsule (Warm Sand Yellow)
+          // PAIRADISE Capsule (Primary Teal)
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -323,12 +323,12 @@ class _PairadiseGameHeader extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(
-                  color: const Color(0xFFFFE082),
+                  color: const Color(0xFF80CBC4),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFFA000).withValues(alpha: 0.08),
+                    color: const Color(0xFF00897B).withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -341,17 +341,17 @@ class _PairadiseGameHeader extends StatelessWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF9E6),
+                      color: const Color(0xFFE0F2F1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: const Color(0xFFFFE082),
+                        color: const Color(0xFF80CBC4),
                         width: 1,
                       ),
                     ),
                     alignment: Alignment.center,
                     child: const Icon(
                       Icons.spa_rounded,
-                      color: Color(0xFFFFA000),
+                      color: Color(0xFF00897B),
                       size: 16,
                     ),
                   ),
@@ -369,7 +369,7 @@ class _PairadiseGameHeader extends StatelessWidget {
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.1,
-                              color: const Color(0xFF5D4037),
+                              color: const Color(0xFF00897B),
                             ),
                           ),
                         ),
@@ -394,7 +394,7 @@ class _PairadiseGameHeader extends StatelessWidget {
           ),
           const SizedBox(width: 8),
 
-          // Total Stars Pill (Compact (star) 30 format)
+          // Total Stars Pill (Yellow Accent)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
@@ -422,7 +422,7 @@ class _PairadiseGameHeader extends StatelessWidget {
                   style: GoogleFonts.nunito(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.text,
+                    color: const Color(0xFF8D6E63),
                   ),
                 ),
               ],
@@ -435,7 +435,7 @@ class _PairadiseGameHeader extends StatelessWidget {
 }
 
 // =============================================================================
-// Mascot Companion (Teal) & Target Clues Header Card (BLUE Clues)
+// Mascot Companion (Teal) & Target Clues Header Card
 // =============================================================================
 
 class _PairadiseMascotAndClueHeader extends StatelessWidget {
@@ -446,9 +446,6 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
     final provider = context.watch<PairadiseProvider>();
     final problem = provider.currentProblem;
     if (problem == null) return const SizedBox.shrink();
-
-    final moveCount = provider.moveCount;
-    final optimalMoves = provider.optimalMoves;
 
     // Stable instruction prompt as requested
     final String companionPrompt =
@@ -462,12 +459,12 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFFFFE082),
+          color: const Color(0xFF80CBC4),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFFA000).withValues(alpha: 0.07),
+            color: const Color(0xFF00897B).withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -476,24 +473,24 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Top Row: Big Mascot Avatar + Mode (Warm Amber)
+          // Top Row: Big Mascot Avatar + Mode (Light Blue Accent)
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Prominent Xy Mascot Circle in Warm Sand
+              // Prominent Xy Mascot Circle in Soft Teal
               Container(
                 width: 68,
                 height: 68,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFFFF9E6),
+                  color: const Color(0xFFE0F2F1),
                   border: Border.all(
-                    color: const Color(0xFFFFE082),
+                    color: const Color(0xFF80CBC4),
                     width: 2.0,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFFFA000).withValues(alpha: 0.12),
+                      color: const Color(0xFF00897B).withValues(alpha: 0.12),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -517,16 +514,17 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Mode Chip in Light Blue Accent
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF3D0),
+                        color: const Color(0xFFE1F5FE),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: const Color(0xFFFFE082),
+                          color: const Color(0xFF81D4FA),
                           width: 1,
                         ),
                       ),
@@ -538,7 +536,7 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.8,
-                          color: const Color(0xFF8D6E63),
+                          color: const Color(0xFF0277BD),
                         ),
                       ),
                     ),
@@ -558,14 +556,14 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Speech Bubble Instruction Card (Warm Sand)
+          // Speech Bubble Instruction Card (Soft Teal)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFDF5),
+              color: const Color(0xFFE0F2F1).withValues(alpha: 0.85),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: const Color(0xFFFFE082).withValues(alpha: 0.8),
+                color: const Color(0xFF80CBC4).withValues(alpha: 0.7),
                 width: 1.2,
               ),
             ),
@@ -574,14 +572,14 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
               style: GoogleFonts.nunito(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
-                color: const Color(0xFF5D4037),
+                color: const Color(0xFF00695C),
                 height: 1.35,
               ),
             ),
           ),
           const SizedBox(height: 14),
 
-          // Clue 1 Card (Warm Sand + Amber)
+          // Clue 1 Card (Primary Teal)
           _ClueCard(
             clueNumber: 1,
             clueText: problem.clue1,
@@ -593,7 +591,7 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Clue 2 Card (Warm Sand + Teal)
+          // Clue 2 Card (Light Blue Accent)
           _ClueCard(
             clueNumber: 2,
             clueText: problem.clue2,
@@ -609,7 +607,7 @@ class _PairadiseMascotAndClueHeader extends StatelessWidget {
 }
 
 // =============================================================================
-// Sleek Clue Card (Warm Sand & Amber/Teal Theme)
+// Sleek Clue Card (Primary Teal & Light Blue Accent)
 // =============================================================================
 
 class _ClueCard extends StatelessWidget {
@@ -629,8 +627,8 @@ class _ClueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color cardBg = const Color(0xFFFFFDF7);
-    Color cardBorder = const Color(0xFFFFE082).withValues(alpha: 0.85);
+    Color cardBg = Colors.white;
+    Color cardBorder = const Color(0xFF80CBC4).withValues(alpha: 0.85);
 
     if (hasChecked) {
       if (passed) {
@@ -643,8 +641,8 @@ class _ClueCard extends StatelessWidget {
     }
 
     final badgeColor = clueNumber == 1
-        ? const Color(0xFFFFA000)
-        : const Color(0xFF00897B);
+        ? const Color(0xFF00897B)
+        : const Color(0xFF0288D1);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -712,7 +710,7 @@ class _ClueCard extends StatelessWidget {
 }
 
 // =============================================================================
-// Discovery Mode: 3D Mystery Value Slots (Warm Amber for x & Teal for y)
+// Discovery Mode: 3D Mystery Value Slots (Light Blue for x & Teal for y)
 // =============================================================================
 
 class _MysteryValueSlots extends StatelessWidget {
@@ -724,12 +722,12 @@ class _MysteryValueSlots extends StatelessWidget {
 
     return Row(
       children: [
-        // Left Slot: Variable X (Warm Amber Theme)
+        // Left Slot: Variable X (Light Blue Accent)
         Expanded(
           child: _TactileValueDropSlot(
             variableName: 'x',
-            variableColor: const Color(0xFFE65100),
-            slotLightBg: const Color(0xFFFFF3E0),
+            variableColor: const Color(0xFF0288D1),
+            slotLightBg: const Color(0xFFE1F5FE),
             value: provider.assignedX,
             onClear: () => provider.assignX(0),
             onAccept: (val) => provider.assignX(val),
@@ -737,7 +735,7 @@ class _MysteryValueSlots extends StatelessWidget {
         ),
         const SizedBox(width: 14),
 
-        // Right Slot: Variable Y (Warm Seafoam/Teal Theme)
+        // Right Slot: Variable Y (Primary Teal)
         Expanded(
           child: _TactileValueDropSlot(
             variableName: 'y',
@@ -822,14 +820,14 @@ class _TactileValueDropSlot extends StatelessWidget {
                   border: Border.all(
                     color: isHovered || isFilled
                         ? variableColor
-                        : const Color(0xFFFFE082),
+                        : variableColor.withValues(alpha: 0.45),
                     width: isHovered ? 2.2 : 1.8,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: isHovered || isFilled
-                          ? variableColor.withValues(alpha: 0.25)
-                          : const Color(0xFFFFA000).withValues(alpha: 0.15),
+                          ? variableColor.withValues(alpha: 0.22)
+                          : variableColor.withValues(alpha: 0.08),
                       offset: const Offset(0, 3.5),
                       blurRadius: 0,
                     ),
@@ -889,7 +887,7 @@ class _TactileValueDropSlot extends StatelessWidget {
 }
 
 // =============================================================================
-// Responsive Value Stones Grid (Warm Sand Yellow Tiles)
+// Responsive Value Stones Grid (Teal Theme with Yellow Accent Dots)
 // =============================================================================
 
 class _PairadiseNumberPalette extends StatelessWidget {
@@ -1071,15 +1069,16 @@ class _TactileNumberTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Warm sand yellow & tactile amber theme
-    const accentColor = Color(0xFFFFA000);
-    final Color tileBg = isAssigned
-        ? const Color(0xFFFFF8E1)
-        : (isDragging ? const Color(0xFFFFF8E1) : Colors.white);
+    // Primary Teal + Light Blue (for x) + Yellow Accent Dots
+    const primaryTeal = Color(0xFF00897B);
+    const lightBlue = Color(0xFF0288D1);
+    const yellowAccent = Color(0xFFFFA000);
 
-    final Color tagColor = assignedTag == 'x'
-        ? const Color(0xFFE65100)
-        : const Color(0xFF00897B);
+    final Color tileBg = isAssigned
+        ? (assignedTag == 'x' ? const Color(0xFFE1F5FE) : const Color(0xFFE0F2F1))
+        : (isDragging ? const Color(0xFFE0F2F1) : Colors.white);
+
+    final Color activeColor = assignedTag == 'x' ? lightBlue : primaryTeal;
 
     return Container(
       width: tileWidth,
@@ -1089,17 +1088,17 @@ class _TactileNumberTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isAssigned || isDragging
-              ? (assignedTag != null ? tagColor : accentColor)
-              : const Color(0xFFFFE082),
+              ? activeColor
+              : const Color(0xFF80CBC4),
           width: isAssigned || isDragging ? 2.0 : 1.5,
         ),
         boxShadow: [
           BoxShadow(
             color: isDragging
-                ? accentColor.withValues(alpha: 0.35)
-                : const Color(0xFFFFA000).withValues(alpha: 0.12),
-            blurRadius: isDragging ? 14 : 4,
-            offset: Offset(0, isDragging ? 6 : 2.5),
+                ? activeColor.withValues(alpha: 0.35)
+                : const Color(0xFF00897B).withValues(alpha: 0.18),
+            blurRadius: isDragging ? 14 : 0,
+            offset: Offset(0, isDragging ? 6 : 3),
           ),
         ],
       ),
@@ -1116,9 +1115,7 @@ class _TactileNumberTile extends StatelessWidget {
                   style: GoogleFonts.nunito(
                     fontSize: fontSize,
                     fontWeight: FontWeight.w900,
-                    color: isAssigned
-                        ? (assignedTag != null ? tagColor : accentColor)
-                        : AppColors.text,
+                    color: isAssigned ? activeColor : AppColors.text,
                   ),
                 ),
               ),
@@ -1126,11 +1123,11 @@ class _TactileNumberTile extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _dot(accentColor),
+                  _dot(yellowAccent),
                   const SizedBox(width: 2.5),
-                  _dot(accentColor),
+                  _dot(yellowAccent),
                   const SizedBox(width: 2.5),
-                  _dot(accentColor),
+                  _dot(yellowAccent),
                 ],
               ),
             ],
@@ -1143,7 +1140,7 @@ class _TactileNumberTile extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                 decoration: BoxDecoration(
-                  color: tagColor,
+                  color: activeColor,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -1166,7 +1163,7 @@ class _TactileNumberTile extends StatelessWidget {
       width: 3.5,
       height: 3.5,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.7),
+        color: color.withValues(alpha: 0.8),
         shape: BoxShape.circle,
       ),
     );
@@ -1203,7 +1200,7 @@ class _PairadiseCTAButton extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         height: height,
         decoration: BoxDecoration(
-          color: isEnabled ? const Color(0xFF00BFA5) : const Color(0xFFE0F2F1),
+          color: isEnabled ? const Color(0xFF00897B) : const Color(0xFFE0F2F1),
           borderRadius: BorderRadius.circular(30),
           // ZERO shadows as explicitly requested by user
         ),
@@ -1264,7 +1261,7 @@ class _TestPairControls extends StatelessWidget {
 }
 
 // =============================================================================
-// Elimination Mode: 3D Candidate Pairs Grid (BLUE Theme - 3 per row)
+// Elimination Mode: 3D Candidate Pairs Grid (3 per row, 6 pairs total)
 // =============================================================================
 
 class _CandidatePairsGrid extends StatelessWidget {
@@ -1300,12 +1297,12 @@ class _CandidatePairsGrid extends StatelessWidget {
               decoration: BoxDecoration(
                 color: remaining == 1
                     ? AppColors.lightMint
-                    : const Color(0xFFE0F2F1),
+                    : const Color(0xFFFFF9E6),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: remaining == 1
                       ? AppColors.mint.withValues(alpha: 0.5)
-                      : const Color(0xFF80CBC4).withValues(alpha: 0.5),
+                      : const Color(0xFFFFE082),
                 ),
               ),
               child: Text(
@@ -1317,7 +1314,7 @@ class _CandidatePairsGrid extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                   color: remaining == 1
                       ? const Color(0xFF0F7263)
-                      : const Color(0xFF00897B),
+                      : const Color(0xFF8D6E63),
                 ),
               ),
             ),
@@ -1409,8 +1406,8 @@ class _TactilePairCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color cardBg = Colors.white;
-    Color borderColor = const Color(0xFFFFE082);
-    Color rimColor = const Color(0xFFFFA000);
+    Color borderColor = const Color(0xFF80CBC4);
+    Color rimColor = const Color(0xFF00897B);
     Color textColor = AppColors.text;
 
     if (isEliminated) {
@@ -1435,14 +1432,14 @@ class _TactilePairCard extends StatelessWidget {
             ? null
             : [
                 BoxShadow(
-                  color: rimColor.withValues(alpha: 0.18),
+                  color: rimColor.withValues(alpha: 0.2),
                   offset: const Offset(0, 3),
                   blurRadius: 0,
                 ),
                 BoxShadow(
                   color: (isConfirmed
                           ? const Color(0xFF2E7D32)
-                          : const Color(0xFFFFA000))
+                          : const Color(0xFF00897B))
                       .withValues(alpha: isConfirmed ? 0.18 : 0.08),
                   blurRadius: isConfirmed ? 8 : 4,
                   offset: const Offset(0, 4),

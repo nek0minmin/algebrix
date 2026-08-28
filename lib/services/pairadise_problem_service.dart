@@ -182,12 +182,13 @@ class PairadiseProblemService {
       solutionY: 3,
       candidatePairs: [
         CandidatePair(x: 1, y: 7),
+        CandidatePair(x: 2, y: 6),
         CandidatePair(x: 3, y: 5),
+        CandidatePair(x: 4, y: 4),
         CandidatePair(x: 5, y: 3),
-        CandidatePair(x: 7, y: 1),
-        CandidatePair(x: 9, y: -1),
+        CandidatePair(x: 6, y: 2),
       ],
-      optimalMoves: 4,
+      optimalMoves: 5,
       hasReasoningCheckpoint: true,
       reasoningQuestion:
           'When substituting x = 2y - 1 into x + y = 8, what single-variable equation do we get?',
