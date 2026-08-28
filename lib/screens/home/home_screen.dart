@@ -25,6 +25,10 @@ import 'package:algebrix/screens/quiz/quiz_hub_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
 import 'package:algebrix/screens/practice/quiz_screen.dart';
 import 'package:algebrix/screens/notes/note_detail_screen.dart';
+import 'package:algebrix/screens/notes/note_form_screen.dart';
+import 'package:algebrix/screens/notes/note_lesson_options.dart';
+import 'package:algebrix/services/ai_tutor_service.dart';
+import 'package:algebrix/widgets/ai_feedback_card.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/screens/practice/quest_map_screen.dart';
@@ -164,8 +168,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ] else ...[
                   // 1. Algebria Adventure Shortcut Banner (Prominent Top Card)
                   _AlgebriaDashboardShortcut(
-                    landAndLevel: questMapProvider.currentLandAndLevelLabel,
-                    starsEarned: questMapProvider.activeLandStars,
+                    landAndLevel: questMapProvider.frontierLandAndLevelLabel,
+                    starsEarned: questMapProvider.frontierLandStars,
                     maxStars: 30,
                     onTap: () {
                       Navigator.of(context).push(
@@ -173,48 +177,26 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 22),
 
-                  // 2. Quick Action Feature Grid
-                  Text(
-                    'Quick Practice & Features',
-                    style: AppTextStyles.heading3,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _QuickFeatureCard(
-                          title: 'Balance Scale',
-                          subtitle: 'Visual Equations',
-                          icon: '⚖️',
-                          accentColor: AppColors.pink,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              AppPageRoute(
-                                child: const BalanceScaleScreen(),
-                              ),
-                            );
-                          },
+                  // 2. Recent Study Notes Section
+                  _RecentNotesDashboardSection(
+                    notes: notesProvider.notes,
+                    onOpenNote: (note) {
+                      notesProvider.selectNote(note.id);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          builder: (_) => NoteDetailScreen(note: note),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _QuickFeatureCard(
-                          title: 'Math Quiz',
-                          subtitle: 'AI Feedback',
-                          icon: '🧠',
-                          accentColor: AppColors.purple,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              AppPageRoute(
-                                child: const QuizHubScreen(),
-                              ),
-                            );
-                          },
+                      );
+                    },
+                    onCreateNote: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          builder: (_) => const NoteFormScreen(),
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
 
@@ -330,69 +312,389 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _QuickFeatureCard extends StatelessWidget {
-  const _QuickFeatureCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.accentColor,
-    required this.onTap,
+class _RecentNotesDashboardSection extends StatelessWidget {
+  const _RecentNotesDashboardSection({
+    required this.notes,
+    required this.onOpenNote,
+    required this.onCreateNote,
   });
 
-  final String title;
-  final String subtitle;
-  final String icon;
-  final Color accentColor;
-  final VoidCallback onTap;
+  final List<StudyNote> notes;
+  final ValueChanged<StudyNote> onOpenNote;
+  final VoidCallback onCreateNote;
+
+  @override
+  Widget build(BuildContext context) {
+    final recentNotes = notes.take(3).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                'Recent Study Notes',
+                style: AppTextStyles.heading3,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton.icon(
+              onPressed: onCreateNote,
+              icon: const Icon(Icons.add_rounded, size: 17, color: AppColors.pink),
+              label: Text(
+                'New note',
+                style: GoogleFonts.nunito(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.pink,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                backgroundColor: AppColors.extraLightPink,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (recentNotes.isEmpty)
+          _EmptyNotesDashboardCard(onCreateNote: onCreateNote)
+        else
+          Column(
+            children: [
+              for (int i = 0; i < recentNotes.length; i++) ...[
+                if (i > 0) const SizedBox(height: 12),
+                _DashboardNoteCard(
+                  note: recentNotes[i],
+                  onTap: () => onOpenNote(recentNotes[i]),
+                ),
+              ],
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class _EmptyNotesDashboardCard extends StatelessWidget {
+  const _EmptyNotesDashboardCard({required this.onCreateNote});
+
+  final VoidCallback onCreateNote;
 
   @override
   Widget build(BuildContext context) {
     return BouncyPressable(
-      shrinkFactor: 0.95,
-      enableHaptics: true,
-      onTap: onTap,
+      shrinkFactor: 0.98,
+      onTap: onCreateNote,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: accentColor.withValues(alpha: 0.25),
-            width: 1.2,
+            color: AppColors.pink.withValues(alpha: 0.25),
+            width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: accentColor.withValues(alpha: 0.06),
-              blurRadius: 10,
+              color: AppColors.pink.withValues(alpha: 0.06),
+              blurRadius: 16,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
           children: [
-            Text(icon, style: const TextStyle(fontSize: 28)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.nunito(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.text,
-                    ),
+            XyMascot(
+              asset: AppAssets.xyNotes,
+              size: 88,
+              shadowBlur: 4,
+              shadowOpacity: 0.12,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Write your first note!',
+              style: GoogleFonts.nunito(
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+                color: AppColors.text,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Explain concepts in your own words & get Xy insights.',
+              style: GoogleFonts.nunito(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF5CA8), Color(0xFFFF4081)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.pink.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.edit_note_rounded, color: Colors.white, size: 18),
+                  const SizedBox(width: 6),
                   Text(
-                    subtitle,
-                    style: AppTextStyles.caption.copyWith(color: AppColors.subtitle),
+                    'Create Note',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DashboardNoteCard extends StatelessWidget {
+  const _DashboardNoteCard({
+    required this.note,
+    required this.onTap,
+  });
+
+  final StudyNote note;
+  final VoidCallback onTap;
+
+  void _showInsightModal(BuildContext context, AiFeedbackResult feedback) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SafeArea(
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  XyMascot(
+                    asset: AppAssets.xyInsight,
+                    size: 34,
+                    shadowBlur: 2,
+                    shadowOpacity: 0.1,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    "Xy's Note Insight",
+                    style: GoogleFonts.nunito(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.text,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: AiFeedbackCard(feedback: feedback),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final aiFeedback = note.aiFeedbackResult;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.border,
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Main card area (tappable to view note details)
+          BouncyPressable(
+            shrinkFactor: 0.98,
+            enableHaptics: true,
+            onTap: onTap,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, aiFeedback != null ? 4 : 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top: Lesson Badge + Date
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.extraLightPink,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              noteLessonLabel(note.lessonId),
+                              style: GoogleFonts.nunito(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.darkPink,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        formatNoteUpdatedAt(note.updatedAt),
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.subtitle,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Title
+                  Text(
+                    note.title,
+                    style: GoogleFonts.nunito(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Full content
+                  Text(
+                    note.displayContent,
+                    style: AppTextStyles.body2.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Bottom: Optional Xy's saved insight mini-button
+          if (aiFeedback != null) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () => _showInsightModal(context, aiFeedback),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightPurple,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.purple.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      XyMascot(
+                        asset: AppAssets.xyInsight,
+                        size: 20,
+                        shadowBlur: 0,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        "Xy's Saved Insight",
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.purple,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.visibility_rounded,
+                        size: 14,
+                        color: AppColors.purple,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -877,41 +1179,29 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    'Tap to explore lands & solve puzzles',
-                    style: GoogleFonts.nunito(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Tap to explore lands & solve puzzles',
+                      style: GoogleFonts.nunito(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 1,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 8),
 
-            // Right: Play CTA icon pill
-            Container(
-              padding: const EdgeInsets.all(11),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFF69B4), Color(0xFFFF4081)],
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.pink.withValues(alpha: 0.35),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.arrow_forward_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
+            // Right: Clean sleek > arrow icon
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: AppColors.pink,
+              size: 18,
             ),
           ],
         ),

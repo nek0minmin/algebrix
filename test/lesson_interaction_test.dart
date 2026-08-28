@@ -11,8 +11,15 @@ import 'package:algebrix/services/progress_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   test('wrong answers do not complete the step or award XP', () async {
     final provider = LessonProvider(repository: _FakeProgressRepository());
     provider.bindAccount('user_1');
@@ -116,7 +123,7 @@ void main() {
     final provider = LessonProvider(repository: _FakeProgressRepository());
     provider.bindAccount('user_1');
     while (provider.isHydrating) {
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 10));
     }
     provider.startModule(module1);
     await provider.startLesson(module1.lessons.first);

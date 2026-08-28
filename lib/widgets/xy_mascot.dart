@@ -32,7 +32,7 @@ class XyMascot extends StatelessWidget {
     final effectiveWidth = width ?? size;
     final effectiveHeight = height ?? size;
     final isTest =
-        WidgetsBinding.instance.toString().contains('TestWidgetsFlutterBinding');
+        WidgetsBinding.instance.runtimeType.toString().contains('Test');
 
     if (isTest || shadowOpacity <= 0) {
       return Image.asset(

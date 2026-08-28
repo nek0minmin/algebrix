@@ -24,6 +24,10 @@ class QuestMapProvider extends ChangeNotifier {
 
   String? _accountId;
   List<QuestLand> _lands = _defaultLands;
+  final Map<String, Map<int, QuestLevelProgress>> _allLandsProgress = {
+    'balands': {},
+    'pairadise': {},
+  };
   Map<int, QuestLevelProgress> _levelProgress = {}; // keyed by levelNumber
   int _totalStars = 0;
   String? _activeLandId = 'balands';
@@ -114,7 +118,7 @@ class QuestMapProvider extends ChangeNotifier {
     return _levelProgress[levelNumber]?.bestMoves;
   }
 
-  /// The player's current frontier level (first uncompleted level 1-10).
+  /// The player's current frontier level in the currently active land (first uncompleted level 1-10).
   int get currentLevel {
     for (int i = 1; i <= 10; i++) {
       final progress = _levelProgress[i];
@@ -125,12 +129,50 @@ class QuestMapProvider extends ChangeNotifier {
     return 10;
   }
 
-  /// Formatted land and level display string, e.g. "Balands IV" or "Pairadise I".
+  /// Formatted land and level display string for the active screen, e.g. "Balands IV" or "Pairadise I".
   String get currentLandAndLevelLabel {
     final landName = activeLand?.name ?? 'Balands';
     final lvl = currentLevel;
     final roman = _toRoman(lvl);
     return '$landName $roman';
+  }
+
+  /// The player's absolute furthest unlocked frontier across ALL lands (e.g. "Pairadise V" even if navigating Balands).
+  String get frontierLandAndLevelLabel {
+    if (isPairadiseUnlocked) {
+      final pairadiseMap = _allLandsProgress['pairadise'] ?? {};
+      int lvl = 10;
+      for (int i = 1; i <= 10; i++) {
+        final p = pairadiseMap[i];
+        if (p == null || p.starsEarned == 0) {
+          lvl = i;
+          break;
+        }
+      }
+      return 'Pairadise ${_toRoman(lvl)}';
+    } else {
+      final balandsMap = _allLandsProgress['balands'] ?? _levelProgress;
+      int lvl = 10;
+      for (int i = 1; i <= 10; i++) {
+        final p = balandsMap[i];
+        if (p == null || p.starsEarned == 0) {
+          lvl = i;
+          break;
+        }
+      }
+      return 'Balands ${_toRoman(lvl)}';
+    }
+  }
+
+  /// Stars earned in the player's furthest unlocked realm.
+  int get frontierLandStars {
+    if (isPairadiseUnlocked) {
+      final pairadiseMap = _allLandsProgress['pairadise'] ?? {};
+      return pairadiseMap.values.fold(0, (sum, p) => sum + p.starsEarned);
+    } else {
+      final balandsMap = _allLandsProgress['balands'] ?? _levelProgress;
+      return balandsMap.values.fold(0, (sum, p) => sum + p.starsEarned);
+    }
   }
 
   static String _toRoman(int n) {
@@ -161,6 +203,7 @@ class QuestMapProvider extends ChangeNotifier {
 
     _accountGeneration++;
     _accountId = accountId;
+    _allLandsProgress.clear();
     _levelProgress = {};
     _totalStars = 0;
     _activeLandId = 'balands';
@@ -220,10 +263,21 @@ class QuestMapProvider extends ChangeNotifier {
 
       _activeLandId = targetLand;
 
-      final progressList = await _repository.fetchLandProgress(targetLand);
-      _levelProgress = {
-        for (final p in progressList) p.levelNumber: p,
+      final balandsList = await _repository.fetchLandProgress('balands');
+      _allLandsProgress['balands'] = {
+        for (final p in balandsList) p.levelNumber: p,
       };
+
+      if (_totalStars >= 25) {
+        final pairadiseList = await _repository.fetchLandProgress('pairadise');
+        _allLandsProgress['pairadise'] = {
+          for (final p in pairadiseList) p.levelNumber: p,
+        };
+      } else {
+        _allLandsProgress['pairadise'] = {};
+      }
+
+      _levelProgress = _allLandsProgress[targetLand] ?? {};
     } catch (e) {
       if (_lands.isEmpty) _lands = _defaultLands;
       _activeLandId = targetLand;
@@ -275,28 +329,32 @@ class QuestMapProvider extends ChangeNotifier {
         reasoningPassed: reasoningPassed,
       );
 
-      // Update local state if active land matches
-      if (_activeLandId == effectiveLandId) {
-        final existing = _levelProgress[levelNumber];
-        final bestStars = existing != null && existing.starsEarned > stars
-            ? existing.starsEarned
-            : stars;
-        final bestMoves = existing?.bestMoves != null &&
-                existing!.bestMoves! < moveCount
-            ? existing.bestMoves!
-            : moveCount;
-        final bestReasoning =
-            reasoningPassed || (existing?.reasoningPassed ?? false);
+      final landMap = _allLandsProgress.putIfAbsent(effectiveLandId, () => {});
+      final existing = landMap[levelNumber] ?? _levelProgress[levelNumber];
+      final bestStars = existing != null && existing.starsEarned > stars
+          ? existing.starsEarned
+          : stars;
+      final bestMoves = existing?.bestMoves != null &&
+              existing!.bestMoves! < moveCount
+          ? existing.bestMoves!
+          : moveCount;
+      final bestReasoning =
+          reasoningPassed || (existing?.reasoningPassed ?? false);
 
-        _levelProgress[levelNumber] = QuestLevelProgress(
-          userId: existing?.userId ?? '',
-          landId: effectiveLandId,
-          levelNumber: levelNumber,
-          starsEarned: bestStars,
-          bestMoves: bestMoves,
-          reasoningPassed: bestReasoning,
-          completedAt: DateTime.now().toUtc(),
-        );
+      final updated = QuestLevelProgress(
+        userId: existing?.userId ?? _accountId ?? '',
+        landId: effectiveLandId,
+        levelNumber: levelNumber,
+        starsEarned: bestStars,
+        bestMoves: bestMoves,
+        reasoningPassed: bestReasoning,
+        completedAt: DateTime.now().toUtc(),
+      );
+
+      landMap[levelNumber] = updated;
+
+      if (_activeLandId == effectiveLandId) {
+        _levelProgress = Map.from(landMap);
       }
 
       // Refresh total stars across all lands
