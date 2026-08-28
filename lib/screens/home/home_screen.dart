@@ -166,41 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 ] else ...[
-                  // 1. Algebria Adventure Shortcut Banner (Prominent Top Card)
-                  _AlgebriaDashboardShortcut(
-                    landAndLevel: questMapProvider.frontierLandAndLevelLabel,
-                    starsEarned: questMapProvider.frontierLandStars,
-                    maxStars: 30,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        AppPageRoute(child: const QuestMapScreen()),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 22),
-
-                  // 2. Recent Study Notes Section
-                  _RecentNotesDashboardSection(
-                    notes: notesProvider.notes,
-                    onOpenNote: (note) {
-                      notesProvider.selectNote(note.id);
-                      Navigator.of(context).push(
-                        AppPageRoute(
-                          builder: (_) => NoteDetailScreen(note: note),
-                        ),
-                      );
-                    },
-                    onCreateNote: () {
-                      Navigator.of(context).push(
-                        AppPageRoute(
-                          builder: (_) => const NoteFormScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 3. Continue Learning
+                  // 1. Continue Learning
                   Text('Continue Learning', style: AppTextStyles.heading3),
                   const SizedBox(height: 12),
                   LessonCard(
@@ -237,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // 4. Quiz Mastery Status Card
+                  // 2. Quiz Mastery Status Card
                   _QuizMasteryDashboardCard(
                     passedCount: passedQuizzesCount,
                     totalQuizzes: 3,
@@ -262,12 +228,45 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // 5. Xy's Learning Tip
-                  Text("Xy's Learning Tip", style: AppTextStyles.heading3),
-                  const SizedBox(height: 12),
-                  _LearningTipCallout(message: AppStrings.tipOfTheDay),
-
+                  // 3. Algebria Adventure Shortcut Banner (Prominent Top Card)
+                  _AlgebriaDashboardShortcut(
+                    landAndLevel: questMapProvider.frontierLandAndLevelLabel,
+                    starsEarned: questMapProvider.frontierLandStars,
+                    maxStars: 30,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(child: const QuestMapScreen()),
+                      );
+                    },
+                  ),
                   const SizedBox(height: 24),
+
+                  // 4. Xy's Learning Tip (Dynamic rotating tip card)
+                  _LearningTipCallout(
+                    userSeed: user.id.hashCode ^ user.lastActive.day,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 5. Recent Study Notes Section (Single latest note)
+                  _RecentNotesDashboardSection(
+                    notes: notesProvider.notes,
+                    onOpenNote: (note) {
+                      notesProvider.selectNote(note.id);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          builder: (_) => NoteDetailScreen(note: note),
+                        ),
+                      );
+                    },
+                    onCreateNote: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          builder: (_) => const NoteFormScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 28),
                 ],
               ],
             ),
@@ -325,7 +324,7 @@ class _RecentNotesDashboardSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final recentNotes = notes.take(3).toList();
+    final mostRecentNote = notes.isNotEmpty ? notes.first : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,19 +365,12 @@ class _RecentNotesDashboardSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        if (recentNotes.isEmpty)
+        if (mostRecentNote == null)
           _EmptyNotesDashboardCard(onCreateNote: onCreateNote)
         else
-          Column(
-            children: [
-              for (int i = 0; i < recentNotes.length; i++) ...[
-                if (i > 0) const SizedBox(height: 12),
-                _DashboardNoteCard(
-                  note: recentNotes[i],
-                  onTap: () => onOpenNote(recentNotes[i]),
-                ),
-              ],
-            ],
+          _DashboardNoteCard(
+            note: mostRecentNote,
+            onTap: () => onOpenNote(mostRecentNote),
           ),
       ],
     );
@@ -581,41 +573,38 @@ class _DashboardNoteCard extends StatelessWidget {
             enableHaptics: true,
             onTap: onTap,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, aiFeedback != null ? 4 : 16),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, aiFeedback != null ? 6 : 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top: Lesson Badge + Date
+                  // Top Row: 1.1 Variables (Left) | Updated on ... (Right)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppColors.extraLightPink,
-                              borderRadius: BorderRadius.circular(8),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: AppColors.extraLightPink,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            noteLessonLabel(note.lessonId),
+                            style: GoogleFonts.nunito(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.darkPink,
                             ),
-                            child: Text(
-                              noteLessonLabel(note.lessonId),
-                              style: GoogleFonts.nunito(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.darkPink,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        formatNoteUpdatedAt(note.updatedAt),
+                        'Updated ${formatNoteUpdatedAt(note.updatedAt)}',
                         style: GoogleFonts.nunito(
-                          fontSize: 11,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w600,
                           color: AppColors.subtitle,
                         ),
@@ -628,20 +617,20 @@ class _DashboardNoteCard extends StatelessWidget {
                   Text(
                     note.title,
                     style: GoogleFonts.nunito(
-                      fontSize: 15.5,
+                      fontSize: 16,
                       fontWeight: FontWeight.w900,
                       color: AppColors.text,
                     ),
                   ),
                   const SizedBox(height: 6),
 
-                  // Full content
+                  // Content
                   Text(
                     note.displayContent,
                     style: AppTextStyles.body2.copyWith(
                       color: AppColors.textSecondary,
-                      fontSize: 13,
-                      height: 1.4,
+                      fontSize: 13.5,
+                      height: 1.45,
                     ),
                   ),
                 ],
@@ -649,48 +638,61 @@ class _DashboardNoteCard extends StatelessWidget {
             ),
           ),
 
-          // Bottom: Optional Xy's saved insight mini-button
+          // Bottom Row: Aligned to the right — Pink pill with Xy's mini pic
           if (aiFeedback != null) ...[
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: () => _showInsightModal(context, aiFeedback),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.lightPurple,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: AppColors.purple.withValues(alpha: 0.35),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () => _showInsightModal(context, aiFeedback),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.extraLightPink,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.pink.withValues(alpha: 0.5),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.pink.withValues(alpha: 0.12),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          XyMascot(
+                            asset: AppAssets.xyInsight,
+                            size: 18,
+                            shadowBlur: 0,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Xy's Insight",
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.darkPink,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.visibility_rounded,
+                            size: 14,
+                            color: AppColors.darkPink,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      XyMascot(
-                        asset: AppAssets.xyInsight,
-                        size: 20,
-                        shadowBlur: 0,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        "Xy's Saved Insight",
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.purple,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.visibility_rounded,
-                        size: 14,
-                        color: AppColors.purple,
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
             ),
           ],
@@ -995,44 +997,188 @@ class _QuizMasteryDashboardCard extends StatelessWidget {
 }
 
 class _LearningTipCallout extends StatelessWidget {
-  const _LearningTipCallout({required this.message});
+  const _LearningTipCallout({this.userSeed = 0});
 
-  final String message;
+  final int userSeed;
+
+  static const List<Map<String, String>> _tips = [
+    {
+      'title': 'The Balance Scale Rule',
+      'tip': 'Whatever operation you do to one side of the equals sign, you must always do to the other side to keep equality balanced!',
+      'badge': 'Core Concept',
+    },
+    {
+      'title': 'Undo with Inverse Operations',
+      'tip': 'Addition undoes subtraction, and multiplication undoes division. Work backwards to isolate your mystery variable!',
+      'badge': 'Problem Solving',
+    },
+    {
+      'title': 'Check by Substitution',
+      'tip': 'Always plug your solution back into the original equation! If both sides calculate to the same number, you know you are 100% right.',
+      'badge': 'Pro Tip',
+    },
+    {
+      'title': 'Like Terms Stick Together',
+      'tip': 'You can only combine terms with matching variables and powers (like 3x + 5x = 8x, but 3x + 5 stays separate!).',
+      'badge': 'Foundations',
+    },
+    {
+      'title': 'Watch the Signs with Parentheses',
+      'tip': 'When distributing a negative number into parentheses, remember that subtracting a negative turns into addition!',
+      'badge': 'Caution Zone',
+    },
+    {
+      'title': 'Keep Fractions Clean',
+      'tip': 'Got fractions in your equation? Multiply every single term by the common denominator to wipe them out in one move!',
+      'badge': 'Speed Tip',
+    },
+    {
+      'title': 'Variables Are Mystery Boxes',
+      'tip': 'Letters like x, y, and n are just friendly place-holders waiting for you to discover their hidden numeric value.',
+      'badge': 'Mindset',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
+    // Rotate based on userSeed and current day of year
+    final dayOfYear = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays;
+    final index = (userSeed.abs() + dayOfYear) % _tips.length;
+    final currentTip = _tips[index];
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.pink.withValues(alpha: 0.25),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: AppColors.pink.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Stack(
         children: [
-          XyMascot(
-            asset: AppAssets.xyInsight,
-            size: 46,
-            shadowBlur: 3.0,
-            shadowOpacity: 0.15,
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              message,
-              style: AppTextStyles.body2.copyWith(
-                color: AppColors.textSecondary,
-                height: 1.5,
+          Positioned(
+            right: -20,
+            top: -20,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.extraLightPink.withValues(alpha: 0.6),
               ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Row: Section title + Topic Tag
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.lightbulb_rounded,
+                            color: Color(0xFFFFB300),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              "Xy's Learning Tip",
+                              style: AppTextStyles.heading3.copyWith(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.lightPurple,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        currentTip['badge']!,
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.purple,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // Body: Mascot + Quote speech box
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    XyMascot(
+                      asset: AppAssets.xyInsight,
+                      size: 68,
+                      shadowBlur: 4.0,
+                      shadowOpacity: 0.18,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.border,
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              currentTip['title']!,
+                              style: GoogleFonts.nunito(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.text,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              currentTip['tip']!,
+                              style: AppTextStyles.body2.copyWith(
+                                color: AppColors.textSecondary,
+                                fontSize: 12.5,
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
@@ -1061,7 +1207,7 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
       enableHaptics: true,
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -1086,12 +1232,12 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Left: Adventure cover artwork thumbnail
+            // Left: Adventure cover artwork thumbnail (Prominent 76x76)
             Container(
-              width: 64,
-              height: 64,
+              width: 76,
+              height: 76,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: AppColors.pink.withValues(alpha: 0.35),
                   width: 1.5,
@@ -1099,8 +1245,8 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
                 boxShadow: const [
                   BoxShadow(
                     color: Colors.black12,
-                    blurRadius: 6,
-                    offset: Offset(0, 3),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
                   ),
                 ],
               ),
@@ -1125,8 +1271,8 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
+                            horizontal: 10,
+                            vertical: 3.5,
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.extraLightPink,
@@ -1135,7 +1281,7 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
                           child: Text(
                             'ALGEBRIA QUEST',
                             style: GoogleFonts.nunito(
-                              fontSize: 10.5,
+                              fontSize: 11,
                               fontWeight: FontWeight.w900,
                               color: AppColors.pink,
                               letterSpacing: 0.6,
@@ -1148,14 +1294,14 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
                           children: [
                             Image.asset(
                               AppAssets.star,
-                              width: 14,
-                              height: 14,
+                              width: 15,
+                              height: 15,
                             ),
-                            const SizedBox(width: 3),
+                            const SizedBox(width: 3.5),
                             Text(
                               '$starsEarned/$maxStars',
                               style: GoogleFonts.nunito(
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.textSecondary,
                               ),
@@ -1165,14 +1311,14 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 6),
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
                     child: Text(
                       landAndLevel,
                       style: GoogleFonts.nunito(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.w900,
                         color: AppColors.text,
                       ),
@@ -1185,7 +1331,7 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
                     child: Text(
                       'Tap to explore lands & solve puzzles',
                       style: GoogleFonts.nunito(
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textSecondary,
                       ),
@@ -1201,7 +1347,7 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
             const Icon(
               Icons.arrow_forward_ios_rounded,
               color: AppColors.pink,
-              size: 18,
+              size: 20,
             ),
           ],
         ),

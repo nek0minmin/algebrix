@@ -269,7 +269,7 @@ void main() {
       expect(find.text('Create Note'), findsOneWidget);
     });
 
-    testWidgets('Dashboard displays up to 3 recent notes with content and Xy insight button', (
+    testWidgets('Dashboard displays the most recent note with content and right-aligned Xy insight pill', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(430, 932));
@@ -306,8 +306,8 @@ void main() {
           lessonId: '2.1',
           title: 'Inverse operations',
           content: 'Addition undoes subtraction and multiplication undoes division.',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+          createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+          updatedAt: DateTime.now().subtract(const Duration(hours: 1)),
         ),
       ];
 
@@ -362,19 +362,26 @@ void main() {
       // Frontier shows Pairadise V even though activeLand is balands!
       expect(find.text('Pairadise V'), findsOneWidget);
 
-      // Verify Note cards render title and content
+      // Scroll down to recent note section
+      await tester.scrollUntilVisible(
+        find.text("Xy's Insight"),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      // Verify single most recent note renders title, content, and lesson badge
       expect(find.text('What is a variable?'), findsOneWidget);
       expect(
         find.text('A variable is a placeholder for a number we do not know yet.'),
         findsOneWidget,
       );
-      expect(find.text('Inverse operations'), findsOneWidget);
 
-      // Note 1 has AI feedback -> shows "Xy's Saved Insight"
-      expect(find.text("Xy's Saved Insight"), findsOneWidget);
+      // Note 1 has AI feedback -> shows "Xy's Insight" pink pill
+      expect(find.text("Xy's Insight"), findsOneWidget);
 
-      // Tap "Xy's Saved Insight" -> opens insight modal bottom sheet
-      await tester.tap(find.text("Xy's Saved Insight"));
+      // Tap "Xy's Insight" -> opens insight modal bottom sheet
+      await tester.tap(find.text("Xy's Insight"));
       await tester.pumpAndSettle();
 
       expect(find.text("Xy's Note Insight"), findsOneWidget);
