@@ -442,7 +442,7 @@ void main() {
       expect(find.text('Explore Algebria Realms'), findsOneWidget);
       expect(find.text('Balands'), findsOneWidget);
       expect(find.text('Pairadise'), findsOneWidget);
-      expect(find.text('🔒 REQUIRES 25 ⭐ (0/25)'), findsOneWidget);
+      expect(find.text('🔒 25 ⭐ (0/25)'), findsOneWidget);
     });
 
     testWidgets('unlocked Pairadise shows celebration dialog once and direct switches after', (

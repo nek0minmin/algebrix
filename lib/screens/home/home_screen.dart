@@ -141,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onSearchChanged: (q) => setState(() => _searchQuery = q),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -266,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 36),
+                  const SizedBox(height: 12),
                 ],
               ],
             ),

@@ -57,27 +57,32 @@ class _LessonNavButtonsState extends State<LessonNavButtons>
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              if (widget.showBack)
+              if (widget.showBack) ...[
                 Expanded(
                   flex: 1,
                   child: SecondaryButton(
                     label: 'Back',
                     onPressed: widget.onBack,
                   ),
-                )
-              else
-                const Spacer(flex: 1),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 2,
-                child: PrimaryButton(
-                  label: widget.nextLabel,
-                  onPressed: widget.isNextEnabled ? widget.onNext : null,
-                  isLoading: widget.isLoading,
                 ),
-              ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: PrimaryButton(
+                    label: widget.nextLabel,
+                    onPressed: widget.isNextEnabled ? widget.onNext : null,
+                    isLoading: widget.isLoading,
+                  ),
+                ),
+              ] else
+                Expanded(
+                  child: PrimaryButton(
+                    label: widget.nextLabel,
+                    onPressed: widget.isNextEnabled ? widget.onNext : null,
+                    isLoading: widget.isLoading,
+                  ),
+                ),
             ],
           ),
         ),

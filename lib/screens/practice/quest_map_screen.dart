@@ -187,10 +187,10 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                               ] else ...[
                                 // Pairadise Waypoint 1 (Lower Lagoon - Bottom)
                                 Positioned(
-                                  left: mapWidth * 0.10,
-                                  top: _mapCanvasHeight * 0.65,
+                                  left: mapWidth * 0.08,
+                                  top: _mapCanvasHeight * 0.58,
                                   child: _MapMascotWaypoint(
-                                    asset: AppAssets.xyAndChemieShades,
+                                    asset: AppAssets.xyAndChemiePair,
                                     size: 145,
                                     bubbleText: 'Welcome to Pairadise! 🌴',
                                     bubbleColor: AppColors.mint,
@@ -198,10 +198,10 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                                 ),
                                 // Pairadise Waypoint 2 (Mid Isles - Middle)
                                 Positioned(
-                                  right: mapWidth * 0.08,
+                                  right: mapWidth * 0.06,
                                   top: _mapCanvasHeight * 0.38,
                                   child: _MapMascotWaypoint(
-                                    asset: AppAssets.xyAndChemiePair,
+                                    asset: AppAssets.xyAndChemieShades,
                                     size: 145,
                                     bubbleText: 'Twin symmetry! ✨',
                                     bubbleColor: const Color(0xFF00897B),
@@ -209,8 +209,8 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                                 ),
                                 // Pairadise Waypoint 3 (Twin Summit - Upper)
                                 Positioned(
-                                  left: mapWidth * 0.08,
-                                  top: _mapCanvasHeight * 0.12,
+                                  left: mapWidth * 0.06,
+                                  top: _mapCanvasHeight * 0.09,
                                   child: _MapMascotWaypoint(
                                     asset: AppAssets.xyAndChemieCards,
                                     size: 145,
@@ -412,7 +412,7 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                 isUnlocked: true,
                 isActive: activeLandId == 'balands',
                 statusText: activeLandId == 'balands'
-                    ? 'CURRENT REALM'
+                    ? 'CURRENT'
                     : 'TRAVEL ➔',
                 onTap: () {
                   Navigator.of(sheetCtx).pop();
@@ -436,9 +436,9 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                 isActive: activeLandId == 'pairadise',
                 statusText: isPairadiseUnlocked
                     ? (activeLandId == 'pairadise'
-                        ? 'CURRENT REALM'
+                        ? 'CURRENT'
                         : 'TRAVEL ➔')
-                    : '🔒 REQUIRES 25 ⭐ ($totalStars/25)',
+                    : '🔒 25 ⭐ ($totalStars/25)',
                 onTap: isPairadiseUnlocked
                     ? () async {
                         Navigator.of(sheetCtx).pop();
@@ -1185,11 +1185,11 @@ class _RealmWorldCard extends StatelessWidget {
           children: [
             // World Icon Badge
             Container(
-              width: 48,
-              height: 48,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
                 color: isUnlocked ? bgColor : const Color(0xFFECEFF1),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isUnlocked
                       ? borderColor.withValues(alpha: 0.4)
@@ -1200,51 +1200,27 @@ class _RealmWorldCard extends StatelessWidget {
               child: Icon(
                 isUnlocked ? icon : Icons.lock_rounded,
                 color: isUnlocked ? iconColor : const Color(0xFF90A4AE),
-                size: 26,
+                size: 22,
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
 
             // World Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          name,
-                          style: GoogleFonts.nunito(
-                            fontSize: 16.5,
-                            fontWeight: FontWeight.w900,
-                            color: isUnlocked
-                                ? AppColors.text
-                                : AppColors.textSecondary,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (isActive) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: borderColor,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            'ACTIVE',
-                            style: GoogleFonts.nunito(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
+                  Text(
+                    name,
+                    style: GoogleFonts.nunito(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w900,
+                      color: isUnlocked
+                          ? AppColors.text
+                          : AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -1254,6 +1230,7 @@ class _RealmWorldCard extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: AppColors.textSecondary,
                     ),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -1261,15 +1238,15 @@ class _RealmWorldCard extends StatelessWidget {
             ),
             const SizedBox(width: 8),
 
-            // Status Badge
+            // Compact Status Badge
             Container(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
               decoration: BoxDecoration(
                 color: isUnlocked
                     ? (isActive ? borderColor : const Color(0xFFFFF9E6))
                     : const Color(0xFFECEFF1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: isUnlocked
                       ? (isActive ? borderColor : const Color(0xFFFFE082))
@@ -1279,11 +1256,12 @@ class _RealmWorldCard extends StatelessWidget {
               child: Text(
                 statusText,
                 style: GoogleFonts.nunito(
-                  fontSize: 11,
+                  fontSize: 10.5,
                   fontWeight: FontWeight.w900,
                   color: isUnlocked
                       ? (isActive ? Colors.white : AppColors.text)
                       : const Color(0xFF546E7A),
+                  letterSpacing: 0.4,
                 ),
               ),
             ),
