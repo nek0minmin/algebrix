@@ -128,16 +128,28 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
   }
 
   Future<void> _submit() async {
+    final rawTitle = _titleController.text.trim();
+    final rawContent = _contentController.text.trim();
+
+    // If title and content are provided but user hasn't explicitly selected a lesson,
+    // auto-detect best fitting lesson or fallback to Module 1 so off-topic/general notes save smoothly.
+    if (_lessonId == null && rawTitle.length >= 3 && rawContent.length >= 20) {
+      final detected = detectBestFittingLesson(
+        title: rawTitle,
+        content: rawContent,
+      );
+      setState(() {
+        _lessonId = detected?.lessonId ?? 'm1_l1';
+      });
+    }
+
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final lesson = noteLessonOptionFor(_lessonId!);
-    if (lesson == null) return;
+    final lesson = noteLessonOptionFor(_lessonId ?? 'm1_l1') ?? noteLessonOptions.first;
 
     FocusManager.instance.primaryFocus?.unfocus();
 
     final service = AiTutorService();
-    final rawContent = _contentController.text.trim();
-    final rawTitle = _titleController.text.trim();
     final combinedNoteText = '$rawTitle\n$rawContent';
 
     final notesProvider = context.read<NotesProvider>();
@@ -150,6 +162,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
             currentFeedback.message.toLowerCase().contains('recipe') ||
             currentFeedback.message.toLowerCase().contains('lumpia') ||
             currentFeedback.message.toLowerCase().contains('food') ||
+            currentFeedback.message.toLowerCase().contains('cake') ||
             currentFeedback.message.toLowerCase().contains('ice cream') ||
             currentFeedback.keyConcept == 'Algebrix Topic Boundary');
 
@@ -355,7 +368,8 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                     const SizedBox(height: 10),
                     FormField<String>(
                       initialValue: _lessonId,
-                      validator: (value) => value == null
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      validator: (value) => (_lessonId == null && value == null)
                           ? 'Choose a lesson for this note.'
                           : null,
                       builder: (field) => _LessonSelector(
@@ -365,6 +379,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                         onSelected: (value) {
                           setState(() => _lessonId = value);
                           field.didChange(value);
+                          field.validate();
                         },
                       ),
                     ),

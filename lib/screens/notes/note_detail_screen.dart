@@ -11,24 +11,44 @@ import 'package:algebrix/services/sound_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class NoteDetailScreen extends StatelessWidget {
+class NoteDetailScreen extends StatefulWidget {
   const NoteDetailScreen({super.key, required this.note});
 
   final StudyNote note;
 
-  StudyNote _currentNote(NotesProvider provider) {
-    for (final candidate in provider.notes) {
-      if (candidate.id == note.id) return candidate;
-    }
-    return note;
+  @override
+  State<NoteDetailScreen> createState() => _NoteDetailScreenState();
+}
+
+class _NoteDetailScreenState extends State<NoteDetailScreen> {
+  late StudyNote _displayNote;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayNote = widget.note;
   }
 
-  Future<void> _edit(BuildContext context, StudyNote currentNote) async {
+  StudyNote _latestNote(NotesProvider provider) {
+    for (final candidate in provider.notes) {
+      if (candidate.id == widget.note.id) return candidate;
+    }
+    return _displayNote;
+  }
+
+  Future<void> _edit() async {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     final updated = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => NoteFormScreen(note: currentNote)),
+      MaterialPageRoute(builder: (_) => NoteFormScreen(note: _displayNote)),
     );
-    if (updated == true && context.mounted) {
+    if (!mounted) return;
+    // Refresh note from provider AFTER the transition animation completes —
+    // avoids rebuilding mid-transition which causes RenderTransform hasSize errors.
+    final provider = context.read<NotesProvider>();
+    setState(() {
+      _displayNote = _latestNote(provider);
+    });
+    if (updated == true) {
       SoundService.playComplete();
       showAlgebrixSnackBar(
         context,
@@ -38,12 +58,12 @@ class NoteDetailScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _delete(BuildContext context, StudyNote currentNote) async {
+  Future<void> _delete() async {
     context.read<NotesProvider>().clearError();
     final deleted = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _DeleteNoteDialog(note: currentNote),
+      builder: (_) => _DeleteNoteDialog(note: _displayNote),
     );
     if (deleted == true && context.mounted) {
       SoundService.playComplete();
@@ -53,10 +73,11 @@ class NoteDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<NotesProvider>();
-    final currentNote = _currentNote(provider);
-    final isDeleting = provider.isDeletingNote(currentNote.id);
-    final aiFeedback = currentNote.aiFeedbackResult;
+    // Use context.read (NOT watch) to avoid rebuilds during route transitions.
+    // Note data is refreshed manually in _edit() after navigation returns.
+    final provider = context.read<NotesProvider>();
+    final isDeleting = provider.isDeletingNote(_displayNote.id);
+    final aiFeedback = _displayNote.aiFeedbackResult;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -74,10 +95,10 @@ class NoteDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _LessonChip(label: noteLessonLabel(currentNote.lessonId)),
+                  _LessonChip(label: noteLessonLabel(_displayNote.lessonId)),
                   const SizedBox(height: 14),
                   Text(
-                    currentNote.title,
+                    _displayNote.title,
                     style: AppTextStyles.heading1.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
@@ -92,13 +113,13 @@ class NoteDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        formatNoteUpdatedAt(currentNote.updatedAt),
+                        formatNoteUpdatedAt(_displayNote.updatedAt),
                         style: AppTextStyles.caption,
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _ExplanationCard(content: currentNote.displayContent),
+                  _ExplanationCard(content: _displayNote.displayContent),
                   if (aiFeedback != null) ...[
                     const SizedBox(height: 20),
                     AiFeedbackCard(feedback: aiFeedback),
@@ -106,8 +127,8 @@ class NoteDetailScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   _NoteActions(
                     isDeleting: isDeleting,
-                    onEdit: () => _edit(context, currentNote),
-                    onDelete: () => _delete(context, currentNote),
+                    onEdit: _edit,
+                    onDelete: _delete,
                   ),
                 ],
               ),
@@ -141,53 +162,56 @@ class _ExplanationCard extends StatelessWidget {
           ),
         ],
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(width: 5, color: AppColors.pink),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: Container(
+              width: 5,
+              color: AppColors.pink,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: AppColors.extraLightPink,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.functions_rounded,
-                            color: AppColors.pink,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          'My explanation',
-                          style: AppTextStyles.subtitle1.copyWith(
-                            color: AppColors.text,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.extraLightPink,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.functions_rounded,
+                        color: AppColors.pink,
+                        size: 20,
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    SelectableText(
-                      content,
-                      style: AppTextStyles.body1.copyWith(height: 1.65),
+                    const SizedBox(width: 10),
+                    Text(
+                      'My explanation',
+                      style: AppTextStyles.subtitle1.copyWith(
+                        color: AppColors.text,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 16),
+                Text(
+                  content,
+                  style: AppTextStyles.body1.copyWith(height: 1.65),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

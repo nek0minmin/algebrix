@@ -262,5 +262,57 @@ void main() {
       expect(find.text('6k + 4 − 2k + 9'), findsOneWidget);
       expect(find.byType(FittedBox), findsWidgets);
     });
+
+    testWidgets('ModuleQuizScreen renders long sub-lesson title on narrow screens without overflow', (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final quizProvider = QuizProvider(repository: MemoryQuizRepository());
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<QuizProvider>.value(
+          value: quizProvider,
+          child: MaterialApp(
+            home: ModuleQuizScreen(
+              module: module1,
+              quizService: _StubLongTitleQuizService(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Question 1 of 1'), findsOneWidget);
+    });
   });
+}
+
+class _StubLongTitleQuizService extends ModuleQuizService {
+  @override
+  Future<ModuleQuiz> generateQuiz({required ModuleContent module}) async {
+    return ModuleQuiz(
+      moduleId: module.id,
+      moduleTitle: module.title,
+      generatedAt: DateTime.now(),
+      providerUsed: 'Test Stub',
+      questions: const [
+        ModuleQuizQuestion(
+          id: 'q-long-1',
+          subLessonTitle: 'Order of Operations with Parentheses and Exponents (PEMDAS)',
+          question: 'Evaluate: 7 + 3 * 5',
+          options: ['22', '35', '10'],
+          correctIndex: 0,
+          explanation: 'Multiplication first: 3 * 5 = 15, then 7 + 15 = 22.',
+          difficulty: 1,
+          type: QuizQuestionType.multipleChoice,
+        ),
+      ],
+    );
+  }
 }

@@ -449,73 +449,76 @@ class _NoteCard extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(width: 5, color: AppColors.pink),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(17),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
+          child: Stack(
+            children: [
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(width: 5, color: AppColors.pink),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 17, 14, 17),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.extraLightPink,
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(color: AppColors.lightPink),
+                            ),
+                            child: Text(
+                              noteLessonLabel(note.lessonId),
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.darkPink,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                           ),
-                          decoration: BoxDecoration(
-                            color: AppColors.extraLightPink,
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: AppColors.lightPink),
-                          ),
-                          child: Text(
-                            noteLessonLabel(note.lessonId),
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.darkPink,
+                          const SizedBox(height: 10),
+                          Text(
+                            note.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.heading3.copyWith(
+                              fontSize: 18,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          note.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.heading3.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
+                          const SizedBox(height: 4),
+                          Text(
+                            note.displayContent,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.body2.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          note.displayContent,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.body2.copyWith(
-                            color: AppColors.textSecondary,
+                          const SizedBox(height: 9),
+                          Text(
+                            formatNoteUpdatedAt(note.updatedAt),
+                            style: AppTextStyles.caption,
                           ),
-                        ),
-                        const SizedBox(height: 9),
-                        Text(
-                          formatNoteUpdatedAt(note.updatedAt),
-                          style: AppTextStyles.caption,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.pink,
+                      size: 26,
+                    ),
+                  ],
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(right: 14),
-                  child: Icon(
-                    Icons.chevron_right_rounded,
-                    color: AppColors.pink,
-                    size: 26,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

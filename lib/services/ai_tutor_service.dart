@@ -249,15 +249,18 @@ CRITICAL RULES:
     final lower = userPrompt.toLowerCase().trim();
     if (lower.length < 5) return false;
 
-    // Explicit non-educational / non-math keywords (food recipes, fruits, dining, entertainment)
+    // Explicit non-educational / non-math keywords (food recipes, fruits, dining, entertainment, hobbies)
     final offTopicKeywords = [
       'lumpia', 'ice cream', 'recipe', 'pizza', 'burger', 'milk', 'sugar',
       'cook', 'bake', 'baking', 'ingredient', 'ingredients', 'watermelon', 'watermelons',
       'strawberry', 'strawberries', 'fruit', 'fruits', 'apple', 'apples', 'banana',
       'bananas', 'mango', 'mangoes', 'delicious', 'tasty', 'snack', 'food', 'meat',
-      'pork', 'chicken', 'beef', 'dinner', 'lunch', 'breakfast', 'playstation', 'xbox',
-      'nintendo', 'fifa', 'fortnite', 'minecraft', 'roblox', 'tiktok', 'movie', 'song',
-      'music', 'restaurant', 'hotel', 'anime', 'party', 'girlfriend', 'boyfriend',
+      'pork', 'chicken', 'beef', 'dinner', 'lunch', 'breakfast', 'cake', 'cakes',
+      'vanilla', 'chocolate', 'dessert', 'cookie', 'cookies', 'pastry', 'bread',
+      'playstation', 'xbox', 'nintendo', 'fifa', 'fortnite', 'minecraft', 'roblox',
+      'tiktok', 'movie', 'song', 'music', 'restaurant', 'hotel', 'anime', 'party',
+      'girlfriend', 'boyfriend', 'vacation', 'beach', 'swimming', 'basketball',
+      'football', 'soccer', 'sleep', 'sleeping', 'shoes', 'clothes',
     ];
 
     final hasOffTopicKeyword = offTopicKeywords.any((kw) => lower.contains(kw));
@@ -277,6 +280,7 @@ CRITICAL RULES:
       'commutative property', 'associative property', 'identity property',
       'properties of operations', 'variable', 'variables', 'equation', 'equations',
       'expression', 'expressions', 'inequality', 'inequalities', 'substitution',
+      'linear system', 'systems of equations', 'elimination method', 'substitution method',
     ];
 
     final hasUnambiguousMath = unambiguousMathTerms.any((term) => lower.contains(term));
@@ -296,6 +300,11 @@ CRITICAL RULES:
       'math', 'algebra', 'equation', 'expression', 'variable', 'coefficient',
       'constant', 'term', 'terms', 'exponent', 'fraction', 'decimal', 'isolate',
       'substitute', 'simplify', 'evaluate', 'distribute', 'pemdas', 'solve',
+      'algebraic', 'linear', 'slope', 'graph', 'coordinate', 'balance',
+      'add', 'addition', 'subtract', 'subtraction', 'multiply', 'multiplication',
+      'divide', 'division', 'sum', 'difference', 'product', 'quotient',
+      'negative', 'positive', 'number', 'numbers', 'integer', 'integers',
+      'operation', 'operations', 'problem', 'solution', 'calculate', 'equal', 'equals',
     ];
     final hasSingleMathWord = singleMathWords.any((w) => RegExp(r'\b' + w + r'\b').hasMatch(lower));
 
@@ -305,6 +314,12 @@ CRITICAL RULES:
 
     // If it has off-topic keywords, flag it
     if (hasOffTopicKeyword) return true;
+
+    // If the text is longer than 15 characters and has NO math symbols, NO math terms,
+    // and NO single math words, it is an off-topic / non-algebra note.
+    if (lower.length >= 15) {
+      return true;
+    }
 
     return false;
   }

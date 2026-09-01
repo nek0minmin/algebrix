@@ -398,7 +398,6 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Question ${_currentIndex + 1} of $total',
@@ -408,22 +407,30 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.extraLightPink,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      question.subLessonTitle.toUpperCase(),
-                      style: GoogleFonts.nunito(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.pink,
-                        letterSpacing: 0.6,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.extraLightPink,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          question.subLessonTitle.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.pink,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
                     ),
                   ),
