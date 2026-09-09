@@ -2,20 +2,34 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:algebrix/core/utils/error_formatter.dart';
 import 'package:algebrix/models/user_model.dart';
+import 'package:algebrix/services/account_repository.dart';
 import 'package:algebrix/services/auth_service.dart';
 
 /// Provider and state manager for handling user authentication & 6-digit OTP state in Algebrix.
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService;
+  final AccountRepository? _accountRepository;
 
   bool _isLoading = false;
   String? _errorMessage;
   UserModel? _currentUser;
   bool _rememberMe = true;
 
-  AuthProvider({AuthService? authService})
-      : _authService = authService ?? AuthService() {
+  AuthProvider({AuthService? authService, AccountRepository? accountRepository})
+      : _authService = authService ?? AuthService(),
+        _accountRepository = accountRepository ?? _defaultAccountRepository() {
     checkCurrentUser();
+  }
+
+  /// Builds the live account repository, or null when Supabase is unavailable
+  /// (widget tests, offline first launch). Account settings degrade to a
+  /// clear message instead of throwing.
+  static AccountRepository? _defaultAccountRepository() {
+    try {
+      return SupabaseAccountRepository();
+    } catch (_) {
+      return null;
+    }
   }
 
   // --- State Getters ---
@@ -271,6 +285,110 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(false);
       return false;
     }
+  }
+
+  // --- Account Settings ---
+
+  /// Whether the account can rotate its password in-app (email/password only).
+  bool get canChangePassword => _authService.hasEmailPasswordIdentity;
+
+  /// Update the learner's display name and preset avatar.
+  ///
+  /// Returns true on success; inspect [errorMessage] otherwise.
+  Future<bool> updateAccountDetails({
+    required String name,
+    String? avatarKey,
+  }) async {
+    final repository = _accountRepository;
+    if (repository == null) {
+      _errorMessage = 'Account settings are unavailable right now.';
+      notifyListeners();
+      return false;
+    }
+
+    final trimmed = name.trim();
+    if (trimmed.length < 2 || trimmed.length > 40) {
+      _errorMessage = 'Your name must be between 2 and 40 characters.';
+      notifyListeners();
+      return false;
+    }
+
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await repository.updateAccount(name: trimmed, avatarKey: avatarKey);
+      _currentUser = _authService.refreshCurrentUser();
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _errorMessage = _formatErrorMessage(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  /// Change the password of the signed-in learner, keeping the session alive.
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      final success = await _authService.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      if (success) {
+        _currentUser = _authService.getCurrentUser();
+      } else {
+        _errorMessage = _formatErrorMessage(
+          _authService.errorMessage ?? 'Failed to update password.',
+        );
+      }
+      _setLoading(false);
+      return success;
+    } catch (e) {
+      _errorMessage = _formatErrorMessage(
+        _authService.errorMessage ?? e.toString(),
+      );
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  /// Permanently delete the account, then clear local session state.
+  Future<bool> deleteAccount() async {
+    final repository = _accountRepository;
+    if (repository == null) {
+      _errorMessage = 'Account deletion is unavailable right now.';
+      notifyListeners();
+      return false;
+    }
+
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await repository.deleteAccount();
+    } catch (e) {
+      _errorMessage = _formatErrorMessage(e.toString());
+      _setLoading(false);
+      return false;
+    }
+
+    // The account is gone server-side. Clear the local session even if sign-out
+    // complains — the refresh token it would revoke no longer resolves.
+    try {
+      await _authService.signOut();
+    } catch (_) {}
+
+    _currentUser = null;
+    _clearError();
+    _setLoading(false);
+    return true;
   }
 
   /// Sign out current user.

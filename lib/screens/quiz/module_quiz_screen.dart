@@ -4,9 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
+import 'package:algebrix/core/providers/mastery_provider.dart';
 import 'package:algebrix/core/providers/quiz_provider.dart';
+import 'package:algebrix/core/providers/quiz_review_provider.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_model.dart';
+import 'package:algebrix/models/quiz_attempt_review_model.dart';
 import 'package:algebrix/services/module_quiz_service.dart';
 import 'package:algebrix/services/sound_service.dart';
 import 'package:algebrix/widgets/primary_button.dart';
@@ -42,6 +45,10 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
   int _correctCount = 0;
   final List<bool> _answerHistory = [];
 
+  /// Chosen option index per answered question, for the review log only.
+  /// Parallel to [_answerHistory]; read by nothing in the quiz flow itself.
+  final List<int> _selectedHistory = [];
+
   bool _isFinished = false;
 
   @override
@@ -70,6 +77,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
       _isAnswered = false;
       _correctCount = 0;
       _answerHistory.clear();
+      _selectedHistory.clear();
       _isFinished = false;
     });
 
@@ -157,6 +165,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
         _correctCount++;
       }
       _answerHistory.add(isCorrect);
+      _selectedHistory.add(_selectedChoiceIndex!);
     });
   }
 
@@ -182,7 +191,52 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
           totalQuestions: total,
         );
       } catch (_) {}
+
+      // Archive the attempt for the review log, then feed its misses into the
+      // spaced-review ladder. Separate providers, separate tables — a failure
+      // in either cannot affect scoring or module unlocks.
+      try {
+        final attempt = QuizAttemptReview(
+          id: 'local_${DateTime.now().microsecondsSinceEpoch}',
+          moduleId: widget.module.id,
+          moduleTitle: widget.module.title,
+          score: _correctCount,
+          totalQuestions: total,
+          items: _buildReviewItems(),
+          takenAt: DateTime.now(),
+        );
+
+        context.read<QuizReviewProvider>().recordAttempt(
+          moduleId: attempt.moduleId,
+          moduleTitle: attempt.moduleTitle,
+          score: attempt.score,
+          totalQuestions: attempt.totalQuestions,
+          items: attempt.items,
+        );
+        context.read<MasteryProvider>().registerQuizAttempt(attempt);
+      } catch (_) {}
     }
+  }
+
+  /// Snapshots the questions with the learner's choices for the review log.
+  ///
+  /// Questions abandoned before answering get a selectedIndex of -1.
+  List<ReviewedQuestion> _buildReviewItems() {
+    final questions = _quiz?.questions ?? const <ModuleQuizQuestion>[];
+
+    return [
+      for (var i = 0; i < questions.length; i++)
+        ReviewedQuestion(
+          question: questions[i].question,
+          options: questions[i].options,
+          correctIndex: questions[i].correctIndex,
+          selectedIndex:
+              i < _selectedHistory.length ? _selectedHistory[i] : -1,
+          explanation: questions[i].explanation,
+          subLessonTitle: questions[i].subLessonTitle,
+          difficulty: questions[i].difficulty,
+        ),
+    ];
   }
 
   int get _starRating {

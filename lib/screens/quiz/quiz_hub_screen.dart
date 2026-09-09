@@ -7,6 +7,7 @@ import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/core/providers/quiz_provider.dart';
+import 'package:algebrix/core/providers/quiz_review_provider.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/data/module3_content.dart';
@@ -14,6 +15,7 @@ import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_progress_model.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
 import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
+import 'package:algebrix/screens/review/review_hub_screen.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
@@ -108,6 +110,10 @@ class QuizHubScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+
+                  // ── 3b. Review Past Quizzes ───────────────────────────────
+                  const _ReviewPastQuizzesCard(),
                   const SizedBox(height: 24),
 
                   // ── 4. Section Header ─────────────────────────────────────
@@ -286,6 +292,107 @@ class _QuizBreakdownItem {
 }
 
 /// Hero Banner featuring prominent Xy Quiz illustration
+/// Entry point into the quiz review log.
+///
+/// Reads [QuizReviewProvider] only — it does not touch quiz scoring state.
+class _ReviewPastQuizzesCard extends StatelessWidget {
+  const _ReviewPastQuizzesCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final reviewProvider = context.watch<QuizReviewProvider>();
+    final attemptCount = reviewProvider.attempts.length;
+    final missedCount = reviewProvider.totalMissedCount;
+    final hasAttempts = reviewProvider.hasAttempts;
+
+    final subtitle = !hasAttempts
+        ? 'Finish a quiz and your answers land here'
+        : missedCount > 0
+            ? '$missedCount question${missedCount == 1 ? '' : 's'} to revisit '
+                'across $attemptCount attempt${attemptCount == 1 ? '' : 's'}'
+            : 'All $attemptCount attempt${attemptCount == 1 ? '' : 's'} clean — '
+                'take another look anyway';
+
+    return Semantics(
+      button: true,
+      label: 'Review past quizzes',
+      child: BouncyPressable(
+        key: const Key('quiz-hub-review-card'),
+        onTap: () {
+          Navigator.push(
+            context,
+            AppPageRoute(child: const ReviewHubScreen()),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: hasAttempts && missedCount > 0
+                  ? AppColors.yellow.withValues(alpha: 0.55)
+                  : AppColors.border,
+              width: hasAttempts && missedCount > 0 ? 1.8 : 1.2,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: hasAttempts && missedCount > 0
+                      ? AppColors.lightYellow
+                      : AppColors.lightPurple,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.history_edu_rounded,
+                  size: 24,
+                  color: hasAttempts && missedCount > 0
+                      ? const Color(0xFF9A6B00)
+                      : AppColors.purple,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Review Past Quizzes',
+                      style: GoogleFonts.nunito(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.text,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.subtitle,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.subtitle,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _QuizHeroBannerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

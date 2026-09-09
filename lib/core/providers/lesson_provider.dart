@@ -176,16 +176,25 @@ class LessonProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> startLesson(LessonContent lesson) async {
+  /// Opens [lesson], resuming at the last visited step.
+  ///
+  /// [startAtStepIndex] overrides that resume point, which is how the review
+  /// queue drops a learner straight onto the step a weak concept came from
+  /// instead of the lesson intro.
+  Future<bool> startLesson(
+    LessonContent lesson, {
+    int? startAtStepIndex,
+  }) async {
     if (isBusy) return false;
 
     _currentLesson = lesson;
     _sessionXp = 0;
     _currentStepAnswered = false;
     final isCompleted = isLessonCompleted(lesson.lessonId);
-    final storedIndex = isCompleted
-        ? 0
-        : (_persistedProgress[lesson.lessonId]?.lastStepIndex ?? 0);
+    final storedIndex = startAtStepIndex ??
+        (isCompleted
+            ? 0
+            : (_persistedProgress[lesson.lessonId]?.lastStepIndex ?? 0));
     _currentStepIndex = lesson.steps.isEmpty
         ? 0
         : storedIndex.clamp(0, lesson.steps.length - 1);

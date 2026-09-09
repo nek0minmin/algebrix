@@ -3,10 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/core/providers/quiz_provider.dart';
+import 'package:algebrix/core/providers/quiz_review_provider.dart';
 import 'package:algebrix/models/lesson_progress_model.dart';
 import 'package:algebrix/screens/quiz/quiz_hub_screen.dart';
 import 'package:algebrix/services/progress_repository.dart';
 import 'package:algebrix/services/quiz_repository.dart';
+import 'package:algebrix/services/quiz_review_repository.dart';
 
 class _FakeProgressRepository implements ProgressRepository {
   @override
@@ -63,14 +65,19 @@ void main() {
     final quizProvider = QuizProvider(repository: quizRepo);
     final lessonProvider = LessonProvider(repository: progressRepo);
 
+    final reviewProvider =
+        QuizReviewProvider(repository: MemoryQuizReviewRepository());
+
     quizProvider.bindAccount('student_1');
     lessonProvider.bindAccount('student_1');
+    reviewProvider.bindAccount('student_1');
 
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           ChangeNotifierProvider.value(value: quizProvider),
           ChangeNotifierProvider.value(value: lessonProvider),
+          ChangeNotifierProvider.value(value: reviewProvider),
         ],
         child: const MaterialApp(
           home: QuizHubScreen(),

@@ -4,6 +4,7 @@ import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
+import 'package:algebrix/core/providers/mastery_provider.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/widgets/lesson/lesson_progress_bar.dart';
 import 'package:algebrix/widgets/lesson/xy_speech_bubble.dart';
@@ -39,10 +40,26 @@ class _LessonScreenState extends State<LessonScreen> {
   Future<void> _handleAnswer(int index, bool isCorrect) async {
     final lessonProvider = context.read<LessonProvider>();
     if (lessonProvider.isRecording) return;
+
+    // Captured before any await so the mastery write describes the step the
+    // learner actually answered, not wherever the provider ends up.
+    final masteryProvider = context.read<MasteryProvider>();
+    final lesson = lessonProvider.currentLesson;
+    final step = lessonProvider.currentStep;
+    final stepIndex = lessonProvider.currentStepIndex;
+
     if (!isCorrect) {
       SoundService.playWrong();
       setState(() => _lastAnswerCorrect = false);
       await lessonProvider.answerQuestion(false);
+      await _logMastery(
+        masteryProvider,
+        lesson: lesson,
+        step: step,
+        stepIndex: stepIndex,
+        selectedIndex: index,
+        isCorrect: false,
+      );
       return;
     }
 
@@ -60,6 +77,56 @@ class _LessonScreenState extends State<LessonScreen> {
       _showXpReward = false; // XP pop-up disabled
       _xpAmount = 0;
     });
+
+    await _logMastery(
+      masteryProvider,
+      lesson: lesson,
+      step: step,
+      stepIndex: stepIndex,
+      selectedIndex: index,
+      isCorrect: true,
+    );
+  }
+
+  /// Feeds the answer into the mistake log and spaced-review ladder.
+  ///
+  /// Fire-and-forget by design: [MasteryProvider] swallows its own failures, so
+  /// a review-tracking problem can never interrupt a lesson.
+  Future<void> _logMastery(
+    MasteryProvider mastery, {
+    required LessonContent? lesson,
+    required LessonStep? step,
+    required int stepIndex,
+    required int selectedIndex,
+    required bool isCorrect,
+  }) async {
+    if (lesson == null || step == null) return;
+
+    if (isCorrect) {
+      // Only promotes when this actually closed an open mistake.
+      await mastery.recordLessonSuccess(
+        moduleId: lesson.moduleId,
+        lessonId: lesson.lessonId,
+        stepId: step.id,
+      );
+      return;
+    }
+
+    // Activities report a bare pass/fail with no option list, so there is no
+    // meaningful selected index to record for them.
+    final choices = step.choices;
+
+    await mastery.recordLessonMiss(
+      moduleId: lesson.moduleId,
+      lessonId: lesson.lessonId,
+      stepId: step.id,
+      stepIndex: stepIndex,
+      question: step.question ?? step.title ?? lesson.title,
+      options: choices?.map((choice) => choice.label).toList() ?? const [],
+      correctIndex: step.correctChoiceIndex ?? -1,
+      selectedIndex: choices == null ? -1 : selectedIndex,
+      explanation: step.incorrectExplanation ?? step.explanation ?? '',
+    );
   }
 
   Future<void> _handleNext() async {

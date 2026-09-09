@@ -12,17 +12,24 @@ import 'core/providers/lesson_provider.dart';
 import 'core/providers/notes_provider.dart';
 import 'core/providers/quest_map_provider.dart';
 import 'core/providers/quiz_provider.dart';
+import 'core/providers/quiz_review_provider.dart';
+import 'core/providers/mastery_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'models/lesson_progress_model.dart';
 import 'models/module_quiz_progress_model.dart';
+import 'models/lesson_mistake_model.dart';
 import 'models/quest_map_model.dart';
+import 'models/quiz_attempt_review_model.dart';
 import 'models/study_note_model.dart';
+import 'services/account_repository.dart';
 import 'services/ai_tutor_service.dart';
 import 'services/auth_service.dart';
+import 'services/mastery_repository.dart';
 import 'services/notes_repository.dart';
 import 'services/progress_repository.dart';
 import 'services/quest_repository.dart';
 import 'services/quiz_repository.dart';
+import 'services/quiz_review_repository.dart';
 import 'services/sound_service.dart';
 import 'screens/splash/splash_screen.dart';
 
@@ -74,9 +81,12 @@ class AlgebrixApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthService>(create: (_) => AuthService()),
+        Provider<AccountRepository?>(create: (_) => _createAccountRepository()),
         ChangeNotifierProvider<AuthProvider>(
-          create: (context) =>
-              AuthProvider(authService: context.read<AuthService>()),
+          create: (context) => AuthProvider(
+            authService: context.read<AuthService>(),
+            accountRepository: context.read<AccountRepository?>(),
+          ),
         ),
         Provider<AiTutorService>(create: (_) => AiTutorService()),
         ChangeNotifierProvider<AiNotesProvider>(
@@ -90,6 +100,10 @@ class AlgebrixApp extends StatelessWidget {
         Provider<NotesRepository>(create: (_) => _createNotesRepository()),
         Provider<QuestRepository>(create: (_) => _createQuestRepository()),
         Provider<QuizRepository>(create: (_) => _createQuizRepository()),
+        Provider<QuizReviewRepository>(
+          create: (_) => _createQuizReviewRepository(),
+        ),
+        Provider<MasteryRepository>(create: (_) => _createMasteryRepository()),
         ChangeNotifierProxyProvider2<
           AuthProvider,
           ProgressRepository,
@@ -154,6 +168,46 @@ class AlgebrixApp extends StatelessWidget {
             return provider;
           },
         ),
+        ChangeNotifierProxyProvider2<
+          AuthProvider,
+          QuizReviewRepository,
+          QuizReviewProvider
+        >(
+          create: (context) => QuizReviewProvider(
+            repository: context.read<QuizReviewRepository>(),
+          ),
+          update: (context, authProvider, repository, quizReviewProvider) {
+            final provider =
+                quizReviewProvider ?? QuizReviewProvider(repository: repository);
+            provider.bindAccount(authProvider.currentUser?.id);
+            return provider;
+          },
+        ),
+        // Depends on QuizReviewProvider: mastery reads the retained quiz
+        // attempts rather than owning them, so nothing here can touch scoring.
+        ChangeNotifierProxyProvider3<
+          AuthProvider,
+          MasteryRepository,
+          QuizReviewProvider,
+          MasteryProvider
+        >(
+          create: (context) => MasteryProvider(
+            repository: context.read<MasteryRepository>(),
+          ),
+          update: (
+            context,
+            authProvider,
+            repository,
+            quizReviewProvider,
+            masteryProvider,
+          ) {
+            final provider =
+                masteryProvider ?? MasteryProvider(repository: repository);
+            provider.bindAccount(authProvider.currentUser?.id);
+            provider.syncQuizAttempts(quizReviewProvider.attempts);
+            return provider;
+          },
+        ),
       ],
       child: MaterialApp(
         title: 'Algebrix',
@@ -195,6 +249,91 @@ QuizRepository _createQuizRepository() {
   } catch (_) {
     return const _UnavailableQuizRepository();
   }
+}
+
+QuizReviewRepository _createQuizReviewRepository() {
+  try {
+    return SupabaseQuizReviewRepository();
+  } catch (_) {
+    return const _UnavailableQuizReviewRepository();
+  }
+}
+
+MasteryRepository _createMasteryRepository() {
+  try {
+    return SupabaseMasteryRepository();
+  } catch (_) {
+    return _UnavailableMasteryRepository();
+  }
+}
+
+AccountRepository? _createAccountRepository() {
+  try {
+    return SupabaseAccountRepository();
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Mastery tracking degrades the same way as the review log: an empty picture
+/// rather than an error, so a missing backend never blocks a lesson.
+class _UnavailableMasteryRepository implements MasteryRepository {
+  @override
+  Future<List<LessonMistake>> fetchLessonMistakes() => Future.value([]);
+
+  @override
+  Future<List<ConceptReviewSchedule>> fetchReviewSchedule() =>
+      Future.value([]);
+
+  @override
+  Future<void> recordLessonMiss({
+    required String moduleId,
+    required String lessonId,
+    required String stepId,
+    required int stepIndex,
+    required String question,
+    required List<String> options,
+    required int correctIndex,
+    required int selectedIndex,
+    required String explanation,
+  }) => Future.value();
+
+  @override
+  Future<bool> resolveLessonMiss({
+    required String lessonId,
+    required String stepId,
+  }) => Future.value(false);
+
+  @override
+  Future<void> scheduleReview({
+    required String moduleId,
+    required String lessonId,
+    required ReviewOutcome outcome,
+  }) => Future.value();
+
+  @override
+  Future<void> clearConceptHistory(String lessonId) => Future.value();
+}
+
+/// Review history is a convenience, not a prerequisite: with no backend the
+/// log reads empty and writes are dropped rather than surfacing an error.
+class _UnavailableQuizReviewRepository implements QuizReviewRepository {
+  const _UnavailableQuizReviewRepository();
+
+  @override
+  Future<List<QuizAttemptReview>> fetchRecentAttempts() => Future.value([]);
+
+  @override
+  Future<void> saveAttempt({
+    required String moduleId,
+    required String moduleTitle,
+    required int score,
+    required int totalQuestions,
+    required List<ReviewedQuestion> items,
+  }) => Future.value();
+
+  @override
+  Future<void> clearModuleAttempts(String moduleId) => Future.value();
 }
 
 class _UnavailableQuizRepository implements QuizRepository {

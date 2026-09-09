@@ -406,6 +406,114 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  /// Whether the signed-in account can change its password in-app.
+  ///
+  /// Google-only accounts have no Supabase password to rotate — their
+  /// credentials live with the identity provider.
+  bool get hasEmailPasswordIdentity {
+    final user = _client?.auth.currentUser;
+    if (user == null) return false;
+    if (user.email == null || user.email!.isEmpty) return false;
+
+    final identities = user.identities;
+    if (identities == null || identities.isEmpty) {
+      // No identity list available; fall back to the top-level provider claim.
+      return user.appMetadata['provider'] == 'email';
+    }
+    return identities.any((identity) => identity.provider == 'email');
+  }
+
+  /// Change the password of the signed-in learner, keeping them signed in.
+  ///
+  /// Distinct from [updatePassword], which serves the forgot-password recovery
+  /// flow and deliberately signs out afterwards. Here the learner is already
+  /// authenticated, so [currentPassword] is re-verified first — otherwise
+  /// anyone holding an unlocked phone could silently take over the account.
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final client = _client;
+    if (client == null) {
+      _errorMessage = 'Supabase client is not initialized.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+
+    final email = client.auth.currentUser?.email;
+    if (email == null || email.isEmpty) {
+      _errorMessage = 'No signed-in account was found.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      // Re-authenticate. A wrong current password throws here and the new
+      // password is never applied.
+      await client.auth.signInWithPassword(
+        email: email,
+        password: currentPassword,
+      );
+    } on AuthException catch (_) {
+      _errorMessage = 'Your current password is incorrect.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = _parseGeneralException(
+        e,
+        fallback: 'Could not verify your current password.',
+      );
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      final response = await client.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+
+      if (response.user != null) {
+        _currentUser = getCurrentUser();
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
+      _errorMessage = 'Failed to update password.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } on AuthException catch (e) {
+      _errorMessage = _parseAuthException(e, fallback: 'Failed to update password.');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = _parseGeneralException(e, fallback: 'Failed to update password.');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Re-reads the signed-in user from the active session.
+  ///
+  /// Called after account settings change so cached [UserModel] state picks up
+  /// the new display name and avatar.
+  UserModel? refreshCurrentUser() {
+    _currentUser = getCurrentUser();
+    notifyListeners();
+    return _currentUser;
+  }
+
   /// Verify 6-digit password recovery OTP and set new password.
   Future<bool> verifyPasswordResetOTP({
     required String email,

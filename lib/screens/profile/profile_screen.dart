@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:algebrix/core/animations/app_page_route.dart';
+import 'package:algebrix/core/constants/app_avatars.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/models/user_model.dart';
+import 'package:algebrix/screens/profile/account_settings_screen.dart';
 import 'package:algebrix/services/sound_service.dart';
+import 'package:algebrix/widgets/bouncy_pressable.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/streak_badge.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
@@ -74,17 +78,10 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 44,
-                    backgroundColor: AppColors.lightPink,
-                    child: Text(
-                      user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                      style: GoogleFonts.nunito(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.pink,
-                      ),
-                    ),
+                  _ProfileAvatar(
+                    avatarKey: user.avatarUrl,
+                    initial:
+                        user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
                   ),
                   const SizedBox(height: 14),
                   Text(
@@ -227,6 +224,76 @@ class ProfileScreen extends StatelessWidget {
             // Sound Effects & Audio Preferences Section
             const _SoundSettingsCard(),
 
+            const SizedBox(height: 20),
+
+            // Account Settings entry point
+            Semantics(
+              button: true,
+              label: 'Account Settings',
+              child: BouncyPressable(
+                key: const Key('profile-account-settings-row'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    AppPageRoute(child: const AccountSettingsScreen()),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: const BoxDecoration(
+                          color: AppColors.extraLightPink,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.manage_accounts_rounded,
+                          color: AppColors.pink,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Account Settings',
+                              style: GoogleFonts.nunito(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.text,
+                              ),
+                            ),
+                            Text(
+                              'Name, avatar, password, and account',
+                              style: GoogleFonts.nunito(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.subtitle,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.subtitle,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
             const SizedBox(height: 28),
 
             // Logout Button
@@ -252,6 +319,44 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Circular profile avatar: the learner's chosen Xy preset, or their initial.
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({required this.avatarKey, required this.initial});
+
+  final String? avatarKey;
+  final String initial;
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = AppAvatars.assetForKey(avatarKey);
+
+    return Container(
+      width: 88,
+      height: 88,
+      decoration: const BoxDecoration(
+        color: AppColors.lightPink,
+        shape: BoxShape.circle,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: asset == null
+          ? Center(
+              child: Text(
+                initial,
+                style: GoogleFonts.nunito(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.pink,
+                ),
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(8),
+              child: Image.asset(asset, fit: BoxFit.contain),
+            ),
     );
   }
 }
