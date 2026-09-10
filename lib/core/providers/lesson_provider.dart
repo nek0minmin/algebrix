@@ -1,8 +1,6 @@
 import 'dart:async';
 
-import 'package:algebrix/data/module1_content.dart';
-import 'package:algebrix/data/module2_content.dart';
-import 'package:algebrix/data/module3_content.dart';
+import 'package:algebrix/data/lesson_catalog.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/lesson_progress_model.dart';
 import 'package:algebrix/services/progress_repository.dart';
@@ -99,23 +97,28 @@ class LessonProvider extends ChangeNotifier {
 
   Future<void> _hydrateModules(String accountId, int generation) async {
     try {
+      // One fetch per shipped module, driven by the catalog. Previously this
+      // named module1/2/3 explicitly, so a fourth module's progress would have
+      // silently never hydrated.
+      final modules = LessonCatalog.modules;
       final results = await Future.wait<Object>([
         _repository.fetchCurrentProfile(),
-        _repository.fetchModuleProgress(module1.id),
-        _repository.fetchModuleProgress(module2.id),
-        _repository.fetchModuleProgress(module3.id),
+        for (final module in modules)
+          _repository.fetchModuleProgress(module.id),
       ]);
       if (!_isCurrentAccount(accountId, generation)) return;
 
       final profile = results[0] as LearningProfileSnapshot;
-      final m1Progress = results[1] as List<LessonProgress>;
-      final m2Progress = results[2] as List<LessonProgress>;
-      final m3Progress = results[3] as List<LessonProgress>;
       if (profile.userId != accountId) {
         throw StateError('Progress was returned for a different account.');
       }
 
-      final combined = [...m1Progress, ...m2Progress, ...m3Progress];
+      // Future.wait preserves order, so everything after the profile is a
+      // module's progress list, in catalog order.
+      final combined = <LessonProgress>[
+        for (var i = 1; i < results.length; i++)
+          ...(results[i] as List<LessonProgress>),
+      ];
 
       _profile = profile;
       _persistedProgress
@@ -141,9 +144,7 @@ class LessonProvider extends ChangeNotifier {
           lessonId,
           () => LessonProgress(
             userId: accountId,
-            moduleId: lessonId.startsWith('m3_')
-                ? 'module3'
-                : (lessonId.startsWith('m2_') ? 'module2' : 'module1'),
+            moduleId: _moduleIdForLesson(lessonId),
             lessonId: lessonId,
             contentVersion: 1,
             status: LessonProgressStatus.completed,
@@ -466,13 +467,24 @@ class LessonProvider extends ChangeNotifier {
   bool isLessonCompleted(String lessonId) =>
       _completedLessonIds.contains(lessonId);
 
+  /// The module a cached lesson id belongs to.
+  ///
+  /// Resolves through the catalog first. The id-prefix fallback keeps a local
+  /// cache from an older or newer build hydrating into the right module rather
+  /// than being lumped into Module 1.
+  String _moduleIdForLesson(String lessonId) {
+    final known = LessonCatalog.lessonById(lessonId)?.moduleId;
+    if (known != null) return known;
+
+    final match = RegExp(r'^m(\d+)_').firstMatch(lessonId);
+    if (match != null) return 'module${match.group(1)}';
+
+    return LessonCatalog.modules.first.id;
+  }
+
   /// Returns true only if all content-bearing lessons in the module are completed.
   bool isModuleCompleted(String moduleId) {
-    final module = moduleId == 'module1'
-        ? module1
-        : (moduleId == 'module2'
-            ? module2
-            : (moduleId == 'module3' ? module3 : null));
+    final module = LessonCatalog.moduleById(moduleId);
     if (module == null || module.lessons.isEmpty) return false;
     final relevantLessons = module.lessons.where((l) => l.steps.isNotEmpty);
     if (relevantLessons.isEmpty) return false;
@@ -481,11 +493,7 @@ class LessonProvider extends ChangeNotifier {
 
   /// Returns the count of completed lessons in the given module.
   int completedLessonsInModule(String moduleId) {
-    final module = moduleId == 'module1'
-        ? module1
-        : (moduleId == 'module2'
-            ? module2
-            : (moduleId == 'module3' ? module3 : null));
+    final module = LessonCatalog.moduleById(moduleId);
     if (module == null) return 0;
     return module.lessons.where((l) => _completedLessonIds.contains(l.lessonId)).length;
   }

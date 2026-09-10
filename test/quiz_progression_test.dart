@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/core/providers/quiz_provider.dart';
+import 'package:algebrix/data/lesson_catalog.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/models/lesson_progress_model.dart';
@@ -176,6 +177,78 @@ void main() {
       expect(result.passed, isTrue);
       expect(quizProvider.isModuleQuizPassed('module1'), isTrue);
       expect(quizProvider.isModuleUnlocked('module2'), isTrue);
+    });
+
+    // These pin the unlock rules now that they are derived from catalog order
+    // rather than written out once per module. They are the guard against a
+    // future module silently inheriting the wrong prerequisite.
+    test('module unlocking follows catalog order, not hardcoded ids', () {
+      final modules = LessonCatalog.modules;
+      expect(modules.length, greaterThanOrEqualTo(3));
+
+      // The first module is always open.
+      expect(quizProvider.isModuleUnlocked(modules.first.id), isTrue);
+
+      // Every later module is gated on the one before it.
+      for (var i = 1; i < modules.length; i++) {
+        expect(
+          quizProvider.isModuleUnlocked(modules[i].id),
+          isFalse,
+          reason: '${modules[i].id} must start locked',
+        );
+      }
+    });
+
+    test('passing a quiz unlocks exactly the next module, not the rest',
+        () async {
+      final modules = LessonCatalog.modules;
+
+      await quizProvider.recordQuizResult(
+        moduleId: modules[0].id,
+        score: 8,
+        totalQuestions: 10,
+      );
+
+      expect(quizProvider.isModuleUnlocked(modules[1].id), isTrue);
+      if (modules.length > 2) {
+        expect(
+          quizProvider.isModuleUnlocked(modules[2].id),
+          isFalse,
+          reason: 'unlocking must not cascade past the next module',
+        );
+      }
+    });
+
+    test('a module this build does not ship stays locked', () {
+      expect(quizProvider.isModuleUnlocked('module4'), isFalse);
+      expect(quizProvider.isModuleUnlocked('not-a-module'), isFalse);
+      expect(quizProvider.isModuleUnlocked(''), isFalse);
+      expect(
+        quizProvider.isQuizUnlocked('module4', lessonProvider),
+        isFalse,
+      );
+    });
+
+    test('a quiz needs both an unlocked module and finished lessons', () async {
+      final modules = LessonCatalog.modules;
+
+      // Module 2 lessons cannot be complete yet, so even after passing the
+      // Module 1 quiz its own quiz stays shut.
+      await quizProvider.recordQuizResult(
+        moduleId: modules[0].id,
+        score: 10,
+        totalQuestions: 10,
+      );
+
+      expect(quizProvider.isModuleUnlocked(modules[1].id), isTrue);
+      expect(
+        lessonProvider.isModuleCompleted(modules[1].id),
+        isFalse,
+      );
+      expect(
+        quizProvider.isQuizUnlocked(modules[1].id, lessonProvider),
+        isFalse,
+      );
     });
 
     test('High scores and attempts are properly managed and updated', () async {

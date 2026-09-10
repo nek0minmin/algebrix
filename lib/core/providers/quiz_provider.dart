@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
+import 'package:algebrix/data/lesson_catalog.dart';
 import 'package:algebrix/models/module_quiz_progress_model.dart';
 import 'package:algebrix/services/quiz_repository.dart';
 
@@ -94,37 +95,32 @@ class QuizProvider extends ChangeNotifier {
 
   /// Checks whether a Module is unlocked.
   ///
-  /// Module 1 is always unlocked.
-  /// Module 2 unlocks ONLY when Module 1 Quiz has been passed with at least a 60% mark.
+  /// The first module in the catalog is always open; every module after it
+  /// unlocks when the previous module's quiz has been passed at 60% or better.
+  ///
+  /// Stated once and derived from catalog order, rather than one branch per
+  /// module — a new module inherits the rule instead of needing a new branch.
   bool isModuleUnlocked(String moduleId) {
-    if (moduleId == 'module1') return true;
-    if (moduleId == 'module2') {
-      return isModuleQuizPassed('module1');
-    }
-    // Future modules unlock sequentially upon passing prior quiz
-    if (moduleId == 'module3') {
-      return isModuleQuizPassed('module2');
-    }
-    return false;
+    final modules = LessonCatalog.modules;
+    final index = modules.indexWhere((module) => module.id == moduleId);
+
+    // A module this build does not ship stays locked.
+    if (index < 0) return false;
+    if (index == 0) return true;
+
+    return isModuleQuizPassed(modules[index - 1].id);
   }
 
   /// Checks whether a specific Module's Quiz is unlocked.
   ///
-  /// Module 1 Quiz unlocks only when all lessons in Module 1 are completed.
-  /// Module 2 Quiz unlocks only when Module 2 is unlocked AND all Module 2 lessons are completed.
+  /// A quiz opens once its module is unlocked and every lesson in it is
+  /// complete. Module 1 previously skipped the unlock check, which was
+  /// equivalent only because the first module is always unlocked.
   bool isQuizUnlocked(String moduleId, LessonProvider lessonProvider) {
-    if (moduleId == 'module1') {
-      return lessonProvider.isModuleCompleted('module1');
-    }
-    if (moduleId == 'module2') {
-      return isModuleUnlocked('module2') &&
-          lessonProvider.isModuleCompleted('module2');
-    }
-    if (moduleId == 'module3') {
-      return isModuleUnlocked('module3') &&
-          lessonProvider.isModuleCompleted('module3');
-    }
-    return false;
+    if (LessonCatalog.moduleById(moduleId) == null) return false;
+
+    return isModuleUnlocked(moduleId) &&
+        lessonProvider.isModuleCompleted(moduleId);
   }
 
   /// Records a completed quiz attempt result and updates high scores.
