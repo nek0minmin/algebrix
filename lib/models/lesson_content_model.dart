@@ -69,6 +69,57 @@ class OrderingActivityData extends LessonActivityData {
   });
 }
 
+/// Whether a graphed boundary value is part of the solution.
+enum NumberLineBoundary {
+  /// `<` or `>` — an open circle, boundary excluded.
+  open,
+
+  /// `≤` or `≥` — a filled circle, boundary included.
+  closed,
+}
+
+/// Which way the shaded solution range runs from the boundary.
+enum NumberLineDirection { left, right }
+
+/// Graphing an inequality on a number line.
+///
+/// The learner does the three things a graph actually encodes, in order:
+/// place the boundary, decide whether it is included, then paint the range.
+/// Splitting it up is the point — it stops "open circle for `<`" being
+/// memorised without understanding why.
+class NumberLineActivityData extends LessonActivityData {
+  const NumberLineActivityData({
+    required this.inequality,
+    required this.minValue,
+    required this.maxValue,
+    required this.correctBoundary,
+    required this.correctMarker,
+    required this.correctDirection,
+    this.boundaryPrompt = 'Tap the boundary value',
+    this.markerPrompt = 'Can x equal that value?',
+    this.directionPrompt = 'Paint the values that belong',
+  });
+
+  /// The inequality being graphed, e.g. `x ≥ -2`.
+  final String inequality;
+
+  final int minValue;
+  final int maxValue;
+
+  final int correctBoundary;
+  final NumberLineBoundary correctMarker;
+  final NumberLineDirection correctDirection;
+
+  final String boundaryPrompt;
+  final String markerPrompt;
+  final String directionPrompt;
+
+  /// Tick values drawn on the line, inclusive of both ends.
+  List<int> get ticks => [
+        for (var value = minValue; value <= maxValue; value++) value,
+      ];
+}
+
 class ChoiceOption {
   final String label;
   final String? emoji;

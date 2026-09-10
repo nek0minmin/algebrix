@@ -1,6 +1,7 @@
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/data/module3_content.dart';
+import 'package:algebrix/data/module4_content.dart';
 
 class NoteLessonOption {
   const NoteLessonOption({
@@ -56,6 +57,17 @@ final List<NoteLessonOption> noteLessonOptions = List.unmodifiable([
       keywords: _keywordsFor(entry.value.lessonId),
     ),
   ),
+  ...module4.lessons.asMap().entries.map(
+    (entry) => NoteLessonOption(
+      moduleId: module4.id,
+      moduleName: 'Module 4: ${module4.title}',
+      lessonId: entry.value.lessonId,
+      lessonNumber: '4.${entry.key + 1}',
+      title: entry.value.title,
+      label: '4.${entry.key + 1} • ${entry.value.title}',
+      keywords: _keywordsFor(entry.value.lessonId),
+    ),
+  ),
 ]);
 
 List<String> _keywordsFor(String lessonId) {
@@ -81,6 +93,11 @@ List<String> _keywordsFor(String lessonId) {
     'm3_l6' => const ['equations with parentheses', 'parentheses in equations', 'distribute then solve', 'distributive equation'],
     'm3_l7' => const ['checking solutions', 'check solution', 'verify solution', 'substitute back', 'solver habit', 'self check'],
     'm3_l8' => const ['equation quest', 'equation challenge', 'module 3 challenge', 'master equations'],
+    'm4_l1' => const ['inequality', 'inequalities', 'less than', 'greater than', 'at least', 'at most', 'range of values', 'inequality symbol', 'inequality symbols'],
+    'm4_l2' => const ['one-step inequality', 'one step inequality', 'solve an inequality', 'boundary value', 'solution range'],
+    'm4_l3' => const ['negative number rule', 'reverse the inequality', 'flip the sign', 'multiply by a negative', 'divide by a negative', 'reversing the sign'],
+    'm4_l4' => const ['two-step inequality', 'two step inequality', 'negative coefficient', 'multi-step inequality'],
+    'm4_l5' => const ['graphing inequalities', 'graph an inequality', 'number line', 'open circle', 'closed circle', 'boundary point', 'shading', 'solution set'],
     _ => const [],
   };
 }

@@ -14,6 +14,7 @@ import 'package:algebrix/widgets/lesson/interactive_choice_grid.dart';
 import 'package:algebrix/widgets/lesson/lesson_nav_buttons.dart';
 import 'package:algebrix/screens/lessons/lesson_complete_screen.dart';
 import 'package:algebrix/widgets/lesson/activities/classification_activity.dart';
+import 'package:algebrix/widgets/lesson/activities/number_line_activity.dart';
 import 'package:algebrix/widgets/lesson/activities/ordering_activity.dart';
 import 'package:algebrix/widgets/lesson/activities/term_selection_activity.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
@@ -560,6 +561,13 @@ class _LessonScreenState extends State<LessonScreen> {
       );
     } else if (activity is OrderingActivityData) {
       activityWidget = OrderingActivity(
+        key: ValueKey(step.id),
+        data: activity,
+        enabled: enabled,
+        onAnswered: (isCorrect) => _handleAnswer(0, isCorrect),
+      );
+    } else if (activity is NumberLineActivityData) {
+      activityWidget = NumberLineActivity(
         key: ValueKey(step.id),
         data: activity,
         enabled: enabled,

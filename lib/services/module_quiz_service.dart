@@ -39,7 +39,9 @@ class ModuleQuizService {
 
   /// Builds a dedicated, strict system prompt tailored to the requested module's exact curriculum.
   String _buildSystemPrompt(ModuleContent module) {
-    if (module.id == 'module3') {
+    if (module.id == 'module4') {
+      return _buildModule4SystemPrompt();
+    } else if (module.id == 'module3') {
       return _buildModule3SystemPrompt();
     } else if (module.id == 'module2') {
       return _buildModule2SystemPrompt();
@@ -170,7 +172,7 @@ MODULE 3 SCOPE (ONLY USE THESE 7 LESSONS):
 STRICT NEGATIVE CONSTRAINTS (FORBIDDEN IN MODULE 3):
 ❌ DO NOT ask questions about Systems of Linear Equations (two variables x and y simultaneously, e.g. x + y = 7).
 ❌ DO NOT ask questions about Quadratic Equations (e.g. x² − 4 = 0 or quadratic formula).
-❌ DO NOT ask questions about Inequalities (<, >, ≤, ≥).
+❌ DO NOT ask questions about Inequalities (<, >, ≤, ≥) — those belong to Module 4.
 ❌ DO NOT ask questions about Fractional coefficients or complex rational expressions.
 
 10-QUESTION PROGRESSION BREAKDOWN:
@@ -197,6 +199,58 @@ Return ONLY a JSON object with this EXACT structure:
       "options": ["3x + 2", "4y − 7", "3x + 2 = 11"],
       "correctIndex": 2,
       "explanation": "An equation must contain an equals sign (=) stating two expressions have the same value.",
+      "difficulty": 1
+    }
+  ]
+}
+''';
+  }
+
+  String _buildModule4SystemPrompt() {
+    return '''
+You are Xy, the expert educational AI quiz master in Algebrix.
+Create an engaging, 10-item progressive algebra quiz strictly based on Module 4 ("Inequalities").
+
+MODULE 4 SCOPE (ONLY USE THESE 5 LESSONS):
+• Understanding Inequalities: The symbols <, >, ≤, ≥; an inequality describes a RANGE of values, not one answer; ≤ and ≥ include the boundary value while < and > exclude it.
+• One-Step Inequalities: Solving with a single inverse operation (e.g. x + 3 < 8 ⇒ x < 5; x − 2 ≤ 6 ⇒ x ≤ 8; 3x < 12 ⇒ x < 4; x ÷ 4 ≥ 3 ⇒ x ≥ 12).
+• The Negative Number Rule: Multiplying or dividing BOTH sides by a negative reverses the inequality (e.g. −2x < 8 ⇒ x > −4). Adding or subtracting NEVER reverses it, because negatives reverse the order of values on a number line.
+• Two-Step Inequalities: Undoing operations in reverse order, reversing the sign only at a negative multiply or divide (e.g. 2x + 3 < 11 ⇒ x < 4; −2x + 3 ≤ 11 ⇒ x ≥ −4).
+• Graphing Inequalities: Boundary value; open circle for < and >, closed circle for ≤ and ≥; shading right for greater and left for less; reading a graph back into an inequality.
+
+STRICT NEGATIVE CONSTRAINTS (FORBIDDEN IN MODULE 4):
+❌ DO NOT ask questions about Compound inequalities (e.g. 2 < x < 7, "and"/"or" inequalities).
+❌ DO NOT ask questions about Absolute value inequalities (e.g. |x| < 3).
+❌ DO NOT ask questions about Two-variable inequalities or systems (e.g. y > 2x + 1).
+❌ DO NOT ask questions about Coordinate-plane graphing. Number lines ONLY.
+❌ DO NOT ask questions about Quadratic or rational inequalities.
+
+10-QUESTION PROGRESSION BREAKDOWN:
+- Questions 1 to 3 (Difficulty: 1, Foundations): Reading the four symbols, deciding whether a value belongs to a solution set, boundary inclusion with ≤ / ≥ versus < / >.
+- Questions 4 to 7 (Difficulty: 2, Procedural Operations): One-step inequalities, choosing the correct inverse operation, deciding whether an operation reverses the sign, a single negative multiply or divide.
+- Questions 8 to 10 (Difficulty: 3, Multi-Step Mastery): Two-step inequalities with a negative coefficient, translating a described number-line graph into an inequality, spotting the mistake when a solver forgot to reverse the sign.
+
+MATHEMATICAL RIGOR & EXPLANATION RULES:
+1. Every calculation MUST be exact. Verify the math before outputting choices!
+2. The correct answer MUST be present in the options list and match correctIndex.
+3. NEVER include internal chain-of-thought, reasoning steps, or scratchpad text in the explanation or question.
+4. When asking to solve an inequality, state it clearly: e.g. "Solve for x: 2x + 3 < 11".
+5. Describe graphs in WORDS, never ASCII art: e.g. "a closed circle at 4 with shading to the right".
+6. Distractors must be pedagogically meaningful — especially the answer a learner gets when they forget to reverse the sign.
+7. Mix Question Types: "multipleChoice" (3 or 4 options) and "trueFalse" (2 options).
+8. Zero-Emoji Rule: NEVER include hint emojis in question text or options.
+
+Return ONLY a JSON object with this EXACT structure:
+{
+  "questions": [
+    {
+      "id": "m4_q1",
+      "subLessonTitle": "Understanding Inequalities",
+      "question": "Which value does NOT belong to the solution of x < 6?",
+      "type": "multipleChoice",
+      "options": ["2", "5", "6"],
+      "correctIndex": 2,
+      "explanation": "Substituting 6 gives 6 < 6, which is false, so 6 is excluded.",
       "difficulty": 1
     }
   ]
@@ -492,11 +546,13 @@ Return ONLY a JSON object with this EXACT structure:
     return trimmed;
   }
 
-  /// High-quality dynamic seed bank for Modules 1, 2, and 3 with 10 progressive items strictly within scope.
+  /// High-quality dynamic seed bank for Modules 1-4 with 10 progressive items strictly within scope.
   ModuleQuiz _generateSeedBankQuiz(ModuleContent module) {
     final rng = Random();
 
-    if (module.id == 'module3') {
+    if (module.id == 'module4') {
+      return _buildModule4SeedQuiz(rng);
+    } else if (module.id == 'module3') {
       return _buildModule3SeedQuiz(rng);
     } else if (module.id == 'module2') {
       return _buildModule2SeedQuiz(rng);
@@ -908,6 +964,142 @@ Return ONLY a JSON object with this EXACT structure:
     return ModuleQuiz(
       moduleId: 'module3',
       moduleTitle: 'Solving Equations',
+      questions: questions,
+      generatedAt: DateTime.now(),
+      providerUsed: 'Algebrix Curated Seed Bank',
+    );
+  }
+
+  ModuleQuiz _buildModule4SeedQuiz(Random rng) {
+    // Randomised within a narrow, verified range so repeat attempts differ
+    // without ever producing an unsolvable or off-scope item.
+    final a = 2 + rng.nextInt(4); // 2..5
+    final b = 3 + rng.nextInt(5); // 3..7
+    final sum = a + b;
+
+    final questions = <ModuleQuizQuestion>[
+      ModuleQuizQuestion(
+        id: 'm4_seed_1',
+        subLessonTitle: 'Understanding Inequalities',
+        question: 'Which symbol means "greater than or equal to"?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['<', '≥', '≤'],
+        correctIndex: 1,
+        explanation:
+            'The ≥ symbol combines "greater than" with the equal line underneath, so the boundary value counts too.',
+        difficulty: 1,
+      ),
+      ModuleQuizQuestion(
+        id: 'm4_seed_2',
+        subLessonTitle: 'Understanding Inequalities',
+        question: 'Does the value 6 belong to the solution of x < 6?',
+        type: QuizQuestionType.trueFalse,
+        options: const ['True', 'False'],
+        correctIndex: 1,
+        explanation:
+            'Substituting gives 6 < 6, which is false. A plain < excludes the boundary value.',
+        difficulty: 1,
+      ),
+      ModuleQuizQuestion(
+        id: 'm4_seed_3',
+        subLessonTitle: 'Understanding Inequalities',
+        question: 'Which value belongs to the solution of x ≥ 4?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['1', '3', '4'],
+        correctIndex: 2,
+        explanation:
+            'Because the symbol is ≥, the boundary 4 is included: 4 ≥ 4 is true.',
+        difficulty: 1,
+      ),
+      ModuleQuizQuestion(
+        id: 'm4_seed_4',
+        subLessonTitle: 'One-Step Inequalities',
+        question: 'Solve for x: x + $a < $sum',
+        type: QuizQuestionType.multipleChoice,
+        options: ['x < $b', 'x > $b', 'x < $sum'],
+        correctIndex: 0,
+        explanation:
+            'Subtract $a from both sides: x + $a − $a < $sum − $a, so x < $b.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm4_seed_5',
+        subLessonTitle: 'One-Step Inequalities',
+        question: 'To solve x − 7 > 4, what should you do to both sides?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['Add 7', 'Subtract 7', 'Divide by 7'],
+        correctIndex: 0,
+        explanation:
+            'x is having 7 subtracted, so add 7 to both sides: x − 7 + 7 > 4 + 7, giving x > 11.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm4_seed_6',
+        subLessonTitle: 'The Negative Number Rule',
+        question:
+            'Does subtracting 5 from both sides of an inequality reverse the sign?',
+        type: QuizQuestionType.trueFalse,
+        options: const ['True', 'False'],
+        correctIndex: 1,
+        explanation:
+            'Only multiplying or dividing both sides by a negative reverses the sign. Adding and subtracting never do.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm4_seed_7',
+        subLessonTitle: 'The Negative Number Rule',
+        question: 'Solve for x: −2x < 8',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['x < −4', 'x > −4', 'x > 4'],
+        correctIndex: 1,
+        explanation:
+            'Divide both sides by −2. Because the divisor is negative, < reverses to >, giving x > −4.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm4_seed_8',
+        subLessonTitle: 'Two-Step Inequalities',
+        question: 'Solve for x: 2x + 3 < 11',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['x < 4', 'x > 4', 'x < 7'],
+        correctIndex: 0,
+        explanation:
+            'Subtract 3 to get 2x < 8, then divide by 2 to get x < 4. Dividing by a positive keeps the sign.',
+        difficulty: 3,
+      ),
+      ModuleQuizQuestion(
+        id: 'm4_seed_9',
+        subLessonTitle: 'Graphing Inequalities',
+        question:
+            'A number line shows a closed circle at −1 with shading to the right. Which inequality is it?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['x > −1', 'x ≥ −1', 'x ≤ −1'],
+        correctIndex: 1,
+        explanation:
+            'A closed circle includes the boundary, and shading to the right means greater, so x ≥ −1.',
+        difficulty: 3,
+      ),
+      ModuleQuizQuestion(
+        id: 'm4_seed_10',
+        subLessonTitle: 'The Negative Number Rule',
+        question:
+            'A learner solves −4x > 20 and writes x > −5. What went wrong?',
+        type: QuizQuestionType.multipleChoice,
+        options: const [
+          'They divided by a negative but did not reverse the sign',
+          'They should have added 4 instead',
+          'Nothing, the answer is correct',
+        ],
+        correctIndex: 0,
+        explanation:
+            'Dividing both sides by −4 reverses > into <, so the correct solution is x < −5.',
+        difficulty: 3,
+      ),
+    ];
+
+    return ModuleQuiz(
+      moduleId: 'module4',
+      moduleTitle: 'Inequalities',
       questions: questions,
       generatedAt: DateTime.now(),
       providerUsed: 'Algebrix Curated Seed Bank',

@@ -11,6 +11,7 @@ import 'package:algebrix/core/providers/quiz_review_provider.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/data/module3_content.dart';
+import 'package:algebrix/data/module4_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_progress_model.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
@@ -35,6 +36,7 @@ class QuizHubScreen extends StatelessWidget {
     final m1Progress = quizProvider.getQuizProgress('module1');
     final m2Progress = quizProvider.getQuizProgress('module2');
     final m3Progress = quizProvider.getQuizProgress('module3');
+    final m4Progress = quizProvider.getQuizProgress('module4');
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -107,6 +109,12 @@ class QuizHubScreen extends StatelessWidget {
                         title: module3.title,
                         progress: m3Progress,
                         isUnlocked: quizProvider.isQuizUnlocked('module3', lessonProvider),
+                      ),
+                      _QuizBreakdownItem(
+                        moduleNumber: 4,
+                        title: module4.title,
+                        progress: m4Progress,
+                        isUnlocked: quizProvider.isQuizUnlocked('module4', lessonProvider),
                       ),
                     ],
                   ),
@@ -253,19 +261,60 @@ class QuizHubScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // ── 8. Future Module Quizzes (Locked Previews) ────────────
-                  _LockedFutureQuizCard(
+                  // ── 8. Module 4 Quiz Card ─────────────────────────────────
+                  _ModuleQuizHubCard(
+                    module: module4,
                     moduleNumber: 4,
-                    title: 'Inequalities Quiz',
-                    prerequisite: 'Pass Module 3 Quiz (at least 60%)',
                     accentColor: AppColors.yellow,
+                    isUnlocked:
+                        quizProvider.isQuizUnlocked('module4', lessonProvider),
+                    progress: m4Progress,
+                    completedLessons:
+                        lessonProvider.completedLessonsInModule('module4'),
+                    totalLessons: module4.lessons.length,
+                    unlockRequirement: !quizProvider.isModuleUnlocked('module4')
+                        ? 'Score at least 60% on Module 3 Quiz'
+                        : 'Complete all ${module4.lessons.length} Module 4 lessons',
+                    onStart: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: ModuleQuizScreen(module: module4),
+                        ),
+                      );
+                    },
+                    onGoToLessons: () {
+                      if (!quizProvider.isModuleUnlocked('module4')) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Pass the Module 3 Quiz first with at least 60% to unlock Module 4!'),
+                            backgroundColor: AppColors.mint,
+                          ),
+                        );
+                        return;
+                      }
+                      lessonProvider.startModule(module4);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const ModuleOverviewScreen(),
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
+
+                  // ── 9. Future Module Quizzes (Locked Previews) ────────────
                   _LockedFutureQuizCard(
                     moduleNumber: 5,
                     title: 'Linear Relationships Quiz',
                     prerequisite: 'Pass Module 4 Quiz (at least 60%)',
                     accentColor: AppColors.info,
+                  ),
+                  const SizedBox(height: 12),
+                  _LockedFutureQuizCard(
+                    moduleNumber: 6,
+                    title: 'Polynomials Quiz',
+                    prerequisite: 'Pass Module 5 Quiz (at least 60%)',
+                    accentColor: AppColors.error,
                   ),
                 ],
               ),

@@ -12,6 +12,7 @@ import 'package:algebrix/screens/quiz/quiz_hub_screen.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/data/module3_content.dart';
+import 'package:algebrix/data/module4_content.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/core/animations/app_page_route.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
@@ -33,11 +34,13 @@ class _LessonsScreenState extends State<LessonsScreen> {
     final quizProvider = context.watch<QuizProvider>();
     final isModule2Unlocked = quizProvider.isModuleUnlocked('module2');
     final isModule3Unlocked = quizProvider.isModuleUnlocked('module3');
+    final isModule4Unlocked = quizProvider.isModuleUnlocked('module4');
 
     final allLessons = [
       ...module1.lessons,
       ...module2.lessons,
       ...module3.lessons,
+      ...module4.lessons,
     ];
     final filteredLessons = _searchQuery.isEmpty
         ? <LessonContent>[]
@@ -189,14 +192,39 @@ class _LessonsScreenState extends State<LessonsScreen> {
 
                 const SizedBox(height: 16),
 
-                // Module 4 — Inequalities (Locked)
-                _LockedModuleCard(
-                  title: 'Inequalities',
-                  description: 'One-step, two-step, and graphing inequalities.',
-                  moduleNumber: 4,
-                  icon: '📊',
-                  accentColor: AppColors.yellow,
-                ),
+                // Module 4 — Inequalities (Dynamic Unlock)
+                if (isModule4Unlocked)
+                  _ModuleCard(
+                    module: module4,
+                    moduleNumber: 4,
+                    accentColor: AppColors.yellow,
+                    isLocked: false,
+                    onTap: () {
+                      final lessonProvider = context.read<LessonProvider>();
+                      lessonProvider.startModule(module4);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const ModuleOverviewScreen(),
+                        ),
+                      );
+                    },
+                  )
+                else
+                  _LockedModuleCard(
+                    title: module4.title,
+                    description: 'Pass Module 3 Quiz with at least 60% to unlock.',
+                    moduleNumber: 4,
+                    icon: '📊',
+                    accentColor: AppColors.yellow,
+                    onTapLocked: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Score at least 60% on the Module 3 Quiz to unlock Module 4!'),
+                          backgroundColor: AppColors.mint,
+                        ),
+                      );
+                    },
+                  ),
 
                 const SizedBox(height: 16),
 

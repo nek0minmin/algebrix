@@ -64,9 +64,9 @@ Future<MasteryProvider> _boundProvider(
 
 void main() {
   group('LessonCatalog', () {
-    test('registers all three modules and every lesson', () {
-      expect(LessonCatalog.modules.length, 3);
-      expect(LessonCatalog.totalLessons, 21);
+    test('registers every shipped module and lesson', () {
+      expect(LessonCatalog.modules.length, 4);
+      expect(LessonCatalog.totalLessons, 26);
     });
 
     test('resolves lessons and their owning module', () {
