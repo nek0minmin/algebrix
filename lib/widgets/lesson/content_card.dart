@@ -41,6 +41,14 @@ class _ContentCardState extends State<ContentCard>
     _controller.forward();
   }
 
+  /// Circles only when every bullet is a bare symbol, e.g. the variables
+  /// x, y, a, b, n. A list of worked values or phrases gets pills instead.
+  bool get _useCircles =>
+      widget.bulletPoints!.every((point) => point.trim().length <= 2);
+
+  /// "COMMON VARIABLES" is only true when the bullets really are variables.
+  String get _bulletsLabel => _useCircles ? 'COMMON VARIABLES' : 'EXAMPLES';
+
   @override
   void dispose() {
     _controller.dispose();
@@ -104,7 +112,7 @@ class _ContentCardState extends State<ContentCard>
             if (widget.bulletPoints != null &&
                 widget.bulletPoints!.isNotEmpty) ...[
               Text(
-                'COMMON VARIABLES',
+                _bulletsLabel,
                 style: AppTextStyles.caption.copyWith(
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w800,
@@ -114,14 +122,20 @@ class _ContentCardState extends State<ContentCard>
               const SizedBox(height: 12),
               LayoutBuilder(
                 builder: (context, constraints) {
-                  final screenWidth = MediaQuery.sizeOf(context).width;
-                  final chipSize = screenWidth < 340 ? 44.0 : 48.0;
-                  final itemCount = widget.bulletPoints!.length;
-                  final availableGap = itemCount > 1
-                      ? (constraints.maxWidth - (chipSize * itemCount)) /
-                            (itemCount - 1)
-                      : 0.0;
-                  final spacing = availableGap.clamp(0.0, 12.0);
+                  // Circles shrink their gap so a row of variables stays on one
+                  // line even at 320px; pills size to their text and wrap
+                  // naturally, so a fixed gap is right for them.
+                  var spacing = 8.0;
+                  if (_useCircles) {
+                    final chipSize =
+                        MediaQuery.sizeOf(context).width < 340 ? 44.0 : 48.0;
+                    final count = widget.bulletPoints!.length;
+                    final gap = count > 1
+                        ? (constraints.maxWidth - (chipSize * count)) /
+                            (count - 1)
+                        : 0.0;
+                    spacing = gap.clamp(0.0, 12.0);
+                  }
 
                   return Center(
                     child: Wrap(
@@ -130,30 +144,7 @@ class _ContentCardState extends State<ContentCard>
                       runSpacing: 8,
                       children: [
                         for (final point in widget.bulletPoints!)
-                          Container(
-                            key: ValueKey('variable-chip-$point'),
-                            width: chipSize,
-                            height: chipSize,
-                            alignment: Alignment.center,
-                            decoration: const BoxDecoration(
-                              color: AppColors.extraLightPink,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  point,
-                                  maxLines: 1,
-                                  style: AppTextStyles.subtitle1.copyWith(
-                                    color: AppColors.pink,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                          _BulletChip(point: point, asCircle: _useCircles),
                       ],
                     ),
                   );
@@ -165,6 +156,62 @@ class _ContentCardState extends State<ContentCard>
           ],
         ),
       ),
+    );
+  }
+}
+
+/// One bullet from a content card.
+///
+/// Circles suit single-symbol lists like the variables x, y, n. Anything
+/// longer gets a pill that sizes to its text — the old fixed 44px circle
+/// shrank a phrase like "…and infinitely many more" until it was unreadable.
+class _BulletChip extends StatelessWidget {
+  const _BulletChip({required this.point, required this.asCircle});
+
+  final String point;
+  final bool asCircle;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = Text(
+      point,
+      maxLines: asCircle ? 1 : 2,
+      textAlign: TextAlign.center,
+      style: AppTextStyles.subtitle1.copyWith(
+        color: AppColors.pink,
+        fontWeight: FontWeight.w900,
+        fontSize: asCircle ? null : 14,
+      ),
+    );
+
+    if (asCircle) {
+      final chipSize = MediaQuery.sizeOf(context).width < 340 ? 44.0 : 48.0;
+      return Container(
+        key: ValueKey('variable-chip-$point'),
+        width: chipSize,
+        height: chipSize,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: AppColors.extraLightPink,
+          shape: BoxShape.circle,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: FittedBox(fit: BoxFit.scaleDown, child: label),
+        ),
+      );
+    }
+
+    return Container(
+      key: ValueKey('variable-chip-$point'),
+      constraints: const BoxConstraints(minHeight: 38),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.extraLightPink,
+        borderRadius: BorderRadius.circular(19),
+      ),
+      child: label,
     );
   }
 }

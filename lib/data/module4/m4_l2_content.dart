@@ -44,9 +44,10 @@ final m4Lesson2 = LessonContent(
       bodyText:
           'Solve **x + 4 > 9**.\n\nWhat is happening to x? **+4**.\n\nUndo it '
           'with **−4** on both sides:\n\n`x + 4 − 4 > 9 − 4`',
-      bulletPoints: ['6 ✓', '7 ✓', '20 ✓', '…and infinitely many more'],
+      bulletPoints: ['6 ✓', '7 ✓', '20 ✓'],
       mathExpression: 'x > 5',
-      mathAnnotation: 'Every number past 5 is a solution.',
+      mathAnnotation:
+          'Every number past 5 is a solution — infinitely many of them.',
     ),
     LessonStep(
       id: 'm4_l2_s04',
@@ -66,7 +67,7 @@ final m4Lesson2 = LessonContent(
           'Solve **3x < 12**.\n\nx is multiplied by **3**, so divide both sides '
           'by **3**:\n\n`3x ÷ 3 < 12 ÷ 3`',
       mathExpression: 'x < 4',
-      mathAnnotation: 'Simple enough… for now. 👀',
+      mathAnnotation: 'Simple enough… for now.',
     ),
     LessonStep(
       id: 'm4_l2_s06',
@@ -92,7 +93,7 @@ final m4Lesson2 = LessonContent(
       ],
       correctChoiceIndex: 1,
       explanation:
-          'Exactly. `x − 7 + 7 > 4 + 7` gives **x > 11**. 🎉',
+          'Exactly. `x − 7 + 7 > 4 + 7` gives **x > 11**.',
       incorrectExplanation:
           'x is having 7 taken away. To undo subtraction, add the same amount to '
           'both sides.',
@@ -136,7 +137,7 @@ final m4Lesson2 = LessonContent(
           'already know — the answer is just a range.',
       xyDialogue:
           'One warning before you get comfortable: negative numbers are about to '
-          'do something sneaky. 👀',
+          'do something sneaky.',
       xyAsset: AppAssets.xyHappy,
       buttonLabel: 'Complete 4.2',
     ),

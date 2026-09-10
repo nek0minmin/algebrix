@@ -44,8 +44,9 @@ final m4Lesson5 = LessonContent(
       title: 'Closed Circle',
       bodyText:
           'Now **x ≥ 3**. Is 3 allowed?\n\n`3 ≥ 3` ✓ true\n\nSo we fill it in — a '
-          '**closed circle ●**.',
-      bulletPoints: ['< and > → ○ open', '≤ and ≥ → ● closed'],
+          '**closed circle ●**.\n\n'
+          '• **<** and **>** use an open **○**\n'
+          '• **≤** and **≥** use a closed **●**',
       mathExpression: '●  =  boundary IS included',
       mathAnnotation: 'Test the boundary value. The circle follows the answer.',
     ),
@@ -54,7 +55,7 @@ final m4Lesson5 = LessonContent(
       type: LessonStepType.xySays,
       xyDialogue:
           'Don\'t memorise which symbol gets which circle. **Substitute the '
-          'boundary** into the inequality. True means filled, false means hollow. ✨',
+          'boundary** into the inequality. True means filled, false means hollow.',
       xyAsset: AppAssets.xyIdea,
     ),
     LessonStep(
@@ -85,7 +86,7 @@ final m4Lesson5 = LessonContent(
         correctDirection: NumberLineDirection.right,
       ),
       explanation:
-          'Range painted! 🎉 Every point in that direction is a possible value '
+          'Range painted!Every point in that direction is a possible value '
           'of x — and **−2** is included because the symbol is ≥.',
       incorrectExplanation:
           'Check each decision: boundary at −2, can x equal −2 (yes, it\'s ≥), '
@@ -162,7 +163,7 @@ final m4Lesson5 = LessonContent(
       title: 'Final Graphing Challenge',
       question:
           'Solve **−2x + 4 ≥ 10**, watch the negative, then graph the result.',
-      xyDialogue: 'Everything you have learned this module, in one problem. 💪',
+      xyDialogue: 'Everything you have learned this module, in one problem.',
       activity: const NumberLineActivityData(
         inequality: 'x ≤ −3',
         minValue: -6,
@@ -174,7 +175,7 @@ final m4Lesson5 = LessonContent(
       explanation:
           '`−2x + 4 ≥ 10` → `−2x ≥ 6` → divide by −2 and **reverse**: **x ≤ −3**. '
           'Closed circle, shading left. You solved it, understood the boundary, '
-          'and drew every possible solution. 🎉',
+          'and drew every possible solution.',
       incorrectExplanation:
           'Subtract 4 to get −2x ≥ 6, then divide by −2 — remember the sign '
           'reverses. That gives x ≤ −3.',
@@ -188,7 +189,7 @@ final m4Lesson5 = LessonContent(
           'it counts, and **which way** the answers run.',
       xyDialogue:
           'Equations lead to specific values. Inequalities let you explore whole '
-          'ranges. You can read them both ways now. 💗',
+          'ranges. You can read them both ways now.',
       xyAsset: AppAssets.xyHappy,
       buttonLabel: 'Complete 4.5',
     ),

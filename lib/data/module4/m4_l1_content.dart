@@ -56,7 +56,7 @@ final m4Lesson1 = LessonContent(
       type: LessonStepType.xySays,
       xyDialogue:
           'Here\'s my trick: the **wide side** of < or > always opens toward the '
-          '**greater** value. The pointy end aims at the smaller one. 🐊',
+          '**greater** value. The pointy end aims at the smaller one.',
       xyAsset: AppAssets.xyIdea,
     ),
     LessonStep(
@@ -97,7 +97,7 @@ final m4Lesson1 = LessonContent(
           'That tiny line underneath changes everything.\n\n'
           '**x < 6** means less than 6, so **6 is out**.\n\n'
           '**x ≤ 6** means less than **or equal to** 6, so **6 is in**.',
-      bulletPoints: ['x ≤ 6 → 5 ✓', 'x ≤ 6 → 6 ✓', 'x ≤ 6 → 7 ✗'],
+      bulletPoints: ['5 ✓', '6 ✓', '7 ✗'],
       mathExpression: '≤   and   ≥',
       mathAnnotation: 'These two include the boundary value.',
     ),

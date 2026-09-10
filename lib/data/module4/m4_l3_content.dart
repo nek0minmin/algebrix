@@ -77,7 +77,7 @@ final m4Lesson3 = LessonContent(
       xyDialogue:
           'Don\'t memorise "flip the sign". Remember this instead: **multiplying '
           'by a negative reverses the order of the values**. The sign just '
-          'follows along. ✨',
+          'follows along.',
       xyAsset: AppAssets.xyInsight,
     ),
     LessonStep(
@@ -141,7 +141,7 @@ final m4Lesson3 = LessonContent(
           'to reverse with them.',
       xyDialogue:
           'You didn\'t just learn a rule — you learned the reason behind it. '
-          'That one sticks. 💗',
+          'That one sticks.',
       xyAsset: AppAssets.xyHappy,
       buttonLabel: 'Complete 4.3',
     ),

@@ -7,6 +7,7 @@ import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/core/providers/mastery_provider.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/widgets/lesson/lesson_progress_bar.dart';
+import 'package:algebrix/widgets/lesson/lesson_rich_text.dart';
 import 'package:algebrix/widgets/lesson/xy_speech_bubble.dart';
 import 'package:algebrix/widgets/lesson/content_card.dart';
 import 'package:algebrix/widgets/lesson/math_highlight_box.dart';
@@ -390,11 +391,15 @@ class _LessonScreenState extends State<LessonScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text(
+                LessonRichText(
                   step.xyDialogue!,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.body1.copyWith(
+                  base: AppTextStyles.body1.copyWith(
                     color: AppColors.text,
+                    height: 1.6,
+                  ),
+                  emphasis: AppTextStyles.body1.copyWith(
+                    color: AppColors.darkPink,
+                    fontWeight: FontWeight.w900,
                     height: 1.6,
                   ),
                 ),
@@ -745,14 +750,18 @@ class _LessonScreenState extends State<LessonScreen> {
                 ),
               ],
             ),
-            child: Text(
+            child: LessonRichText(
               step.xyDialogue!,
-              style: AppTextStyles.body1.copyWith(
+              base: AppTextStyles.body1.copyWith(
                 color: AppColors.text,
                 height: 1.6,
                 fontWeight: FontWeight.w600,
               ),
-              textAlign: TextAlign.center,
+              emphasis: AppTextStyles.body1.copyWith(
+                color: AppColors.darkPink,
+                height: 1.6,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -833,46 +842,77 @@ class _LessonScreenState extends State<LessonScreen> {
     );
   }
 
+  /// Renders question copy: `**bold**` becomes brand-pink emphasis, and the
+  /// remaining plain text still gets its math operators coloured.
+  ///
+  /// Emphasis is resolved *before* operator tokenising. Previously `*` was
+  /// treated as a multiplication sign, so `**not**` rendered as a row of pink
+  /// × marks around the word.
   Widget _buildQuestionText(String questionText, {double fontSize = 18}) {
-    final spans = <InlineSpan>[];
-    final regex = RegExp(
-      r'([\×\*]|\b[+\−\-\÷\=]\b|[+\−\-\÷\=]|\n+|[^\s\×\*\+\−\-\÷\=]+|\s+)',
+    final baseStyle = TextStyle(
+      fontFamily: 'Nunito',
+      fontSize: fontSize,
+      fontWeight: FontWeight.w700,
+      color: AppColors.text,
+      height: 1.45,
     );
-    final matches = regex.allMatches(questionText);
+    final emphasisStyle = baseStyle.copyWith(
+      fontWeight: FontWeight.w900,
+      color: AppColors.darkPink,
+    );
+
+    final spans = <InlineSpan>[];
+    final boldParts = questionText.split('**');
+
+    for (var i = 0; i < boldParts.length; i++) {
+      final part = boldParts[i];
+      if (part.isEmpty) continue;
+
+      if (i.isOdd) {
+        spans.add(TextSpan(text: part, style: emphasisStyle));
+      } else {
+        spans.addAll(_mathOperatorSpans(part, fontSize, baseStyle));
+      }
+    }
+
+    if (spans.isEmpty) {
+      return Text(questionText, textAlign: TextAlign.center, style: baseStyle);
+    }
+
+    return Text.rich(
+      TextSpan(children: spans),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  /// Colours `+ − ÷ = ×` inside a plain run of question text.
+  List<InlineSpan> _mathOperatorSpans(
+    String text,
+    double fontSize,
+    TextStyle baseStyle,
+  ) {
+    final spans = <InlineSpan>[];
+    // Note: `*` is deliberately absent. Content writes multiplication as ×,
+    // and treating `*` as an operator broke every bold marker.
+    final regex = RegExp(
+      r'(\×|\b[+\−\-\÷\=]\b|[+\−\-\÷\=]|\n+|[^\s\×\+\−\-\÷\=]+|\s+)',
+    );
+    final matches = regex.allMatches(text);
 
     if (matches.isEmpty) {
-      return Text(
-        questionText,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontFamily: 'Nunito',
-          fontSize: fontSize,
-          fontWeight: FontWeight.w700,
-          color: AppColors.text,
-          height: 1.45,
-        ),
-      );
+      return [TextSpan(text: text, style: baseStyle)];
     }
 
     var lastEnd = 0;
     for (final m in matches) {
       if (m.start > lastEnd) {
         spans.add(
-          TextSpan(
-            text: questionText.substring(lastEnd, m.start),
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: fontSize,
-              fontWeight: FontWeight.w700,
-              color: AppColors.text,
-              height: 1.45,
-            ),
-          ),
+          TextSpan(text: text.substring(lastEnd, m.start), style: baseStyle),
         );
       }
 
       final token = m.group(0)!;
-      if (token == '×' || token == '*') {
+      if (token == '×') {
         // Distinct pink and slightly smaller multiplication symbol so it NEVER gets confused with variable x!
         spans.add(
           TextSpan(
@@ -920,25 +960,11 @@ class _LessonScreenState extends State<LessonScreen> {
       lastEnd = m.end;
     }
 
-    if (lastEnd < questionText.length) {
-      spans.add(
-        TextSpan(
-          text: questionText.substring(lastEnd),
-          style: TextStyle(
-            fontFamily: 'Nunito',
-            fontSize: fontSize,
-            fontWeight: FontWeight.w700,
-            color: AppColors.text,
-            height: 1.45,
-          ),
-        ),
-      );
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(text: text.substring(lastEnd), style: baseStyle));
     }
 
-    return Text.rich(
-      TextSpan(children: spans),
-      textAlign: TextAlign.center,
-    );
+    return spans;
   }
 
   void _showExitDialog(BuildContext context) {
@@ -1015,11 +1041,15 @@ class _ModuleLessonIntro extends StatelessWidget {
             ),
             if (step.bodyText != null) ...[
               const SizedBox(height: 8),
-              Text(
+              LessonRichText(
                 step.bodyText!,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.body1.copyWith(
+                base: AppTextStyles.body1.copyWith(
                   color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+                emphasis: AppTextStyles.body1.copyWith(
+                  color: AppColors.darkPink,
+                  fontWeight: FontWeight.w900,
                   height: 1.5,
                 ),
               ),
@@ -1058,11 +1088,15 @@ class _ModuleLessonIntro extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.border),
                 ),
-                child: Text(
+                child: LessonRichText(
                   step.xyDialogue!,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.body1.copyWith(
+                  base: AppTextStyles.body1.copyWith(
                     color: AppColors.text,
+                    height: 1.55,
+                  ),
+                  emphasis: AppTextStyles.body1.copyWith(
+                    color: AppColors.darkPink,
+                    fontWeight: FontWeight.w900,
                     height: 1.55,
                   ),
                 ),

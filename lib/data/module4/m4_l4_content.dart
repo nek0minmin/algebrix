@@ -62,7 +62,7 @@ final m4Lesson4 = LessonContent(
       type: LessonStepType.xySays,
       xyDialogue:
           'The most common slip: flipping **too early**. Subtracting a number '
-          'never reverses the sign — only the negative multiply or divide does. ⏰',
+          'never reverses the sign — only the negative multiply or divide does.',
       xyAsset: AppAssets.xyPointUp,
     ),
     LessonStep(
@@ -111,7 +111,7 @@ final m4Lesson4 = LessonContent(
         correctOrderIds: ['sub6', 'div3'],
       ),
       explanation:
-          'That\'s the path: `3x + 6 ≤ 18` → `3x ≤ 12` → **x ≤ 4**. ✨',
+          'That\'s the path: `3x + 6 ≤ 18` → `3x ≤ 12` → **x ≤ 4**.',
       incorrectExplanation:
           'Undo the addition before the multiplication — reverse of how it was built.',
     ),
@@ -131,7 +131,7 @@ final m4Lesson4 = LessonContent(
       ],
       correctChoiceIndex: 1,
       explanation:
-          'Perfect. Dividing by −2 reverses **>** into **<**, giving **x < −3**. 🎉',
+          'Perfect. Dividing by −2 reverses **>** into **<**, giving **x < −3**.',
       incorrectExplanation:
           'You divided by a negative, so the relationship reverses. Check both '
           'the sign and the direction.',
@@ -144,7 +144,7 @@ final m4Lesson4 = LessonContent(
           'Solve step by step — and reverse the inequality **only** when you '
           'multiply or divide by a negative.',
       xyDialogue:
-          'Next up is my favourite part: turning these answers into pictures. 📈',
+          'Next up is my favourite part: turning these answers into pictures.',
       xyAsset: AppAssets.xyHappy,
       buttonLabel: 'Complete 4.4',
     ),
