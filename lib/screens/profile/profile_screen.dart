@@ -21,6 +21,19 @@ import 'package:algebrix/screens/auth/login_screen.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  /// The signed-in email, or null when Supabase is not available.
+  ///
+  /// `Supabase.instance` asserts when the SDK was never initialised, which is
+  /// the case under widget test and on a first launch where init failed. The
+  /// screen falls back to a derived address rather than crashing.
+  static String? _signedInEmail() {
+    try {
+      return Supabase.instance.client.auth.currentUser?.email;
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -28,7 +41,7 @@ class ProfileScreen extends StatelessWidget {
 
     final user = authProvider.currentUser ?? UserModel.placeholder();
     final profile = lessonProvider.profile;
-    final userEmail = Supabase.instance.client.auth.currentUser?.email ??
+    final userEmail = _signedInEmail() ??
         '${user.name.toLowerCase().replaceAll(' ', '')}@algebrix.app';
 
     final int totalXp = profile?.xp ?? 0;
@@ -130,10 +143,16 @@ class ProfileScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Lesson Progress',
-                        style: AppTextStyles.subtitle1.copyWith(fontWeight: FontWeight.w800),
+                      Flexible(
+                        child: Text(
+                          'Lesson Progress',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.subtitle1
+                              .copyWith(fontWeight: FontWeight.w800),
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Text(
                         '${lessonProvider.completedLessonIds.length} / 13 Lessons',
                         style: AppTextStyles.subtitle2.copyWith(
@@ -206,13 +225,38 @@ class ProfileScreen extends StatelessWidget {
                     style: AppTextStyles.heading3.copyWith(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 14),
+                  // Expanded, not spaceAround: at 360px the four labels sized
+                  // themselves freely and ran off the card.
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _BadgeItem(icon: '🎯', title: 'First Step', isUnlocked: true),
-                      _BadgeItem(icon: '⚡', title: 'Streak Pro', isUnlocked: streak > 0),
-                      _BadgeItem(icon: '🧠', title: 'Math Wiz', isUnlocked: totalXp >= 100),
-                      _BadgeItem(icon: '👑', title: 'Master', isUnlocked: level >= 5),
+                      Expanded(
+                        child: _BadgeItem(
+                          icon: '🎯',
+                          title: 'First Step',
+                          isUnlocked: true,
+                        ),
+                      ),
+                      Expanded(
+                        child: _BadgeItem(
+                          icon: '⚡',
+                          title: 'Streak Pro',
+                          isUnlocked: streak > 0,
+                        ),
+                      ),
+                      Expanded(
+                        child: _BadgeItem(
+                          icon: '🧠',
+                          title: 'Math Wiz',
+                          isUnlocked: totalXp >= 100,
+                        ),
+                      ),
+                      Expanded(
+                        child: _BadgeItem(
+                          icon: '👑',
+                          title: 'Master',
+                          isUnlocked: level >= 5,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -398,11 +442,16 @@ class _BadgeItem extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Text(
-          title,
-          style: AppTextStyles.caption.copyWith(
-            fontWeight: isUnlocked ? FontWeight.w800 : FontWeight.w500,
-            color: isUnlocked ? AppColors.text : AppColors.subtitle,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            title,
+            maxLines: 1,
+            softWrap: false,
+            style: AppTextStyles.caption.copyWith(
+              fontWeight: isUnlocked ? FontWeight.w800 : FontWeight.w500,
+              color: isUnlocked ? AppColors.text : AppColors.subtitle,
+            ),
           ),
         ),
       ],
@@ -419,6 +468,14 @@ class _SoundSettingsCard extends StatefulWidget {
 
 class _SoundSettingsCardState extends State<_SoundSettingsCard> {
   bool _soundEnabled = SoundService.isSoundEnabled;
+  double _volume = SoundService.soundVolume;
+
+  /// Plays a preview at the new level, but only once the learner stops
+  /// dragging — one chime per adjustment, not one per pixel.
+  Future<void> _handleVolumeSettled(double value) async {
+    await SoundService.setSoundVolume(value);
+    SoundService.playTileSelect();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -439,65 +496,122 @@ class _SoundSettingsCardState extends State<_SoundSettingsCard> {
           ),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: _soundEnabled
-                          ? AppColors.lightMint
-                          : AppColors.divider.withValues(alpha: 0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      _soundEnabled
-                          ? Icons.volume_up_rounded
-                          : Icons.volume_off_rounded,
-                      color: _soundEnabled ? AppColors.mint : AppColors.subtitle,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Sound Effects',
-                        style: GoogleFonts.nunito(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.text,
-                        ),
-                      ),
-                      Text(
-                        _soundEnabled
-                            ? 'Tactile math pops & chimes enabled'
-                            : 'Audio muted',
-                        style: GoogleFonts.nunito(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.subtitle,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: _soundEnabled
+                      ? AppColors.lightMint
+                      : AppColors.divider.withValues(alpha: 0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _soundEnabled
+                      ? Icons.volume_up_rounded
+                      : Icons.volume_off_rounded,
+                  color: _soundEnabled ? AppColors.mint : AppColors.subtitle,
+                  size: 22,
+                ),
               ),
+              const SizedBox(width: 14),
+              // Expanded, not a bare Row: the label column used to size itself
+              // freely and push the switch off the right edge on narrow phones.
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sound Effects',
+                      style: GoogleFonts.nunito(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.text,
+                      ),
+                    ),
+                    Text(
+                      _soundEnabled
+                          ? 'Tactile math pops & chimes enabled'
+                          : 'Audio muted',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunito(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.subtitle,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
               Switch.adaptive(
+                key: const Key('sound-effects-toggle'),
                 value: _soundEnabled,
-                activeColor: AppColors.mint,
+                activeThumbColor: AppColors.mint,
                 onChanged: (val) async {
+                  setState(() => _soundEnabled = val);
                   await SoundService.setSoundEnabled(val);
-                  if (val) {
-                    SoundService.playClick();
-                  }
-                  setState(() {
-                    _soundEnabled = val;
-                  });
+                  if (val) SoundService.playClick();
                 },
+              ),
+            ],
+          ),
+
+          // ── Volume ───────────────────────────────────────────────────────
+          const Divider(height: 26, color: AppColors.divider),
+          Row(
+            children: [
+              Text(
+                'Volume',
+                style: GoogleFonts.nunito(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                  color: _soundEnabled ? AppColors.text : AppColors.subtitle,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${(_volume * 100).round()}%',
+                style: GoogleFonts.nunito(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w900,
+                  color: _soundEnabled ? AppColors.mint : AppColors.subtitle,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Row(
+            children: [
+              Icon(
+                Icons.volume_mute_rounded,
+                size: 18,
+                color: _soundEnabled ? AppColors.subtitle : AppColors.border,
+              ),
+              Expanded(
+                child: Slider(
+                  key: const Key('sound-volume-slider'),
+                  value: _volume,
+                  min: SoundService.minVolume,
+                  max: SoundService.maxVolume,
+                  divisions: 20,
+                  activeColor: AppColors.mint,
+                  inactiveColor: AppColors.divider,
+                  label: '${(_volume * 100).round()}%',
+                  // Disabled rather than hidden while muted, so the control
+                  // stays where the learner expects to find it.
+                  onChanged: _soundEnabled
+                      ? (value) => setState(() => _volume = value)
+                      : null,
+                  onChangeEnd: _soundEnabled ? _handleVolumeSettled : null,
+                ),
+              ),
+              Icon(
+                Icons.volume_up_rounded,
+                size: 18,
+                color: _soundEnabled ? AppColors.subtitle : AppColors.border,
               ),
             ],
           ),

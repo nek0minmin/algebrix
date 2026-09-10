@@ -63,7 +63,7 @@ class _LessonScreenState extends State<LessonScreen> {
       return;
     }
 
-    SoundService.playSuccess();
+    SoundService.playCorrect();
     final xpAwarded = await lessonProvider.answerQuestion(true);
     if (!mounted) return;
     if (xpAwarded == null) {

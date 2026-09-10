@@ -10,8 +10,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// sound playback across games, quizzes, lessons, and notes.
 class SoundService {
   static const String _prefSoundEnabledKey = 'algebrix_sound_enabled';
+  static const String _prefSoundVolumeKey = 'algebrix_sound_volume';
+
+  /// Quietest setting the slider allows before it is effectively silent.
+  static const double minVolume = 0.0;
+  static const double maxVolume = 1.0;
+  static const double defaultVolume = 0.8;
 
   static bool _isSoundEnabled = true;
+  static double _masterVolume = defaultVolume;
   static bool _isInitialized = false;
 
   // Pool of AudioPlayers for concurrent playback
@@ -23,6 +30,16 @@ class SoundService {
 
   /// Whether sound effects are currently enabled.
   static bool get isSoundEnabled => _isSoundEnabled;
+
+  /// Master volume, 0.0–1.0, applied on top of each effect's own level.
+  ///
+  /// Effect levels stay relative to one another: lowering this makes the whole
+  /// mix quieter without flattening a soft tile tap and a victory fanfare into
+  /// the same loudness.
+  static double get soundVolume => _masterVolume;
+
+  /// Whether anything would actually be audible right now.
+  static bool get isAudible => _isSoundEnabled && _masterVolume > 0;
 
   static bool get _isTesting {
     if (kIsWeb) return false;
@@ -36,6 +53,9 @@ class SoundService {
       if (!_isTesting) {
         final prefs = await SharedPreferences.getInstance();
         _isSoundEnabled = prefs.getBool(_prefSoundEnabledKey) ?? true;
+        _masterVolume =
+            (prefs.getDouble(_prefSoundVolumeKey) ?? defaultVolume)
+                .clamp(minVolume, maxVolume);
 
         for (final player in _playerPool) {
           try {
@@ -70,6 +90,22 @@ class SoundService {
     await setSoundEnabled(!_isSoundEnabled);
   }
 
+  /// Set the master volume (0.0–1.0) and persist it.
+  static Future<void> setSoundVolume(double value) async {
+    _masterVolume = value.clamp(minVolume, maxVolume);
+    if (_masterVolume == 0) {
+      stopQuizLoadingLoop();
+    }
+    try {
+      if (!_isTesting) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setDouble(_prefSoundVolumeKey, _masterVolume);
+      }
+    } catch (e) {
+      debugPrint('SoundService.setSoundVolume error: $e');
+    }
+  }
+
   // ===========================================================================
   // Sound Effect Triggers
   // ===========================================================================
@@ -79,8 +115,11 @@ class SoundService {
     _play('audio/click.wav', volume: volume);
   }
 
-  /// Cheerful marimba pop when tapping or selecting a math stone/tile/option.
-  static void playTileSelect({double volume = 0.95}) {
+  /// Soft marimba pop when tapping or selecting a math stone/tile/option.
+  ///
+  /// Deliberately the quietest effect in the set: it fires on nearly every tap
+  /// during a puzzle, so at full level it grates long before a lesson ends.
+  static void playTileSelect({double volume = 0.45}) {
     _play('audio/tile_select.wav', volume: volume);
   }
 
@@ -94,9 +133,13 @@ class SoundService {
     _play('audio/eliminate.wav', volume: volume);
   }
 
-  /// Sweet, bright ascending chime when an equation balances, clue passes, or answer is correct.
-  static void playSuccess({double volume = 0.95}) {
-    _play('audio/success.wav', volume: volume);
+  /// Warm chime when the learner gets an answer right, an equation balances,
+  /// or a clue passes.
+  ///
+  /// Uses the same fanfare as [playComplete] rather than success.wav, which was
+  /// too sharp to hear repeatedly through a quiz.
+  static void playCorrect({double volume = 0.85}) {
+    _play('audio/complete.wav', volume: volume);
   }
 
   /// Crisp, audible swoosh/cross-out when an answer or verification is wrong (uses elimination sound).
@@ -132,12 +175,12 @@ class SoundService {
   /// Starts repeating quiz loading pulse while AI quiz generation is in progress.
   static void startQuizLoadingLoop() {
     stopQuizLoadingLoop();
-    if (!_isSoundEnabled || _isTesting) return;
+    if (!isAudible || _isTesting) return;
     playQuizLoading();
     _loadingLoopTimer = Timer.periodic(
       const Duration(milliseconds: 850),
       (_) {
-        if (!_isSoundEnabled) {
+        if (!isAudible) {
           stopQuizLoadingLoop();
           return;
         }
@@ -166,14 +209,17 @@ class SoundService {
     String relativePath, {
     double volume = 0.90,
   }) {
-    if (!_isSoundEnabled || _isTesting) return;
+    if (!isAudible || _isTesting) return;
     try {
       final player = _nextPlayer();
+      // Each effect keeps its own relative level; the master volume scales the
+      // whole mix on top of it.
+      final effective = (volume * _masterVolume).clamp(0.0, 1.0);
       player.stop().then((_) {
-        player.setVolume(volume);
+        player.setVolume(effective);
         player.play(AssetSource(relativePath));
       }).catchError((_) {
-        player.setVolume(volume);
+        player.setVolume(effective);
         player.play(AssetSource(relativePath));
       });
     } catch (e) {

@@ -109,7 +109,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     setState(() => _isSubmitting = false);
 
     if (success) {
-      SoundService.playSuccess();
+      SoundService.playComplete();
       showAlgebrixSnackBar(
         context,
         message: 'Password updated. You are still signed in.',

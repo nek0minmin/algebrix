@@ -84,6 +84,7 @@ class _MainShellState extends State<MainShell> {
           children: [
             AppHeader(
               userName: currentUser.name,
+              avatarKey: currentUser.avatarUrl,
               onLogoutTap: () async {
                 await authProvider.logout();
                 if (context.mounted) {

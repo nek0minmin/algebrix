@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:algebrix/core/constants/app_avatars.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/constants/app_assets.dart';
@@ -15,12 +16,17 @@ enum ProfileMenuOption { profile, settings, help, logout }
 /// Reusable app header widget with profile menu popup & Logout confirmation dialog.
 class AppHeader extends StatelessWidget {
   final String? userName;
+
+  /// Preset avatar slug from `AppAvatars`, or null to show the initial.
+  final String? avatarKey;
+
   final VoidCallback? onProfileTap;
   final VoidCallback? onLogoutTap;
 
   const AppHeader({
     super.key,
     this.userName,
+    this.avatarKey,
     this.onProfileTap,
     this.onLogoutTap,
   });
@@ -231,18 +237,11 @@ class AppHeader extends StatelessWidget {
                   width: 1.5,
                 ),
               ),
-              child: CircleAvatar(
-                radius: 18,
-                backgroundColor: AppColors.lightPink,
-                child: Text(
-                  userName != null && userName!.isNotEmpty
-                      ? userName!.substring(0, 1).toUpperCase()
-                      : 'U',
-                  style: AppTextStyles.subtitle1.copyWith(
-                    color: AppColors.pink,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
+              child: _HeaderAvatar(
+                avatarKey: avatarKey,
+                initial: userName != null && userName!.isNotEmpty
+                    ? userName!.substring(0, 1).toUpperCase()
+                    : 'U',
               ),
             ),
             itemBuilder: (context) => [
@@ -312,6 +311,45 @@ class AppHeader extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Circular header avatar: the learner's chosen preset Xy, or their initial.
+class _HeaderAvatar extends StatelessWidget {
+  const _HeaderAvatar({required this.avatarKey, required this.initial});
+
+  final String? avatarKey;
+  final String initial;
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = AppAvatars.assetForKey(avatarKey);
+
+    if (asset == null) {
+      return CircleAvatar(
+        radius: 18,
+        backgroundColor: AppColors.lightPink,
+        child: Text(
+          initial,
+          style: AppTextStyles.subtitle1.copyWith(
+            color: AppColors.pink,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: const BoxDecoration(
+        color: AppColors.lightPink,
+        shape: BoxShape.circle,
+      ),
+      clipBehavior: Clip.antiAlias,
+      padding: const EdgeInsets.all(3),
+      child: Image.asset(asset, fit: BoxFit.contain),
     );
   }
 }

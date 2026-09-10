@@ -99,7 +99,7 @@ class ConceptMasteryTile extends StatelessWidget {
     return Semantics(
       button: true,
       label:
-          '${concept.lessonTitle}, ${concept.band.label}. Tap to practise.',
+          '${concept.lessonTitle}, ${concept.band.label}. Tap to practice.',
       child: BouncyPressable(
         key: Key('concept-tile-${concept.lessonId}'),
         onTap: onTap,

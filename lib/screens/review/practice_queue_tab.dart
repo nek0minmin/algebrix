@@ -48,7 +48,7 @@ class PracticeQueueTab extends StatelessWidget {
             ConceptMasteryTile(
               concept: concept,
               showDueBadge: true,
-              onTap: () => _practise(context, concept),
+              onTap: () => _practice(context, concept),
             ),
             const SizedBox(height: 10),
           ],
@@ -69,7 +69,7 @@ class PracticeQueueTab extends StatelessWidget {
     );
   }
 
-  Future<void> _practise(BuildContext context, ConceptMastery concept) async {
+  Future<void> _practice(BuildContext context, ConceptMastery concept) async {
     final mastery = context.read<MasteryProvider>();
 
     // Land on the exact step behind an open mistake when there is one,
@@ -108,7 +108,7 @@ class _QueueHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$count concept${count == 1 ? '' : 's'} to practise',
+                  '$count concept${count == 1 ? '' : 's'} to practice',
                   style: GoogleFonts.nunito(
                     fontSize: 16.5,
                     fontWeight: FontWeight.w900,
@@ -167,7 +167,7 @@ class _AllCaughtUp extends StatelessWidget {
                   ? 'Every concept you have struggled with is scheduled '
                       'further out. Xy will bring them back when it is time.'
                   : 'Take a module quiz or work through a lesson. Anything '
-                      'you miss shows up here to practise.',
+                      'you miss shows up here to practice.',
               textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
                 fontSize: 14,

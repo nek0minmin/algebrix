@@ -367,7 +367,7 @@ class PairadiseProvider extends ChangeNotifier {
 
     if (isCorrect) {
       _isSolved = true;
-      SoundService.playSuccess();
+      SoundService.playCorrect();
       if (_currentProblem?.hasReasoningCheckpoint == true) {
         _showReasoningCheck = true;
         _reasoningPassed = false;

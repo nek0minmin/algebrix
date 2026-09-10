@@ -23,12 +23,47 @@ void main() {
       expect(SoundService.isSoundEnabled, isTrue);
     });
 
+    test('SoundService clamps the master volume to 0..1', () async {
+      await SoundService.setSoundVolume(0.4);
+      expect(SoundService.soundVolume, 0.4);
+
+      await SoundService.setSoundVolume(2.5);
+      expect(SoundService.soundVolume, SoundService.maxVolume);
+
+      await SoundService.setSoundVolume(-1);
+      expect(SoundService.soundVolume, SoundService.minVolume);
+    });
+
+    test('nothing is audible when muted or at zero volume', () async {
+      await SoundService.setSoundEnabled(true);
+      await SoundService.setSoundVolume(0.5);
+      expect(SoundService.isAudible, isTrue);
+
+      await SoundService.setSoundVolume(0);
+      expect(
+        SoundService.isAudible,
+        isFalse,
+        reason: 'volume 0 is silent even with the toggle on',
+      );
+
+      await SoundService.setSoundVolume(0.8);
+      await SoundService.setSoundEnabled(false);
+      expect(
+        SoundService.isAudible,
+        isFalse,
+        reason: 'the toggle still mutes regardless of volume',
+      );
+
+      // Restore for the remaining cases.
+      await SoundService.setSoundEnabled(true);
+    });
+
     test('All sound triggers execute safely without exceptions in test mode', () {
       expect(() => SoundService.playClick(), returnsNormally);
       expect(() => SoundService.playTileSelect(), returnsNormally);
       expect(() => SoundService.playTileDrop(), returnsNormally);
       expect(() => SoundService.playEliminate(), returnsNormally);
-      expect(() => SoundService.playSuccess(), returnsNormally);
+      expect(() => SoundService.playCorrect(), returnsNormally);
       expect(() => SoundService.playWrong(), returnsNormally);
       expect(() => SoundService.playStar(), returnsNormally);
       expect(() => SoundService.playComplete(), returnsNormally);

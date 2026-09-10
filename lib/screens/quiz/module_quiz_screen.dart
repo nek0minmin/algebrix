@@ -154,7 +154,7 @@ class _ModuleQuizScreenState extends State<ModuleQuizScreen> {
     final isCorrect = _selectedChoiceIndex == currentQ.correctIndex;
 
     if (isCorrect) {
-      SoundService.playSuccess();
+      SoundService.playCorrect();
     } else {
       SoundService.playWrong();
     }

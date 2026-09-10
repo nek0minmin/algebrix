@@ -193,7 +193,7 @@ class BalanceScaleProvider extends ChangeNotifier {
 
     if ((isLeftX && isRightTarget) || (isRightX && isLeftTarget)) {
       _isSolved = true;
-      SoundService.playSuccess();
+      SoundService.playCorrect();
       // Award XP based on star rating
       switch (starRating) {
         case 3:
@@ -219,7 +219,7 @@ class BalanceScaleProvider extends ChangeNotifier {
     _showReasoningCheck = false;
 
     if (isCorrect) {
-      SoundService.playSuccess();
+      SoundService.playCorrect();
     } else {
       SoundService.playWrong();
     }

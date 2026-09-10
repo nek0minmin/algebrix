@@ -55,7 +55,7 @@ class PairadiseProblemService {
       optimalMoves: 1,
       hasReasoningCheckpoint: false,
       introDialogue:
-          'Welcome to Pairadise! 🌴\n\nHere, we discover mystery pairs — two values that satisfy TWO clues at once!\n\nDrag values into 💜 x and 🩵 y, then test your pair!',
+          'Welcome to Pairadise! 🌴\n\nHere, we discover mystery pairs — two values that satisfy TWO clues at once!\n\nDrag values into 💜 x and 💙 y, then test your pair!',
       hintDialogue:
           'Try x = 4. Does 4 + y = 7? What must y be? Now check: does 4 - y = 1?',
     ),

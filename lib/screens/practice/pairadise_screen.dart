@@ -1708,7 +1708,7 @@ class _PairadiseCelebrationDialogState
         provider.submitReasoningAnswer(index);
       });
     } else {
-      SoundService.playSuccess();
+      SoundService.playCorrect();
       Future.delayed(const Duration(milliseconds: 600), () {
         if (!mounted) return;
         provider.submitReasoningAnswer(index);

@@ -55,7 +55,7 @@ const m1Lesson6 = LessonContent(
       type: LessonStepType.content,
       title: 'The PEMDAS Rule',
       bodyText:
-          'Remember the order of operations using **PEMDAS**:\n\n• 🟣 **P** — **Parentheses** `( )` first\n• 🌸 **E** — **Exponents** `x²` next\n• 🩵 **M / D** — **Multiply & Divide** (left to right)\n• 🟡 **A / S** — **Add & Subtract** (left to right)',
+          'Remember the order of operations using **PEMDAS**:\n\n• 🟣 **P** — **Parentheses** `( )` first\n• 🌸 **E** — **Exponents** `x²` next\n• 🔵 **M / D** — **Multiply & Divide** (left to right)\n• 🟡 **A / S** — **Add & Subtract** (left to right)',
       mathExpression: 'P  →  E  →  M/D  →  A/S',
       mathAnnotation:
           'Multiplication & division share equal rank—work left to right!',

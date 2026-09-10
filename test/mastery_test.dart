@@ -600,7 +600,7 @@ void main() {
       await tester.pumpWidget(wrap(provider, const PracticeQueueTab()));
       await tester.pump();
 
-      expect(find.text('1 concept to practise'), findsOneWidget);
+      expect(find.text('1 concept to practice'), findsOneWidget);
       expect(find.byKey(const Key('concept-tile-m2_l3')), findsOneWidget);
     });
 
@@ -661,7 +661,7 @@ void main() {
       expect(find.text('Correct answer'), findsOneWidget);
       expect(find.text('Your answer'), findsOneWidget);
       expect(find.text('Multiply both terms.'), findsOneWidget);
-      expect(find.text('Practise this step'), findsOneWidget);
+      expect(find.text('Practice this step'), findsOneWidget);
     });
 
     testWidgets('LessonMistakesTab flags a repeated mistake', (tester) async {

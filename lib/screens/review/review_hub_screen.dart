@@ -13,7 +13,7 @@ import 'package:algebrix/widgets/page_headers.dart';
 /// Which tab the hub opens on.
 enum ReviewHubTab { practice, mastery, quizzes, lessons }
 
-/// Home for everything backward-looking: what to practise now, how well each
+/// Home for everything backward-looking: what to practice now, how well each
 /// concept is held, and the raw quiz and lesson mistakes behind both.
 class ReviewHubScreen extends StatefulWidget {
   const ReviewHubScreen({super.key, this.initialTab = ReviewHubTab.practice});
@@ -57,7 +57,7 @@ class _ReviewHubScreenState extends State<ReviewHubScreen>
       backgroundColor: AppColors.background,
       appBar: const AlgebrixAppBar(
         title: 'Review & Mastery',
-        subtitle: 'What to practise, and how you are doing',
+        subtitle: 'What to practice, and how you are doing',
       ),
       body: SafeArea(
         top: false,
@@ -117,6 +117,10 @@ class _ReviewTabBar extends StatelessWidget {
         dividerColor: Colors.transparent,
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorPadding: const EdgeInsets.all(4),
+        // TabBar defaults to 16px of horizontal label padding, which on a
+        // ~390pt phone left each of four tabs about 56pt — narrower than
+        // "Mastery" renders at w900, so every label ellipsised.
+        labelPadding: const EdgeInsets.symmetric(horizontal: 2),
         indicator: BoxDecoration(
           color: AppColors.extraLightPink,
           borderRadius: BorderRadius.circular(18),
@@ -148,6 +152,12 @@ class _ReviewTabBar extends StatelessWidget {
   }
 }
 
+/// A tab label that always shows its full word.
+///
+/// Wrapped in a scale-down [FittedBox] rather than left to ellipsise: a tab
+/// reading "Maste..." tells the learner nothing, and shrinking a few points is
+/// a better trade than losing the word. This keeps all four tabs legible from
+/// small phones up, with or without a count badge.
 class _TabLabel extends StatelessWidget {
   const _TabLabel({required this.label, required this.badge});
 
@@ -156,34 +166,33 @@ class _TabLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (badge <= 0) {
-      return Text(label, maxLines: 1, overflow: TextOverflow.ellipsis);
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Flexible(
-          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
-        ),
-        const SizedBox(width: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-          decoration: BoxDecoration(
-            color: AppColors.pink,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            badge > 9 ? '9+' : '$badge',
-            style: GoogleFonts.nunito(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, maxLines: 1, softWrap: false),
+          if (badge > 0) ...[
+            const SizedBox(width: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              decoration: BoxDecoration(
+                color: AppColors.pink,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                badge > 9 ? '9+' : '$badge',
+                style: GoogleFonts.nunito(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        ],
+      ),
     );
   }
 }

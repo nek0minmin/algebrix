@@ -18,19 +18,27 @@ class StreakBadge extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              '🔥',
-              style: TextStyle(fontSize: 24),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '$streakDays days',
-              style: AppTextStyles.heading3,
-            ),
-          ],
+        // Scaled rather than wrapped: this sits in a narrow half-width column
+        // on the profile screen, where "0 days" plus the flame overran the
+        // available space on a 360px phone.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '🔥',
+                style: TextStyle(fontSize: 24),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '$streakDays days',
+                maxLines: 1,
+                softWrap: false,
+                style: AppTextStyles.heading3,
+              ),
+            ],
+          ),
         ),
         if (showSubtitle) ...[
           const SizedBox(height: 4),

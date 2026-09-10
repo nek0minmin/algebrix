@@ -176,9 +176,9 @@ class _LessonMistakeCard extends StatelessWidget {
           const SizedBox(height: 15),
           Semantics(
             button: true,
-            label: 'Practise this step again',
+            label: 'Practice this step again',
             child: BouncyPressable(
-              key: Key('lesson-mistake-practise-${mistake.id}'),
+              key: Key('lesson-mistake-practice-${mistake.id}'),
               onTap: () => openConceptPractice(
                 context,
                 lessonId: mistake.lessonId,
@@ -202,7 +202,7 @@ class _LessonMistakeCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 7),
                     Text(
-                      'Practise this step',
+                      'Practice this step',
                       style: GoogleFonts.nunito(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w900,

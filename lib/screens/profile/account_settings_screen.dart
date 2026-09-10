@@ -105,7 +105,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     });
 
     if (success) {
-      SoundService.playSuccess();
+      SoundService.playComplete();
       showAlgebrixSnackBar(
         context,
         message: 'Profile updated!',
