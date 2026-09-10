@@ -215,12 +215,15 @@ class SoundService {
       // Each effect keeps its own relative level; the master volume scales the
       // whole mix on top of it.
       final effective = (volume * _masterVolume).clamp(0.0, 1.0);
+
+      // Volume must be passed to play(), not set beforehand: setVolume() is
+      // itself async, and the un-awaited call raced the playback start, so
+      // clips kept sounding at whatever level the pooled player last used.
+      // play() awaits the volume change before resuming.
       player.stop().then((_) {
-        player.setVolume(effective);
-        player.play(AssetSource(relativePath));
+        player.play(AssetSource(relativePath), volume: effective);
       }).catchError((_) {
-        player.setVolume(effective);
-        player.play(AssetSource(relativePath));
+        player.play(AssetSource(relativePath), volume: effective);
       });
     } catch (e) {
       debugPrint('SoundService._play error ($relativePath): $e');

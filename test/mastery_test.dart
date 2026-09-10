@@ -604,7 +604,7 @@ void main() {
       expect(find.byKey(const Key('concept-tile-m2_l3')), findsOneWidget);
     });
 
-    testWidgets('MasteryTab shows the summary and both ranked lists',
+    testWidgets('MasteryTab groups concepts into disjoint bands',
         (tester) async {
       await tester.binding.setSurfaceSize(const Size(600, 2000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -620,10 +620,38 @@ void main() {
       await tester.pumpWidget(wrap(provider, const MasteryTab()));
       await tester.pump();
 
-      expect(find.text('Least mastered'), findsOneWidget);
-      expect(find.text('Most mastered'), findsOneWidget);
-      expect(find.text('Needs reviewing'), findsOneWidget);
-      expect(find.text('1 of 2 concepts mastered'), findsOneWidget);
+      expect(find.text('Needs work (1)'), findsOneWidget);
+      expect(find.text('Mastered (1)'), findsOneWidget);
+
+      // The old page listed the same set twice, so a concept showed up under
+      // both "least mastered" and "most mastered". One tile each now.
+      expect(find.byKey(const Key('concept-tile-m2_l3')), findsOneWidget);
+      expect(find.byKey(const Key('concept-tile-m2_l2')), findsOneWidget);
+
+      // The page states where its numbers come from.
+      expect(find.textContaining('last 3 quiz attempts'), findsOneWidget);
+    });
+
+    testWidgets('MasteryTab spells out the quiz record in words',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final provider = await _boundProvider(MemoryMasteryRepository(), tester: tester);
+      provider.syncQuizAttempts([
+        _attempt(items: [
+          _question(subLessonTitle: 'Distributive Property', correct: true),
+          _question(subLessonTitle: 'Distributive Property', correct: false),
+          _question(subLessonTitle: 'Distributive Property', correct: false),
+          _question(subLessonTitle: 'Distributive Property', correct: false),
+        ]),
+      ]);
+
+      await tester.pumpWidget(wrap(provider, const MasteryTab()));
+      await tester.pump();
+
+      // Was the cryptic "1/4 quiz".
+      expect(find.text('1 of 4 quiz questions right'), findsOneWidget);
     });
 
     testWidgets('MasteryTab shows an empty state before any evidence',

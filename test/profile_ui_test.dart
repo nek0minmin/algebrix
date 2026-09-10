@@ -236,7 +236,7 @@ void main() {
 
       // Full words, not "Maste..." / "Pr..." — FittedBox scales rather than
       // ellipsising, so the text itself is always complete.
-      for (final label in ['Practice', 'Mastery', 'Quizzes', 'Lessons']) {
+      for (final label in ['Practice', 'Mastery', 'History']) {
         expect(
           find.text(label),
           findsOneWidget,

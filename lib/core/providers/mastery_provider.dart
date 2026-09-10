@@ -230,6 +230,27 @@ class MasteryProvider extends ChangeNotifier {
     return List.unmodifiable(assessed);
   }
 
+  /// Assessed concepts bucketed by band, weakest band first.
+  ///
+  /// Groups are disjoint by construction. The previous "least mastered" and
+  /// "most mastered" lists were the same set in opposite orders, so a concept
+  /// could — and did — appear in both.
+  Map<MasteryBand, List<ConceptMastery>> get conceptsByBand {
+    final grouped = <MasteryBand, List<ConceptMastery>>{
+      MasteryBand.needsWork: [],
+      MasteryBand.shaky: [],
+      MasteryBand.solid: [],
+      MasteryBand.mastered: [],
+    };
+
+    for (final concept in weakestFirst) {
+      grouped[concept.band]?.add(concept);
+    }
+
+    grouped.removeWhere((_, list) => list.isEmpty);
+    return Map.unmodifiable(grouped);
+  }
+
   /// The practice queue: concepts due for review, weakest first.
   List<ConceptMastery> get needsReview {
     final now = clock();

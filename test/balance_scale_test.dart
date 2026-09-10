@@ -2,7 +2,9 @@ import 'package:algebrix/core/providers/balance_scale_provider.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/models/quest_map_model.dart';
 import 'package:algebrix/screens/practice/balance_scale_screen.dart';
+import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/screens/practice/practice_screen.dart';
+import 'package:algebrix/services/quiz_repository.dart';
 import 'package:algebrix/services/math_api_service.dart';
 import 'package:algebrix/services/quest_repository.dart';
 import 'package:flutter/material.dart';
@@ -242,7 +244,7 @@ void main() {
   });
 
   group('PracticeScreen UI Tests', () {
-    testWidgets('renders 3 practice mode cards and navigates to Quest Map', (
+    testWidgets('renders both practice modes and navigates to Quest Map', (
       tester,
     ) async {
       SharedPreferences.setMockInitialValues({});
@@ -258,6 +260,9 @@ void main() {
           providers: [
             ChangeNotifierProvider<BalanceScaleProvider>.value(value: scaleProvider),
             ChangeNotifierProvider<QuestMapProvider>.value(value: questProvider),
+            ChangeNotifierProvider<QuizProvider>(
+              create: (_) => QuizProvider(repository: MemoryQuizRepository()),
+            ),
           ],
           child: const MaterialApp(home: PracticeScreen()),
         ),
@@ -267,7 +272,11 @@ void main() {
       expect(find.text('Practice Arena'), findsOneWidget);
       expect(find.text('Explore Algebria'), findsOneWidget);
       expect(find.text('AI Module Quiz'), findsOneWidget);
-      expect(find.text('Root Finder'), findsOneWidget);
+      expect(
+        find.text('Root Finder'),
+        findsNothing,
+        reason: 'the placeholder mode was removed',
+      );
 
       await tester.tap(find.byKey(const Key('practice-mode-balance-scale')));
       await tester.pump();

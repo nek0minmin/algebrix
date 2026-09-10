@@ -6,24 +6,26 @@ import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/providers/mastery_provider.dart';
 import 'package:algebrix/models/concept_mastery_model.dart';
 import 'package:algebrix/screens/review/concept_practice_launcher.dart';
+import 'package:algebrix/services/quiz_review_repository.dart';
 import 'package:algebrix/widgets/review/concept_mastery_tile.dart';
 import 'package:algebrix/widgets/xy_mascot.dart';
 
-/// Mastery analytics: which concepts are strongest, which are weakest, and
-/// which need reviewing — each row linking into the lesson behind it.
-class MasteryTab extends StatefulWidget {
+/// How well each concept is holding up, grouped into bands.
+///
+/// Rewritten from two ranked lists ("least mastered" / "most mastered") that
+/// were the same set in opposite orders, so a concept appeared in both. Bands
+/// are disjoint: every scored concept sits in exactly one.
+class MasteryTab extends StatelessWidget {
   const MasteryTab({super.key});
 
-  @override
-  State<MasteryTab> createState() => _MasteryTabState();
-}
-
-class _MasteryTabState extends State<MasteryTab> {
-  /// How many concepts each list shows before "show all".
-  static const int _collapsedCount = 5;
-
-  bool _showAllStrong = false;
-  bool _showAllWeak = false;
+  /// What each band means, in the learner's words.
+  static String _bandExplanation(MasteryBand band) => switch (band) {
+        MasteryBand.needsWork => 'Under half right. Start here.',
+        MasteryBand.shaky => 'Getting there, but not reliable yet.',
+        MasteryBand.solid => 'Mostly right. Keep it warm.',
+        MasteryBand.mastered => 'You have this one down.',
+        MasteryBand.notAssessed => '',
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +38,9 @@ class _MasteryTabState extends State<MasteryTab> {
     }
 
     final summary = mastery.summary;
+    if (!summary.hasData) return const _NoMasteryData();
 
-    if (!summary.hasData) {
-      return const _NoMasteryData();
-    }
-
-    final weakest = mastery.weakestFirst;
-    final strongest = mastery.strongestFirst;
-    final needsReview = mastery.needsReview;
+    final bands = mastery.conceptsByBand;
 
     return RefreshIndicator(
       color: AppColors.pink,
@@ -55,82 +52,21 @@ class _MasteryTabState extends State<MasteryTab> {
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
         children: [
           _SummaryCard(summary: summary),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
 
-          if (needsReview.isNotEmpty) ...[
-            const _SectionHeading(
-              title: 'Needs reviewing',
-              subtitle: 'Due for practice right now',
-              icon: Icons.flag_rounded,
-              color: AppColors.pink,
+          for (final entry in bands.entries) ...[
+            _BandSection(
+              band: entry.key,
+              explanation: _bandExplanation(entry.key),
+              concepts: entry.value,
             ),
-            const SizedBox(height: 12),
-            for (final concept in needsReview.take(_collapsedCount)) ...[
-              ConceptMasteryTile(
-                concept: concept,
-                showDueBadge: true,
-                onTap: () => openConceptPractice(
-                  context,
-                  lessonId: concept.lessonId,
-                ),
-              ),
-              const SizedBox(height: 10),
-            ],
-            if (needsReview.length > _collapsedCount)
-              Text(
-                '+ ${needsReview.length - _collapsedCount} more in the '
-                'Practice tab',
-                style: GoogleFonts.nunito(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.subtitle,
-                ),
-              ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
           ],
 
-          const _SectionHeading(
-            title: 'Least mastered',
-            subtitle: 'Lowest quiz accuracy and open mistakes first',
-            icon: Icons.trending_down_rounded,
-            color: AppColors.yellow,
-          ),
-          const SizedBox(height: 12),
-          _ConceptList(
-            key: const Key('mastery-weakest-list'),
-            concepts: weakest,
-            showAll: _showAllWeak,
-            collapsedCount: _collapsedCount,
-            onToggle: () => setState(() => _showAllWeak = !_showAllWeak),
-          ),
-          const SizedBox(height: 24),
-
-          const _SectionHeading(
-            title: 'Most mastered',
-            subtitle: 'Your strongest concepts',
-            icon: Icons.trending_up_rounded,
-            color: AppColors.mint,
-          ),
-          const SizedBox(height: 12),
-          _ConceptList(
-            key: const Key('mastery-strongest-list'),
-            concepts: strongest,
-            showAll: _showAllStrong,
-            collapsedCount: _collapsedCount,
-            onToggle: () => setState(() => _showAllStrong = !_showAllStrong),
-          ),
-
-          const SizedBox(height: 20),
-          Text(
-            'Concepts you have not been quizzed on yet are left out — no '
-            'evidence is different from weak evidence.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.nunito(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              color: AppColors.subtitle,
-              height: 1.4,
-            ),
+          const SizedBox(height: 4),
+          _FootNote(
+            'A concept you have never been quizzed on is left out entirely — '
+            'no score is different from a low score.',
           ),
         ],
       ),
@@ -157,20 +93,23 @@ class _SummaryCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              XyMascot(asset: AppAssets.xyInsight, size: 66),
+              XyMascot(asset: AppAssets.xyInsight, size: 62),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${summary.masteredCount} of ${summary.assessedCount} '
-                      'concepts mastered',
+                      accuracy == null
+                          ? 'Scored on ${summary.assessedCount} '
+                              '${summary.assessedCount == 1 ? 'concept' : 'concepts'}'
+                          : 'You are getting ${accuracy.round()}% right',
                       style: GoogleFonts.nunito(
-                        fontSize: 16.5,
+                        fontSize: 17,
                         fontWeight: FontWeight.w900,
                         color: AppColors.text,
                         height: 1.25,
@@ -178,13 +117,14 @@ class _SummaryCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      accuracy == null
-                          ? 'Take a module quiz to start scoring concepts.'
-                          : 'Overall quiz accuracy ${accuracy.round()}%',
+                      'Across ${summary.assessedCount} '
+                      '${summary.assessedCount == 1 ? 'concept' : 'concepts'} '
+                      'you have been scored on.',
                       style: GoogleFonts.nunito(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textSecondary,
+                        height: 1.3,
                       ),
                     ),
                   ],
@@ -193,39 +133,66 @@ class _SummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: summary.masteredFraction.clamp(0.0, 1.0),
-              minHeight: 10,
-              backgroundColor: AppColors.divider,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.mint),
+
+          // The single most important thing this page never said: where the
+          // numbers come from, and how far back they reach.
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: AppColors.lightPurple.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.info_rounded,
+                  size: 16,
+                  color: AppColors.purple,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Based on your last $kMaxRetainedAttemptsPerModule quiz '
+                    'attempts in each module, plus any lesson answers you have '
+                    'missed. Older attempts are not counted.',
+                    style: GoogleFonts.nunito(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+
           const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: _SummaryStat(
-                  label: 'Need review',
+                  label: 'To practice',
                   value: '${summary.needsReviewCount}',
                   color: AppColors.pink,
                 ),
               ),
-              Container(width: 1, height: 34, color: AppColors.divider),
+              Container(width: 1, height: 36, color: AppColors.divider),
               Expanded(
                 child: _SummaryStat(
-                  label: 'Due now',
-                  value: '${summary.dueNowCount}',
-                  color: AppColors.yellow,
-                ),
-              ),
-              Container(width: 1, height: 34, color: AppColors.divider),
-              Expanded(
-                child: _SummaryStat(
-                  label: 'Open mistakes',
+                  label: 'Mistakes to fix',
                   value: '${summary.openMistakeCount}',
                   color: AppColors.purple,
+                ),
+              ),
+              Container(width: 1, height: 36, color: AppColors.divider),
+              Expanded(
+                child: _SummaryStat(
+                  label: 'Mastered',
+                  value: '${summary.masteredCount}',
+                  color: AppColors.mint,
                 ),
               ),
             ],
@@ -256,19 +223,21 @@ class _SummaryStat extends StatelessWidget {
           style: GoogleFonts.nunito(
             fontSize: 20,
             fontWeight: FontWeight.w900,
-            color: color == AppColors.yellow
-                ? const Color(0xFF9A6B00)
-                : color,
+            color: color,
           ),
         ),
         const SizedBox(height: 1),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(
-            fontSize: 10.5,
-            fontWeight: FontWeight.w700,
-            color: AppColors.subtitle,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            maxLines: 1,
+            softWrap: false,
+            style: GoogleFonts.nunito(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.subtitle,
+            ),
           ),
         ),
       ],
@@ -276,82 +245,67 @@ class _SummaryStat extends StatelessWidget {
   }
 }
 
-// ── Sections ────────────────────────────────────────────────────────────────
+// ── Bands ───────────────────────────────────────────────────────────────────
 
-class _SectionHeading extends StatelessWidget {
-  const _SectionHeading({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-  });
-
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          icon,
-          size: 19,
-          color: color == AppColors.yellow ? const Color(0xFF9A6B00) : color,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.text,
-                ),
-              ),
-              Text(
-                subtitle,
-                style: GoogleFonts.nunito(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.subtitle,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ConceptList extends StatelessWidget {
-  const _ConceptList({
-    super.key,
+class _BandSection extends StatelessWidget {
+  const _BandSection({
+    required this.band,
+    required this.explanation,
     required this.concepts,
-    required this.showAll,
-    required this.collapsedCount,
-    required this.onToggle,
   });
 
+  final MasteryBand band;
+  final String explanation;
   final List<ConceptMastery> concepts;
-  final bool showAll;
-  final int collapsedCount;
-  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
-    final visible = showAll ? concepts : concepts.take(collapsedCount).toList();
+    final colors = masteryBandColors(band);
+    final accent =
+        colors.accent == AppColors.yellow ? const Color(0xFF9A6B00) : colors.accent;
 
     return Column(
+      key: Key('mastery-band-${band.name}'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final concept in visible) ...[
+        Row(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: colors.accent,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${band.label} (${concepts.length})',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: accent,
+                    ),
+                  ),
+                  Text(
+                    explanation,
+                    style: GoogleFonts.nunito(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.subtitle,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        for (final concept in concepts) ...[
           ConceptMasteryTile(
             concept: concept,
             onTap: () => openConceptPractice(
@@ -361,27 +315,27 @@ class _ConceptList extends StatelessWidget {
           ),
           const SizedBox(height: 10),
         ],
-        if (concepts.length > collapsedCount)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: onToggle,
-              style: TextButton.styleFrom(
-                minimumSize: const Size(44, 44),
-                foregroundColor: AppColors.darkPink,
-              ),
-              child: Text(
-                showAll
-                    ? 'Show less'
-                    : 'Show all ${concepts.length}',
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-          ),
       ],
+    );
+  }
+}
+
+class _FootNote extends StatelessWidget {
+  const _FootNote(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      style: GoogleFonts.nunito(
+        fontSize: 11.5,
+        fontWeight: FontWeight.w700,
+        color: AppColors.subtitle,
+        height: 1.4,
+      ),
     );
   }
 }

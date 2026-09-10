@@ -130,6 +130,31 @@ class ConceptMastery {
     return accuracy != null && accuracy < 70;
   }
 
+  /// Why this concept is in the practice queue, in the learner's words.
+  ///
+  /// The Leitner box number is an implementation detail — "Box 3/5" told a
+  /// 13-year-old nothing. This says what actually put it there.
+  String get practiceReason {
+    if (openMisses > 0) {
+      return openMisses == 1
+          ? '1 mistake to fix'
+          : '$openMisses mistakes to fix';
+    }
+    final accuracy = quizAccuracy;
+    if (accuracy != null && accuracy < 70) {
+      return 'Missed in a recent quiz';
+    }
+    if (isScheduled) return 'Time to look at this again';
+    return 'Worth another look';
+  }
+
+  /// Quiz record in words, or null when this concept has never been quizzed.
+  String? get quizSummary {
+    if (!hasQuizEvidence) return null;
+    return '$quizQuestionsCorrect of $quizQuestionsSeen quiz '
+        '${quizQuestionsSeen == 1 ? 'question' : 'questions'} right';
+  }
+
   /// Sort key for "weakest first", lower is weaker.
   ///
   /// Falls back to accuracy inside a band, then to open mistakes, so two

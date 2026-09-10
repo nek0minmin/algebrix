@@ -153,30 +153,28 @@ class ConceptMasteryTile extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 5),
+                    // In the practice queue every concept is already due, so
+                    // the useful thing to show is *why* it is there. In the
+                    // mastery list the useful thing is the quiz record.
                     Wrap(
                       spacing: 6,
                       runSpacing: 5,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         MasteryBandChip(band: concept.band, compact: true),
-                        if (concept.quizQuestionsSeen > 0)
-                          _MetaText(
-                            '${concept.quizQuestionsCorrect}/'
-                            '${concept.quizQuestionsSeen} quiz',
-                          ),
-                        if (concept.openMisses > 0)
-                          _MetaText(
-                            '${concept.openMisses} open '
-                            'mistake${concept.openMisses == 1 ? '' : 's'}',
-                            emphasis: true,
-                          ),
-                        if (showDueBadge && concept.isScheduled)
-                          _MetaText(
-                            concept.isDue()
-                                ? 'Due now'
-                                : 'Box ${concept.reviewStrength}/5',
-                            emphasis: concept.isDue(),
-                          ),
+                        if (showDueBadge)
+                          _MetaText(concept.practiceReason, emphasis: true)
+                        else ...[
+                          if (concept.quizSummary case final summary?)
+                            _MetaText(summary),
+                          if (concept.openMisses > 0)
+                            _MetaText(
+                              concept.openMisses == 1
+                                  ? '1 mistake to fix'
+                                  : '${concept.openMisses} mistakes to fix',
+                              emphasis: true,
+                            ),
+                        ],
                       ],
                     ),
                   ],

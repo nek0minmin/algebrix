@@ -1,18 +1,13 @@
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
-import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
-import 'package:algebrix/data/module1_content.dart';
-import 'package:algebrix/data/module2_content.dart';
-import 'package:algebrix/data/module3_content.dart';
-import 'package:algebrix/models/lesson_content_model.dart';
+import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/screens/practice/quest_map_screen.dart';
 import 'package:algebrix/screens/quiz/quiz_hub_screen.dart';
-import 'package:algebrix/screens/quiz/module_quiz_screen.dart';
-import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/core/animations/app_page_route.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
+import 'package:algebrix/widgets/xy_mascot.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -63,213 +58,30 @@ class PracticeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    // Mode 2: Quiz
-                    _PracticeModeCard(
-                      key: const Key('practice-mode-quiz'),
-                      icon: Icons.psychology_rounded,
-                      title: 'AI Module Quiz',
-                      subtitle: '10 Progressive Questions',
-                      description:
-                          'Test your mastery across all module lessons with dynamic, AI-generated multiple choice and true/false questions.',
-                      isPrimary: false,
-                      badgeText: 'AI POWERED',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          AppPageRoute(
-                            child: const QuizHubScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
+                    // Mode 2: AI Module Quiz
+                    Builder(
+                      builder: (context) {
+                        final quizProvider = context.watch<QuizProvider>();
+                        final analytics = quizProvider.analytics;
 
-                    // Mode 3: Root Finder
-                    _PracticeModeCard(
-                      key: const Key('practice-mode-root-finder'),
-                      icon: Icons.alt_route_rounded,
-                      title: 'Root Finder',
-                      subtitle: 'Find the roots of an equation',
-                      description:
-                          'Explore quadratic equations, factorizations, and graph parabola intercepts.',
-                      isPrimary: false,
-                      badgeText: 'COMING SOON',
-                      onTap: () {
-                        showAlgebrixSnackBar(
-                          context,
-                          message: 'Root Finder mode is coming soon!',
-                          icon: Icons.access_time_rounded,
+                        return _ModuleQuizHeroCard(
+                          key: const Key('practice-mode-quiz'),
+                          quizzesPassed: analytics.totalQuizzesPassed,
+                          totalQuizzes: 3,
+                          accuracy: analytics.overallAccuracyPercentage,
+                          masteryLevel: analytics.masteryLevel,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              AppPageRoute(child: const QuizHubScreen()),
+                            );
+                          },
                         );
                       },
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showModuleSelectionSheet(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Text(
-                'Select Module Quiz',
-                style: GoogleFonts.nunito(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.text,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Choose a module to generate 10 progressive quiz questions.',
-                style: GoogleFonts.nunito(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-
-              // Module 1 Option
-              _buildModuleQuizOptionTile(
-                ctx,
-                module: module1,
-                icon: Icons.foundation_rounded,
-                accentColor: AppColors.pink,
-                surfaceColor: AppColors.extraLightPink,
-              ),
-              const SizedBox(height: 12),
-
-              // Module 2 Option
-              _buildModuleQuizOptionTile(
-                ctx,
-                module: module2,
-                icon: Icons.auto_awesome_rounded,
-                accentColor: AppColors.purple,
-                surfaceColor: AppColors.lightPurple,
-              ),
-              const SizedBox(height: 12),
-
-              // Module 3 Option
-              _buildModuleQuizOptionTile(
-                ctx,
-                module: module3,
-                icon: Icons.balance_rounded,
-                accentColor: AppColors.mint,
-                surfaceColor: AppColors.mint.withValues(alpha: 0.15),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildModuleQuizOptionTile(
-    BuildContext context, {
-    required ModuleContent module,
-    required IconData icon,
-    required Color accentColor,
-    required Color surfaceColor,
-  }) {
-    return BouncyPressable(
-      shrinkFactor: 0.96,
-      enableHaptics: true,
-      onTap: () {
-        Navigator.of(context).pop();
-        Navigator.push(
-          context,
-          AppPageRoute(
-            child: ModuleQuizScreen(module: module),
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: accentColor.withValues(alpha: 0.3),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: accentColor.withValues(alpha: 0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: surfaceColor,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: accentColor, size: 24),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    module.title,
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.text,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${module.lessons.length} Sub-lessons • 10 Questions',
-                    style: GoogleFonts.nunito(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.play_circle_fill_rounded,
-              color: accentColor,
-              size: 28,
             ),
           ],
         ),
@@ -525,142 +337,269 @@ class _ExploreAlgebriaHeroCard extends StatelessWidget {
   }
 }
 
-class _PracticeModeCard extends StatelessWidget {
-  const _PracticeModeCard({
+// =============================================================================
+// AI Module Quiz Hero Card
+// =============================================================================
+
+/// The quiz entry point, built to sit alongside the Explore Algebria card
+/// rather than under it.
+///
+/// Same shape as that card — cover band with a category pill, then a titled
+/// content section with live progress and a CTA — but keyed to purple so the
+/// two modes stay distinguishable at a glance.
+class _ModuleQuizHeroCard extends StatelessWidget {
+  const _ModuleQuizHeroCard({
     super.key,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.description,
-    required this.isPrimary,
-    required this.badgeText,
+    required this.quizzesPassed,
+    required this.totalQuizzes,
+    required this.accuracy,
+    required this.masteryLevel,
     required this.onTap,
   });
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String description;
-  final bool isPrimary;
-  final String badgeText;
+  final int quizzesPassed;
+  final int totalQuizzes;
+  final double accuracy;
+  final String masteryLevel;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final progress =
+        totalQuizzes == 0 ? 0.0 : (quizzesPassed / totalQuizzes).clamp(0.0, 1.0);
+
     return BouncyPressable(
       shrinkFactor: 0.97,
       enableHaptics: true,
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isPrimary ? AppColors.pink : AppColors.border,
-              width: isPrimary ? 2 : 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: isPrimary
-                    ? AppColors.pink.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.03),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: AppColors.purple.withValues(alpha: 0.45),
+            width: 2,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.purple.withValues(alpha: 0.14),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Cover band — mascot on a soft gradient instead of a photo.
+            SizedBox(
+              height: 148,
+              child: Stack(
+                fit: StackFit.expand,
                 children: [
                   Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: isPrimary
-                          ? AppColors.extraLightPink
-                          : AppColors.background,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      icon,
-                      color: isPrimary ? AppColors.pink : AppColors.textSecondary,
-                      size: 26,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.lightPurple,
+                          AppColors.extraLightPink,
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: GoogleFonts.nunito(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.text,
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: XyMascot(asset: AppAssets.xyQuiz, size: 126),
+                    ),
+                  ),
+                  Positioned(
+                    top: 14,
+                    left: 14,
+                    child: _CoverPill(
+                      label: 'AI POWERED',
+                      color: AppColors.purple,
+                    ),
+                  ),
+                  Positioned(
+                    top: 14,
+                    right: 14,
+                    child: _CoverPill(
+                      label: masteryLevel.toUpperCase(),
+                      color: AppColors.darkPink,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'AI Module Quiz',
+                    style: GoogleFonts.nunito(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '10 Progressive Questions • Per Module',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.purple,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Live progress, so the card says something even before
+                  // it is tapped.
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$quizzesPassed of $totalQuizzes quizzes passed',
+                              style: GoogleFonts.nunito(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.text,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                minHeight: 8,
+                                backgroundColor: AppColors.divider,
+                                valueColor:
+                                    const AlwaysStoppedAnimation<Color>(
+                                  AppColors.purple,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Container(
+                        width: 54,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: AppColors.lightPurple,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.purple.withValues(alpha: 0.5),
+                            width: 1.5,
                           ),
                         ),
-                        Text(
-                          subtitle,
-                          style: AppTextStyles.body2.copyWith(
-                            color: AppColors.pink,
-                            fontWeight: FontWeight.w800,
+                        child: Center(
+                          child: Text(
+                            '${accuracy.round()}%',
+                            style: GoogleFonts.nunito(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.purple,
+                            ),
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Overall accuracy',
+                    textAlign: TextAlign.right,
+                    style: GoogleFonts.nunito(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.subtitle,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 46,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.purple, AppColors.darkPink],
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Open Quiz Hub',
+                          style: GoogleFonts.nunito(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 18,
+                          color: Colors.white,
                         ),
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isPrimary
-                          ? AppColors.pink
-                          : AppColors.border.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                    child: Text(
-                      badgeText,
-                      style: GoogleFonts.nunito(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: isPrimary ? Colors.white : AppColors.textSecondary,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
                 ],
               ),
-              const SizedBox(height: 14),
-              Text(
-                description,
-                style: AppTextStyles.body2.copyWith(
-                  color: AppColors.textSecondary,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    isPrimary ? 'Launch Mode →' : 'Learn More →',
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: isPrimary ? AppColors.pink : AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
-    }
+      ),
+    );
+  }
+}
+
+/// Rounded pill used over a hero cover band.
+class _CoverPill extends StatelessWidget {
+  const _CoverPill({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.nunito(
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          color: color,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
 }

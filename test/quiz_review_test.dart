@@ -389,7 +389,7 @@ void main() {
       expect(find.text('1 to review'), findsOneWidget);
     });
 
-    testWidgets('ReviewHubScreen opens on Practice and can switch to Quizzes',
+    testWidgets('ReviewHubScreen opens on Practice and can reach quiz history',
         (tester) async {
       final quizReview =
           QuizReviewProvider(repository: MemoryQuizReviewRepository());
@@ -405,10 +405,17 @@ void main() {
       // Practice is the default landing tab.
       expect(find.text('No practice queue yet'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('review-tab-quizzes')));
+      await tester.tap(find.byKey(const Key('review-tab-history')));
       await tester.pumpAndSettle();
 
+      // History opens on quiz attempts, with lesson mistakes behind a toggle.
       expect(find.text('Latest attempt'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('history-source-lessons')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No open lesson mistakes'), findsOneWidget);
+      expect(find.text('Latest attempt'), findsNothing);
     });
 
     testWidgets('AttemptReviewScreen opens on missed questions and can show all',

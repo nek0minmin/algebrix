@@ -4,14 +4,16 @@ import 'package:provider/provider.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/providers/mastery_provider.dart';
 import 'package:algebrix/core/providers/quiz_review_provider.dart';
-import 'package:algebrix/screens/review/lesson_mistakes_tab.dart';
+import 'package:algebrix/screens/review/history_tab.dart';
 import 'package:algebrix/screens/review/mastery_tab.dart';
 import 'package:algebrix/screens/review/practice_queue_tab.dart';
-import 'package:algebrix/screens/review/quiz_attempts_tab.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 
 /// Which tab the hub opens on.
-enum ReviewHubTab { practice, mastery, quizzes, lessons }
+///
+/// Three, not four: quiz attempts and lesson mistakes both answer "what did I
+/// get wrong?", so they share the History tab behind a toggle.
+enum ReviewHubTab { practice, mastery, history }
 
 /// Home for everything backward-looking: what to practice now, how well each
 /// concept is held, and the raw quiz and lesson mistakes behind both.
@@ -50,8 +52,8 @@ class _ReviewHubScreenState extends State<ReviewHubScreen>
     final quizReview = context.watch<QuizReviewProvider>();
 
     final dueCount = mastery.needsReview.length;
-    final openMistakeCount = mastery.openLessonMistakes.length;
-    final attemptCount = quizReview.attempts.length;
+    final historyCount =
+        quizReview.attempts.length + mastery.openLessonMistakes.length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -67,8 +69,7 @@ class _ReviewHubScreenState extends State<ReviewHubScreen>
               controller: _tabController,
               badges: {
                 ReviewHubTab.practice: dueCount,
-                ReviewHubTab.lessons: openMistakeCount,
-                ReviewHubTab.quizzes: attemptCount,
+                ReviewHubTab.history: historyCount,
               },
             ),
             Expanded(
@@ -77,8 +78,7 @@ class _ReviewHubScreenState extends State<ReviewHubScreen>
                 children: const [
                   PracticeQueueTab(),
                   MasteryTab(),
-                  QuizAttemptsTab(),
-                  LessonMistakesTab(),
+                  HistoryTab(),
                 ],
               ),
             ),
@@ -98,8 +98,7 @@ class _ReviewTabBar extends StatelessWidget {
   static const Map<ReviewHubTab, String> _labels = {
     ReviewHubTab.practice: 'Practice',
     ReviewHubTab.mastery: 'Mastery',
-    ReviewHubTab.quizzes: 'Quizzes',
-    ReviewHubTab.lessons: 'Lessons',
+    ReviewHubTab.history: 'History',
   };
 
   @override
