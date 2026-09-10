@@ -271,7 +271,12 @@ void main() {
 
       expect(find.text('Practice Arena'), findsOneWidget);
       expect(find.text('Explore Algebria'), findsOneWidget);
-      expect(find.text('AI Module Quiz'), findsOneWidget);
+      expect(find.text('AI Quiz Hub'), findsOneWidget);
+      expect(
+        find.text('Equation Scholar'),
+        findsNothing,
+        reason: 'the mastery-level pill was removed',
+      );
       expect(
         find.text('Root Finder'),
         findsNothing,

@@ -69,7 +69,6 @@ class PracticeScreen extends StatelessWidget {
                           quizzesPassed: analytics.totalQuizzesPassed,
                           totalQuizzes: 3,
                           accuracy: analytics.overallAccuracyPercentage,
-                          masteryLevel: analytics.masteryLevel,
                           onTap: () {
                             Navigator.push(
                               context,
@@ -353,14 +352,12 @@ class _ModuleQuizHeroCard extends StatelessWidget {
     required this.quizzesPassed,
     required this.totalQuizzes,
     required this.accuracy,
-    required this.masteryLevel,
     required this.onTap,
   });
 
   final int quizzesPassed;
   final int totalQuizzes;
   final double accuracy;
-  final String masteryLevel;
   final VoidCallback onTap;
 
   @override
@@ -425,14 +422,6 @@ class _ModuleQuizHeroCard extends StatelessWidget {
                       color: AppColors.purple,
                     ),
                   ),
-                  Positioned(
-                    top: 14,
-                    right: 14,
-                    child: _CoverPill(
-                      label: masteryLevel.toUpperCase(),
-                      color: AppColors.darkPink,
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -443,7 +432,7 @@ class _ModuleQuizHeroCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'AI Module Quiz',
+                    'AI Quiz Hub',
                     style: GoogleFonts.nunito(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
@@ -494,39 +483,45 @@ class _ModuleQuizHeroCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      Container(
-                        width: 54,
-                        height: 54,
-                        decoration: BoxDecoration(
-                          color: AppColors.lightPurple,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.purple.withValues(alpha: 0.5),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${accuracy.round()}%',
-                            style: GoogleFonts.nunito(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.purple,
+                      // Label sits directly under its own dial rather than
+                      // floating at the far left of the row.
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 54,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              color: AppColors.lightPurple,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.purple.withValues(alpha: 0.5),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${accuracy.round()}%',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.purple,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Accuracy',
+                            style: GoogleFonts.nunito(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.subtitle,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Overall accuracy',
-                    textAlign: TextAlign.right,
-                    style: GoogleFonts.nunito(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.subtitle,
-                    ),
                   ),
 
                   const SizedBox(height: 16),

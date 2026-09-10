@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/ai_notes_provider.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/core/providers/notes_provider.dart';
+import 'package:algebrix/models/note_correction_model.dart';
 import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/screens/notes/note_lesson_options.dart';
 import 'package:algebrix/services/ai_tutor_service.dart';
@@ -11,6 +14,9 @@ import 'package:algebrix/widgets/ai_feedback_card.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
+import 'package:algebrix/services/note_correction_service.dart';
+import 'package:algebrix/widgets/notes/correction_suggestion_card.dart';
+import 'package:algebrix/widgets/notes/correction_text_controller.dart';
 import 'package:algebrix/widgets/notes/math_formatting_bar.dart';
 import 'package:algebrix/services/sound_service.dart';
 import 'package:flutter/material.dart';
@@ -31,17 +37,38 @@ class NoteFormScreen extends StatefulWidget {
 
 class _NoteFormScreenState extends State<NoteFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _titleController;
-  late final TextEditingController _contentController;
+  late final CorrectionTextEditingController _titleController;
+  late final CorrectionTextEditingController _contentController;
   String? _lessonId;
+
+  static const _correctionService = NoteCorrectionService();
+
+  /// Every correction Xy found in the current note, across both fields.
+  List<NoteCorrection> _corrections = const [];
+
+  /// The correction whose suggestion card is open, if any.
+  NoteCorrection? _activeCorrection;
+
+  /// The correction currently showing a sparkle burst, cleared on a timer.
+  NoteCorrection? _sparklingCorrection;
+  Timer? _sparkleTimer;
+
+  /// Last seen field text, used to tell a caret tap from a keystroke.
+  String _lastTitleText = '';
+  String _lastContentText = '';
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.note?.title);
-    _contentController = TextEditingController(
+    _titleController =
+        CorrectionTextEditingController(text: widget.note?.title);
+    _contentController = CorrectionTextEditingController(
       text: widget.note?.displayContent,
     );
+    _lastTitleText = _titleController.text;
+    _lastContentText = _contentController.text;
+    _titleController.addListener(_handleTitleCaret);
+    _contentController.addListener(_handleContentCaret);
     _lessonId = noteLessonOptionFor(widget.note?.lessonId ?? '')?.lessonId;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -63,9 +90,207 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
   @override
   void dispose() {
+    _sparkleTimer?.cancel();
+    _titleController.removeListener(_handleTitleCaret);
+    _contentController.removeListener(_handleContentCaret);
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
+  }
+
+  // ── Inline corrections ─────────────────────────────────────────────────────
+
+  void _handleTitleCaret() => _handleCaretMove(
+        NoteCorrectionTarget.title,
+        _titleController,
+        _lastTitleText,
+        (value) => _lastTitleText = value,
+      );
+
+  void _handleContentCaret() => _handleCaretMove(
+        NoteCorrectionTarget.body,
+        _contentController,
+        _lastContentText,
+        (value) => _lastContentText = value,
+      );
+
+  /// Opens the suggestion card when the learner puts the caret inside a
+  /// highlighted mistake.
+  ///
+  /// A [TextEditingController] fires for text edits and caret moves alike, so
+  /// this only reacts when the text is unchanged — otherwise the card would pop
+  /// open every time someone typed a letter inside a flagged word.
+  void _handleCaretMove(
+    NoteCorrectionTarget target,
+    CorrectionTextEditingController controller,
+    String previousText,
+    ValueChanged<String> rememberText,
+  ) {
+    final text = controller.text;
+    final textChanged = text != previousText;
+    rememberText(text);
+    if (textChanged) {
+      // Editing invalidates stale highlights; drop any open card for this field.
+      if (_activeCorrection?.target == target &&
+          !(_activeCorrection?.matches(text) ?? false)) {
+        setState(() => _activeCorrection = null);
+      }
+      return;
+    }
+
+    final selection = controller.selection;
+    if (!selection.isValid || !selection.isCollapsed) return;
+
+    final hit = controller.correctionAt(selection.baseOffset);
+    if (hit?.id == _activeCorrection?.id) return;
+
+    setState(() => _activeCorrection = hit);
+  }
+
+  /// Re-scans the note after an analysis and paints any mistakes Xy found.
+  void _refreshCorrections(AiFeedbackResult? feedback) {
+    final detected = _correctionService.detect(
+      title: _titleController.text,
+      body: _contentController.text,
+      feedback: feedback,
+    );
+
+    setState(() {
+      _corrections = detected;
+      _activeCorrection = null;
+      _syncControllerCorrections();
+    });
+  }
+
+  void _syncControllerCorrections() {
+    _titleController.corrections = _corrections
+        .where((c) => c.target == NoteCorrectionTarget.title)
+        .toList();
+    _contentController.corrections = _corrections
+        .where((c) => c.target == NoteCorrectionTarget.body)
+        .toList();
+  }
+
+  /// Swaps the flagged word for the chosen suggestion, keeping the caret and
+  /// every other highlight in the right place.
+  void _applyCorrection(NoteCorrection correction, String replacement) {
+    final controller = correction.target == NoteCorrectionTarget.title
+        ? _titleController
+        : _contentController;
+
+    final result = applyNoteCorrection(
+      text: controller.text,
+      corrections: _corrections,
+      correction: correction,
+      replacement: replacement,
+    );
+    if (result.text == controller.text) return;
+
+    // Assigning .value rather than .text keeps the caret at the end of the
+    // replaced word instead of jumping to the start of the field.
+    controller.value = TextEditingValue(
+      text: result.text,
+      selection: TextSelection.collapsed(offset: result.applied.end),
+    );
+
+    if (correction.target == NoteCorrectionTarget.title) {
+      _lastTitleText = result.text;
+    } else {
+      _lastContentText = result.text;
+    }
+
+    _sparkleTimer?.cancel();
+    setState(() {
+      _corrections = result.corrections;
+      _activeCorrection = result.applied;
+      _sparklingCorrection = result.applied;
+      _syncControllerCorrections();
+    });
+
+    SoundService.playStar();
+
+    _sparkleTimer = Timer(const Duration(milliseconds: 950), () {
+      if (mounted) setState(() => _sparklingCorrection = null);
+    });
+  }
+
+  /// Sparkle overlay for [target], positioned over the corrected word.
+  ///
+  /// The word's rectangle is measured with a [TextPainter] laid out at the same
+  /// width and style as the field. Decorative only — if the geometry cannot be
+  /// resolved the burst is simply skipped.
+  Widget _sparkleOverlay(NoteCorrectionTarget target, EdgeInsets padding) {
+    final sparkling = _sparklingCorrection;
+    if (sparkling == null || sparkling.target != target) {
+      return const SizedBox.shrink();
+    }
+
+    final controller = target == NoteCorrectionTarget.title
+        ? _titleController
+        : _contentController;
+
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxWidth = constraints.maxWidth - padding.horizontal;
+            if (maxWidth <= 0) return const SizedBox.shrink();
+
+            final painter = TextPainter(
+              text: TextSpan(
+                text: controller.text,
+                style: AppTextStyles.body1,
+              ),
+              textDirection: TextDirection.ltr,
+            )..layout(maxWidth: maxWidth);
+
+            final boxes = painter.getBoxesForSelection(
+              TextSelection(
+                baseOffset: sparkling.start,
+                extentOffset: sparkling.end,
+              ),
+            );
+            if (boxes.isEmpty) return const SizedBox.shrink();
+
+            final rect = boxes.first.toRect();
+            final burstSize = Size(rect.width + 28, rect.height + 28);
+            final left = padding.left + rect.center.dx - burstSize.width / 2;
+            final top = padding.top + rect.center.dy - burstSize.height / 2;
+
+            // Off-screen in a scrolled multi-line field: skip rather than
+            // draw the burst in the wrong place.
+            if (top < -burstSize.height ||
+                top > constraints.maxHeight) {
+              return const SizedBox.shrink();
+            }
+
+            return Stack(
+              children: [
+                Positioned(
+                  left: left.clamp(0.0, constraints.maxWidth),
+                  top: top,
+                  child: CorrectionSparkleBurst(size: burstSize),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// The suggestion card for [target], shown directly beneath its field.
+  Widget _correctionCard(NoteCorrectionTarget target) {
+    final active = _activeCorrection;
+    if (active == null || active.target != target) {
+      return const SizedBox.shrink();
+    }
+
+    return CorrectionSuggestionCard(
+      correction: active,
+      onApply: (replacement) => _applyCorrection(active, replacement),
+      onDismiss: () => setState(() => _activeCorrection = null),
+    );
   }
 
   Future<void> _analyzeWithAi() async {
@@ -102,6 +327,10 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
     // Check if Xy's analysis suggests a better-fitting lesson tag
     final newFeedback = aiProvider.currentFeedback;
+
+    // Paint any mistakes the feedback names onto the note itself.
+    _refreshCorrections(newFeedback);
+
     if (newFeedback != null) {
       SoundService.playStar();
       if (newFeedback.providerUsed != 'Algebrix Topic Guard') {
@@ -386,29 +615,44 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                     const SizedBox(height: 24),
                     const _FieldLabel(label: 'Note title'),
                     const SizedBox(height: 10),
-                    TextFormField(
-                      key: const Key('note-title-field'),
-                      controller: _titleController,
-                      enabled: !isSaving,
-                      style: AppTextStyles.body1,
-                      textCapitalization: TextCapitalization.sentences,
-                      textInputAction: TextInputAction.next,
-                      maxLength: 100,
-                      inputFormatters: [LengthLimitingTextInputFormatter(100)],
-                      decoration: _fieldDecoration(
-                        hintText: 'e.g. Why constants stay fixed',
-                        icon: Icons.title_rounded,
-                        radius: 18,
-                      ),
-                      validator: (value) {
-                        final length = value?.trim().length ?? 0;
-                        if (length < 3) return 'Enter at least 3 characters.';
-                        if (length > 100) {
-                          return 'Use no more than 100 characters.';
-                        }
-                        return null;
-                      },
+                    Stack(
+                      children: [
+                        TextFormField(
+                          key: const Key('note-title-field'),
+                          controller: _titleController,
+                          enabled: !isSaving,
+                          style: AppTextStyles.body1,
+                          textCapitalization: TextCapitalization.sentences,
+                          textInputAction: TextInputAction.next,
+                          maxLength: 100,
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(100),
+                          ],
+                          decoration: _fieldDecoration(
+                            hintText: 'e.g. Why constants stay fixed',
+                            icon: Icons.title_rounded,
+                            radius: 18,
+                          ),
+                          validator: (value) {
+                            final length = value?.trim().length ?? 0;
+                            if (length < 3) {
+                              return 'Enter at least 3 characters.';
+                            }
+                            if (length > 100) {
+                              return 'Use no more than 100 characters.';
+                            }
+                            return null;
+                          },
+                        ),
+                        // Leading icon plus field padding, so the burst lands
+                        // over the word rather than the field origin.
+                        _sparkleOverlay(
+                          NoteCorrectionTarget.title,
+                          const EdgeInsets.fromLTRB(48, 16, 16, 16),
+                        ),
+                      ],
                     ),
+                    _correctionCard(NoteCorrectionTarget.title),
                     const SizedBox(height: 18),
                     const _FieldLabel(
                       label: 'Start with a thinking prompt',
@@ -461,6 +705,10 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                             }
                             return null;
                           },
+                        ),
+                        _sparkleOverlay(
+                          NoteCorrectionTarget.body,
+                          const EdgeInsets.fromLTRB(16, 16, 16, 58),
                         ),
                         Positioned(
                           bottom: 34,
@@ -525,6 +773,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                         ),
                       ],
                     ),
+                    _correctionCard(NoteCorrectionTarget.body),
 
                     // Active Xy AI Feedback Card
                     if (currentFeedback != null) ...[
