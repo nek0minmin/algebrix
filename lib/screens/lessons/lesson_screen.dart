@@ -12,7 +12,6 @@ import 'package:algebrix/widgets/lesson/content_card.dart';
 import 'package:algebrix/widgets/lesson/math_highlight_box.dart';
 import 'package:algebrix/widgets/lesson/interactive_choice_grid.dart';
 import 'package:algebrix/widgets/lesson/lesson_nav_buttons.dart';
-import 'package:algebrix/widgets/lesson/xp_reward_animation.dart';
 import 'package:algebrix/screens/lessons/lesson_complete_screen.dart';
 import 'package:algebrix/widgets/lesson/activities/classification_activity.dart';
 import 'package:algebrix/widgets/lesson/activities/ordering_activity.dart';
@@ -33,8 +32,6 @@ class LessonScreen extends StatefulWidget {
 }
 
 class _LessonScreenState extends State<LessonScreen> {
-  bool _showXpReward = false;
-  int _xpAmount = 0;
   bool? _lastAnswerCorrect;
 
   Future<void> _handleAnswer(int index, bool isCorrect) async {
@@ -64,19 +61,15 @@ class _LessonScreenState extends State<LessonScreen> {
     }
 
     SoundService.playCorrect();
-    final xpAwarded = await lessonProvider.answerQuestion(true);
+    final recorded = await lessonProvider.answerQuestion(true);
     if (!mounted) return;
-    if (xpAwarded == null) {
+    if (!recorded) {
       setState(() => _lastAnswerCorrect = null);
       _showProgressError(lessonProvider);
       return;
     }
 
-    setState(() {
-      _lastAnswerCorrect = true;
-      _showXpReward = false; // XP pop-up disabled
-      _xpAmount = 0;
-    });
+    setState(() => _lastAnswerCorrect = true);
 
     await _logMastery(
       masteryProvider,
@@ -299,19 +292,6 @@ class _LessonScreenState extends State<LessonScreen> {
               ),
             ],
           ),
-
-          // XP reward overlay
-          if (_showXpReward)
-            Positioned.fill(
-              child: Center(
-                child: XpRewardAnimation(
-                  xpAmount: _xpAmount,
-                  onComplete: () {
-                    setState(() => _showXpReward = false);
-                  },
-                ),
-              ),
-            ),
         ],
       ),
     );

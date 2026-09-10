@@ -8,16 +8,17 @@ import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
+import 'package:algebrix/data/lesson_catalog.dart';
 import 'package:algebrix/models/user_model.dart';
 import 'package:algebrix/screens/profile/account_settings_screen.dart';
 import 'package:algebrix/services/sound_service.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
 import 'package:algebrix/widgets/primary_button.dart';
-import 'package:algebrix/widgets/streak_badge.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/screens/auth/login_screen.dart';
 
-/// Full Learner Profile Screen displaying user stats, badges, and account metadata.
+/// Full Learner Profile Screen displaying lesson progress, audio settings, and
+/// account metadata.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -40,15 +41,14 @@ class ProfileScreen extends StatelessWidget {
     final lessonProvider = context.watch<LessonProvider>();
 
     final user = authProvider.currentUser ?? UserModel.placeholder();
-    final profile = lessonProvider.profile;
     final userEmail = _signedInEmail() ??
         '${user.name.toLowerCase().replaceAll(' ', '')}@algebrix.app';
 
-    final int totalXp = profile?.xp ?? 0;
-    final int level = profile?.level ?? 1;
-    final String levelTitle = profile?.levelTitle ?? 'Math Beginner';
-    final int streak = profile?.streak ?? 0;
-    final double levelProgress = (totalXp % 1000) / 1000.0;
+    // Derived from the catalog rather than a hardcoded total, which had drifted
+    // to 13 while the app shipped 21 lessons.
+    final completedLessons = lessonProvider.completedLessonIds.length;
+    final totalLessons = LessonCatalog.totalLessons;
+    final lessonsRemaining = (totalLessons - completedLessons).clamp(0, totalLessons);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -106,29 +106,13 @@ class ProfileScreen extends StatelessWidget {
                     userEmail,
                     style: AppTextStyles.body2.copyWith(color: AppColors.subtitle),
                   ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.pink.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.pink.withValues(alpha: 0.3)),
-                    ),
-                    child: Text(
-                      'Level $level • $levelTitle',
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.pink,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: 20),
 
-            // Lesson Progress & Streak Row
+            // Lesson Progress
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -154,7 +138,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${lessonProvider.completedLessonIds.length} / 13 Lessons',
+                        '$completedLessons / $totalLessons Lessons',
                         style: AppTextStyles.subtitle2.copyWith(
                           color: AppColors.pink,
                           fontWeight: FontWeight.w900,
@@ -166,7 +150,9 @@ class ProfileScreen extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: LinearProgressIndicator(
-                      value: (lessonProvider.completedLessonIds.length / 13.0).clamp(0.0, 1.0),
+                      value: totalLessons == 0
+                          ? 0
+                          : (completedLessons / totalLessons).clamp(0.0, 1.0),
                       minHeight: 10,
                       backgroundColor: AppColors.divider,
                       valueColor: const AlwaysStoppedAnimation<Color>(AppColors.pink),
@@ -174,90 +160,10 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${13 - lessonProvider.completedLessonIds.length} lessons remaining to complete Foundations',
+                    lessonsRemaining == 0
+                        ? 'Every lesson complete. Nice work!'
+                        : '$lessonsRemaining ${lessonsRemaining == 1 ? 'lesson' : 'lessons'} left to go',
                     style: AppTextStyles.caption.copyWith(color: AppColors.subtitle),
-                  ),
-                  const Divider(height: 28, color: AppColors.divider),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: StreakBadge(streakDays: streak, showSubtitle: true),
-                      ),
-                      Container(width: 1, height: 40, color: AppColors.divider),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            const Icon(Icons.stars_rounded, color: AppColors.purple, size: 28),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${lessonProvider.completedLessonIds.length} Lessons',
-                              style: AppTextStyles.subtitle2.copyWith(fontWeight: FontWeight.w900),
-                            ),
-                            Text(
-                              'Completed',
-                              style: AppTextStyles.caption.copyWith(color: AppColors.subtitle),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Achievement Badges Section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Earned Badges',
-                    style: AppTextStyles.heading3.copyWith(fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 14),
-                  // Expanded, not spaceAround: at 360px the four labels sized
-                  // themselves freely and ran off the card.
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _BadgeItem(
-                          icon: '🎯',
-                          title: 'First Step',
-                          isUnlocked: true,
-                        ),
-                      ),
-                      Expanded(
-                        child: _BadgeItem(
-                          icon: '⚡',
-                          title: 'Streak Pro',
-                          isUnlocked: streak > 0,
-                        ),
-                      ),
-                      Expanded(
-                        child: _BadgeItem(
-                          icon: '🧠',
-                          title: 'Math Wiz',
-                          isUnlocked: totalXp >= 100,
-                        ),
-                      ),
-                      Expanded(
-                        child: _BadgeItem(
-                          icon: '👑',
-                          title: 'Master',
-                          isUnlocked: level >= 5,
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
@@ -401,60 +307,6 @@ class _ProfileAvatar extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               child: Image.asset(asset, fit: BoxFit.contain),
             ),
-    );
-  }
-}
-
-class _BadgeItem extends StatelessWidget {
-  const _BadgeItem({
-    required this.icon,
-    required this.title,
-    required this.isUnlocked,
-  });
-
-  final String icon;
-  final String title;
-  final bool isUnlocked;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: isUnlocked ? AppColors.extraLightPink : AppColors.divider.withValues(alpha: 0.5),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isUnlocked ? AppColors.pink : AppColors.border,
-              width: 1.5,
-            ),
-          ),
-          child: Center(
-            child: Opacity(
-              opacity: isUnlocked ? 1.0 : 0.4,
-              child: Text(
-                icon,
-                style: const TextStyle(fontSize: 24),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            title,
-            maxLines: 1,
-            softWrap: false,
-            style: AppTextStyles.caption.copyWith(
-              fontWeight: isUnlocked ? FontWeight.w800 : FontWeight.w500,
-              color: isUnlocked ? AppColors.text : AppColors.subtitle,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

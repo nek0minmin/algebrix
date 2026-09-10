@@ -72,10 +72,6 @@ class AuthService extends ChangeNotifier {
         emailRedirectTo: 'io.supabase.algebrix://login-callback/',
         data: {
           if (name != null && name.isNotEmpty) 'full_name': name,
-          'xp': 0,
-          'level': 1,
-          'level_title': 'Math Beginner',
-          'streak': 0,
         },
       );
 
@@ -259,10 +255,6 @@ class AuthService extends ChangeNotifier {
         id: googleUser.id,
         name: googleUser.displayName ?? 'Google Student',
         avatarUrl: googleUser.photoUrl,
-        xp: 150,
-        level: 2,
-        levelTitle: 'Math Explorer',
-        streak: 1,
         lastActive: DateTime.now(),
       );
 
@@ -623,14 +615,6 @@ class AuthService extends ChangeNotifier {
           user.email?.split('@').first ??
           'Learner',
       avatarUrl: metadata['avatar_url'] as String?,
-      xp: (metadata['xp'] as num?)?.toInt() ?? 0,
-      level: (metadata['level'] as num?)?.toInt() ?? 1,
-      levelTitle: metadata['level_title'] as String? ?? 'Math Beginner',
-      streak: (metadata['streak'] as num?)?.toInt() ?? 0,
-      badges: (metadata['badges'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          const [],
       completedLessonIds: (metadata['completed_lesson_ids'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??

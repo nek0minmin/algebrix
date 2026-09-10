@@ -11,7 +11,7 @@ void main() {
   test(
     'account changes clear state and hydrate only the active account',
     () async {
-      var profile = _profile('user_1', xp: 120);
+      var profile = _profile('user_1');
       var progress = [_progress('user_1', stepIndex: 6, completed: true)];
       final repository = _ScriptedRepository(
         fetchProfile: () async => profile,
@@ -22,19 +22,16 @@ void main() {
 
       provider.bindAccount('user_1');
       await _waitForHydration(provider);
-      expect(provider.profile?.xp, 120);
       expect(provider.isLessonCompleted('m1_l1'), isTrue);
 
-      profile = _profile('user_2', xp: 7);
+      profile = _profile('user_2');
       progress = [];
       provider.bindAccount('user_2');
       expect(provider.profile, isNull);
       expect(provider.completedLessonIds, isEmpty);
-      expect(provider.sessionXp, 0);
 
       await _waitForHydration(provider);
       expect(provider.profile?.userId, 'user_2');
-      expect(provider.profile?.xp, 7);
 
       provider.bindAccount(null);
       expect(provider.profile, isNull);
@@ -52,7 +49,7 @@ void main() {
         profileCalls++;
         return profileCalls == 1
             ? oldProfile.future
-            : Future.value(_profile('user_2', xp: 22));
+            : Future.value(_profile('user_2'));
       },
       fetchProgress: (_) {
         progressCalls++;
@@ -67,12 +64,11 @@ void main() {
     await _waitForHydration(provider);
     expect(provider.profile?.userId, 'user_2');
 
-    oldProfile.complete(_profile('user_1', xp: 999));
+    oldProfile.complete(_profile('user_1'));
     oldProgress.complete([_progress('user_1', stepIndex: 6, completed: true)]);
     await Future<void>.delayed(Duration.zero);
 
     expect(provider.profile?.userId, 'user_2');
-    expect(provider.profile?.xp, 22);
     expect(provider.completedLessonIds, isEmpty);
   });
 
@@ -142,19 +138,17 @@ void main() {
     expect(provider.progressFractionForLesson(lesson!), 4 / 7);
   });
 
-  test('correct answer XP is authoritative and idempotent', () async {
+  test('a correct answer records once and re-answering is a safe no-op', () async {
     final calls = <_RecordCall>[];
-    var totalXp = 100;
     var awarded = false;
     final repository = _ScriptedRepository(
-      fetchProfile: () async => _profile('user_1', xp: totalXp),
+      fetchProfile: () async => _profile('user_1'),
       fetchProgress: (_) async => [_progress('user_1', stepIndex: 3)],
       record: (call) async {
         calls.add(call);
         final xp = call.answerCorrect && !awarded ? 10 : 0;
         if (call.answerCorrect) awarded = true;
-        totalXp += xp;
-        return _result(call, xpAwarded: xp, totalXp: totalXp);
+        return _result(call, xpAwarded: xp);
       },
     );
     final provider = LessonProvider(repository: repository);
@@ -163,10 +157,8 @@ void main() {
     provider.startModule(module1);
     await provider.startLesson(module1.lessons.first);
 
-    expect(await provider.answerQuestion(true), 10);
-    expect(await provider.answerQuestion(true), 0);
-    expect(provider.sessionXp, 10);
-    expect(provider.profile?.xp, 110);
+    expect(await provider.answerQuestion(true), isTrue);
+    expect(await provider.answerQuestion(true), isTrue);
     expect(calls.where((call) => call.answerCorrect).single.stepId, 'step4');
   });
 
@@ -201,7 +193,7 @@ void main() {
     await _waitForHydration(provider);
     provider.startModule(module1);
     expect(await provider.startLesson(lesson), isTrue);
-    expect(await provider.answerQuestion(true), 10);
+    expect(await provider.answerQuestion(true), isTrue);
 
     expect(calls.last.stepId, 'm1_l2_s05');
     expect(calls.last.answerCorrect, isTrue);
@@ -235,18 +227,15 @@ void main() {
     'final navigation is gated by authoritative completion result',
     () async {
       var completionAllowed = false;
-      var totalXp = 0;
       final repository = _ScriptedRepository(
         fetchProfile: () async => _profile('user_1'),
         fetchProgress: (_) async => [_progress('user_1', stepIndex: 6)],
         record: (call) async {
           final completes = call.stepId == 'step7' && completionAllowed;
           final xp = completes ? 25 : 0;
-          totalXp += xp;
           return _result(
             call,
             xpAwarded: xp,
-            totalXp: totalXp,
             completed: completes,
             requirementsMet: completes,
           );
@@ -260,25 +249,22 @@ void main() {
 
       expect(await provider.completeLesson(), isFalse);
       expect(provider.isLessonCompleted('m1_l1'), isFalse);
-      expect(provider.sessionXp, 0);
 
       completionAllowed = true;
       expect(await provider.completeLesson(), isTrue);
       expect(provider.isLessonCompleted('m1_l1'), isTrue);
-      expect(provider.sessionXp, 25);
-      expect(provider.profile?.xp, 25);
     },
   );
 
   test(
-    'revisiting a completed lesson starts at step 0 and does not award repeat XP',
+    'revisiting a completed lesson starts at step 0 and re-records nothing',
     () async {
       final repository = _ScriptedRepository(
-        fetchProfile: () async => _profile('user_1', xp: 50),
+        fetchProfile: () async => _profile('user_1'),
         fetchProgress: (_) async => [
           _progress('user_1', stepIndex: 6, completed: true),
         ],
-        record: (call) async => _result(call, totalXp: 50),
+        record: (call) async => _result(call),
       );
       final provider = LessonProvider(repository: repository);
       provider.bindAccount('user_1');
@@ -291,11 +277,9 @@ void main() {
       expect(await provider.startLesson(module1.lessons.first), isTrue);
       expect(provider.currentStepIndex, 0);
 
-      // Answering questions within completed lesson awards 0 XP
-      final xpAwarded = await provider.answerQuestion(true);
-      expect(xpAwarded, 0);
-      expect(provider.sessionXp, 0);
-      expect(provider.profile?.xp, 50);
+      // Re-answering inside an already finished lesson is accepted but records
+      // nothing new.
+      expect(await provider.answerQuestion(true), isTrue);
     },
   );
 }
@@ -356,14 +340,8 @@ class _ScriptedRepository implements ProgressRepository {
   );
 }
 
-LearningProfileSnapshot _profile(String userId, {int xp = 0}) {
-  return LearningProfileSnapshot(
-    userId: userId,
-    xp: xp,
-    level: 1,
-    levelTitle: 'Math Beginner',
-    streak: 3,
-  );
+LearningProfileSnapshot _profile(String userId) {
+  return LearningProfileSnapshot(userId: userId);
 }
 
 LessonProgress _progress(
@@ -393,7 +371,6 @@ Future<RecordLessonStepResult> _defaultRecord(_RecordCall call) async =>
 RecordLessonStepResult _result(
   _RecordCall call, {
   int xpAwarded = 0,
-  int totalXp = 0,
   bool completed = false,
   bool requirementsMet = false,
 }) {
@@ -412,12 +389,6 @@ RecordLessonStepResult _result(
       updatedAt: DateTime(2026),
       completedAt: completed ? DateTime(2026) : null,
     ),
-    xpAwarded: xpAwarded,
-    stepXpAwarded: completed ? 0 : xpAwarded,
-    completionXpAwarded: completed ? xpAwarded : 0,
-    totalXp: totalXp,
-    level: 1,
-    levelTitle: 'Math Beginner',
     completionRequirementsMet: requirementsMet,
   );
 }

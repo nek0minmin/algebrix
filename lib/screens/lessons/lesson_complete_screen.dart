@@ -80,7 +80,6 @@ class _LessonCompleteScreenState extends State<LessonCompleteScreen>
     final lessonProvider = context.watch<LessonProvider>();
     final lesson = lessonProvider.currentLesson;
     final module = lessonProvider.currentModule;
-    final xpEarned = lessonProvider.sessionXp;
 
     return Scaffold(
       backgroundColor: AppColors.background,

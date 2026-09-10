@@ -33,12 +33,10 @@ void main() {
     await provider.answerQuestion(false);
 
     expect(provider.currentStepAnswered, isFalse);
-    expect(provider.sessionXp, 0);
 
     await provider.answerQuestion(true);
 
     expect(provider.currentStepAnswered, isTrue);
-    expect(provider.sessionXp, 10);
   });
 
   testWidgets('wrong choice remains visible and the learner can retry', (
@@ -215,17 +213,12 @@ Future<void> _waitForHydration(LessonProvider provider) async {
 }
 
 class _FakeProgressRepository implements ProgressRepository {
-  int _totalXp = 0;
   final Set<String> _awardedSteps = {};
 
   @override
   Future<LearningProfileSnapshot> fetchCurrentProfile() async {
     return const LearningProfileSnapshot(
       userId: 'user_1',
-      xp: 0,
-      level: 1,
-      levelTitle: 'Math Beginner',
-      streak: 0,
     );
   }
 
@@ -243,7 +236,6 @@ class _FakeProgressRepository implements ProgressRepository {
   }) async {
     final eventKey = '$lessonId:$stepId';
     final xpAwarded = answerCorrect && _awardedSteps.add(eventKey) ? 10 : 0;
-    _totalXp += xpAwarded;
     return RecordLessonStepResult(
       progress: LessonProgress(
         userId: 'user_1',
@@ -256,12 +248,6 @@ class _FakeProgressRepository implements ProgressRepository {
         startedAt: DateTime(2026),
         updatedAt: DateTime(2026),
       ),
-      xpAwarded: xpAwarded,
-      stepXpAwarded: xpAwarded,
-      completionXpAwarded: 0,
-      totalXp: _totalXp,
-      level: 1,
-      levelTitle: 'Math Beginner',
       completionRequirementsMet: false,
     );
   }

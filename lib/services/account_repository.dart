@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Persistence boundary for learner-editable account settings.
 ///
 /// Covers only what the learner owns: display name, avatar, and deleting the
-/// account outright. XP, level, and streak stay server-owned — the
+/// account outright. Legacy progress columns stay server-owned — the
 /// `profiles_prepare_update` trigger pins them even if this client tried.
 abstract interface class AccountRepository {
   /// Updates the learner's display name and avatar.

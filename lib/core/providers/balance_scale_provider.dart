@@ -36,7 +36,6 @@ class BalanceScaleProvider extends ChangeNotifier {
   bool _isSolved = false;
   String _providerUsed = 'MathJS API (HTTP POST)';
   String? _errorMessage;
-  int _xpEarned = 0;
 
   // Reasoning check state
   bool _reasoningPassed = false;
@@ -53,7 +52,6 @@ class BalanceScaleProvider extends ChangeNotifier {
   bool get isSolved => _isSolved;
   String get providerUsed => _providerUsed;
   String? get errorMessage => _errorMessage;
-  int get xpEarned => _xpEarned;
   bool get reasoningPassed => _reasoningPassed;
   bool get showReasoningCheck => _showReasoningCheck;
   List<Map<String, dynamic>> get dynamicOps => List.unmodifiable(_dynamicOps);
@@ -93,7 +91,6 @@ class BalanceScaleProvider extends ChangeNotifier {
     _isLoading = false;
     _isSolved = false;
     _errorMessage = null;
-    _xpEarned = 0;
     _reasoningPassed = false;
     _showReasoningCheck = false;
     _dynamicOps = _apiService.generateOpsForProblem(nextProb);
@@ -110,7 +107,6 @@ class BalanceScaleProvider extends ChangeNotifier {
     _isLoading = false;
     _isSolved = false;
     _errorMessage = null;
-    _xpEarned = 0;
     _reasoningPassed = false;
     _showReasoningCheck = false;
     _dynamicOps = _apiService.generateOpsForProblem(prob);
@@ -194,16 +190,12 @@ class BalanceScaleProvider extends ChangeNotifier {
     if ((isLeftX && isRightTarget) || (isRightX && isLeftTarget)) {
       _isSolved = true;
       SoundService.playCorrect();
-      // Award XP based on star rating
       switch (starRating) {
         case 3:
-          _xpEarned = 30;
           break;
         case 2:
-          _xpEarned = 20;
           break;
         default:
-          _xpEarned = 10;
       }
       // Show reasoning check instead of immediate celebration
       _showReasoningCheck = true;
@@ -224,16 +216,12 @@ class BalanceScaleProvider extends ChangeNotifier {
       SoundService.playWrong();
     }
 
-    // Update XP earned based on final star rating
     switch (starRating) {
       case 3:
-        _xpEarned = 30;
         break;
       case 2:
-        _xpEarned = 20;
         break;
       default:
-        _xpEarned = 10;
     }
 
     notifyListeners();
@@ -254,7 +242,6 @@ class BalanceScaleProvider extends ChangeNotifier {
     _history = [];
     _isSolved = false;
     _errorMessage = null;
-    _xpEarned = 0;
     _reasoningPassed = false;
     _showReasoningCheck = false;
     _dynamicOps = _apiService.generateOpsForCurrentState(

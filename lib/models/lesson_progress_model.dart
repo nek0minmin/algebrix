@@ -16,33 +16,20 @@ enum LessonProgressStatus {
   }
 }
 
-/// Authoritative gamification totals from the signed-in account's profile row.
+/// Identity of the signed-in account's profile row.
 ///
-/// This intentionally excludes authentication metadata. Supabase RLS limits
-/// the underlying profile query to the current account.
+/// The profiles table still carries legacy xp, level, and streak columns, but
+/// nothing in the app reads them: progress is measured in lessons finished,
+/// quiz accuracy, and concept mastery. This intentionally excludes
+/// authentication metadata. Supabase RLS limits the underlying profile query to
+/// the current account.
 class LearningProfileSnapshot {
-  const LearningProfileSnapshot({
-    required this.userId,
-    required this.xp,
-    required this.level,
-    required this.levelTitle,
-    required this.streak,
-  });
+  const LearningProfileSnapshot({required this.userId});
 
   final String userId;
-  final int xp;
-  final int level;
-  final String levelTitle;
-  final int streak;
 
   factory LearningProfileSnapshot.fromJson(Map<String, dynamic> json) {
-    return LearningProfileSnapshot(
-      userId: json['id'] as String,
-      xp: (json['xp'] as num).toInt(),
-      level: (json['level'] as num).toInt(),
-      levelTitle: json['level_title'] as String,
-      streak: (json['streak'] as num).toInt(),
-    );
+    return LearningProfileSnapshot(userId: json['id'] as String);
   }
 }
 
@@ -95,27 +82,17 @@ class LessonProgress {
 
 /// Authoritative result of recording one lesson step.
 ///
-/// [xpAwarded] is the sum committed by this call. It is zero when the same
-/// correct answer or completion is retried, making UI retries safe.
+/// The `record_lesson_step` RPC still returns xp_awarded, level, and friends;
+/// they are simply not read. Leaving the server contract alone keeps the
+/// progress-recording path — the most load-bearing call in the app — untouched
+/// by the removal of the points economy.
 class RecordLessonStepResult {
   const RecordLessonStepResult({
     required this.progress,
-    required this.xpAwarded,
-    required this.stepXpAwarded,
-    required this.completionXpAwarded,
-    required this.totalXp,
-    required this.level,
-    required this.levelTitle,
     required this.completionRequirementsMet,
   });
 
   final LessonProgress progress;
-  final int xpAwarded;
-  final int stepXpAwarded;
-  final int completionXpAwarded;
-  final int totalXp;
-  final int level;
-  final String levelTitle;
   final bool completionRequirementsMet;
 
   factory RecordLessonStepResult.fromJson(Map<String, dynamic> json) {
@@ -123,12 +100,6 @@ class RecordLessonStepResult {
       progress: LessonProgress.fromJson(
         Map<String, dynamic>.from(json['progress'] as Map),
       ),
-      xpAwarded: (json['xp_awarded'] as num).toInt(),
-      stepXpAwarded: (json['step_xp_awarded'] as num).toInt(),
-      completionXpAwarded: (json['completion_xp_awarded'] as num).toInt(),
-      totalXp: (json['total_xp'] as num).toInt(),
-      level: (json['level'] as num).toInt(),
-      levelTitle: json['level_title'] as String,
       completionRequirementsMet: json['completion_requirements_met'] as bool,
     );
   }

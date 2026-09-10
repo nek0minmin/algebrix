@@ -38,10 +38,6 @@ class _FakeProgressRepository implements ProgressRepository {
   Future<LearningProfileSnapshot> fetchCurrentProfile() async {
     return const LearningProfileSnapshot(
       userId: 'user_1',
-      xp: 150,
-      level: 2,
-      levelTitle: 'Math Explorer',
-      streak: 3,
     );
   }
 
@@ -58,12 +54,6 @@ class _FakeProgressRepository implements ProgressRepository {
     int contentVersion = 1,
   }) async {
     return RecordLessonStepResult(
-      xpAwarded: 10,
-      stepXpAwarded: 10,
-      completionXpAwarded: 0,
-      totalXp: 100,
-      level: 1,
-      levelTitle: 'Math Beginner',
       completionRequirementsMet: false,
       progress: LessonProgress(
         userId: 'user_1',

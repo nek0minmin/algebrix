@@ -14,7 +14,7 @@ abstract interface class ProgressRepository {
   /// Records the last visited step and atomically applies any eligible reward.
   ///
   /// The backend derives the account and XP amount. Repeating the same event is
-  /// safe and returns an [RecordLessonStepResult.xpAwarded] of zero.
+  /// safe: repeating the same step is idempotent server-side.
   Future<RecordLessonStepResult> recordLessonStep({
     required String moduleId,
     required String lessonId,
@@ -38,7 +38,7 @@ class SupabaseProgressRepository implements ProgressRepository {
     return _withRetry(() async {
       final row = await _client
           .from('profiles')
-          .select('id, xp, level, level_title, streak')
+          .select('id')
           .eq('id', userId)
           .single();
 

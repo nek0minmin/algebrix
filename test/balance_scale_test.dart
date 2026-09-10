@@ -204,7 +204,6 @@ void main() {
       provider1.submitReasoningAnswer(wrongIdx1);
       expect(provider1.reasoningPassed, isFalse);
       expect(provider1.starRating, 1);
-      expect(provider1.xpEarned, 10);
 
       // Case 2: Optimal moves + wrong reasoning = 2 stars & 20 XP
       final provider2 = BalanceScaleProvider();
@@ -216,7 +215,6 @@ void main() {
       provider2.submitReasoningAnswer(wrongIdx2);
       expect(provider2.reasoningPassed, isFalse);
       expect(provider2.starRating, 2);
-      expect(provider2.xpEarned, 20);
 
       // Case 3: Exceeded moves + correct reasoning = 2 stars & 20 XP
       final provider3 = BalanceScaleProvider();
@@ -228,7 +226,6 @@ void main() {
       provider3.submitReasoningAnswer(provider3.currentProblem!.correctReasoningIndex);
       expect(provider3.reasoningPassed, isTrue);
       expect(provider3.starRating, 2);
-      expect(provider3.xpEarned, 20);
 
       // Case 4: Optimal moves + correct reasoning = 3 stars & 30 XP
       final provider4 = BalanceScaleProvider();
@@ -239,7 +236,6 @@ void main() {
       provider4.submitReasoningAnswer(provider4.currentProblem!.correctReasoningIndex);
       expect(provider4.reasoningPassed, isTrue);
       expect(provider4.starRating, 3);
-      expect(provider4.xpEarned, 30);
     });
   });
 

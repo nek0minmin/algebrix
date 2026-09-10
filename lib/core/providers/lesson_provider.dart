@@ -21,7 +21,6 @@ class LessonProvider extends ChangeNotifier {
   final Map<String, LessonProgress> _persistedProgress = {};
   final Set<String> _completedLessonIds = {};
   LearningProfileSnapshot? _profile;
-  int _sessionXp = 0;
   bool _currentStepAnswered = false;
   bool _isHydrating = false;
   bool _isRecording = false;
@@ -34,7 +33,6 @@ class LessonProvider extends ChangeNotifier {
   ModuleContent? get currentModule => _currentModule;
   LessonContent? get currentLesson => _currentLesson;
   int get currentStepIndex => _currentStepIndex;
-  int get sessionXp => _sessionXp;
   bool get currentStepAnswered => _currentStepAnswered;
   bool get isHydrating => _isHydrating;
   bool get isRecording => _isRecording;
@@ -189,7 +187,6 @@ class LessonProvider extends ChangeNotifier {
     if (isBusy) return false;
 
     _currentLesson = lesson;
-    _sessionXp = 0;
     _currentStepAnswered = false;
     final isCompleted = isLessonCompleted(lesson.lessonId);
     final storedIndex = startAtStepIndex ??
@@ -259,20 +256,26 @@ class LessonProvider extends ChangeNotifier {
     return true;
   }
 
-  Future<int?> answerQuestion(bool isCorrect) async {
-    if (!isCorrect) return 0;
-    if (_currentStepAnswered) return 0;
+  /// Records an answer for the current step.
+  ///
+  /// Returns true when the answer was accepted (including the harmless
+  /// no-ops: a wrong answer, a re-answer, or a lesson already finished), and
+  /// false only when the step could not be recorded and the caller should
+  /// surface [errorMessage].
+  Future<bool> answerQuestion(bool isCorrect) async {
+    if (!isCorrect) return true;
+    if (_currentStepAnswered) return true;
 
     final lesson = _currentLesson;
     final step = currentStep;
-    if (lesson == null || step == null || _isRecording) return null;
+    if (lesson == null || step == null || _isRecording) return false;
 
     final isCompleted = isLessonCompleted(lesson.lessonId);
     if (isCompleted) {
       _currentStepAnswered = true;
       _errorMessage = null;
       notifyListeners();
-      return 0; // Already completed, no repeat XP
+      return true; // Already completed; nothing further to record.
     }
 
     _currentStepAnswered = true;
@@ -280,23 +283,18 @@ class LessonProvider extends ChangeNotifier {
     notifyListeners();
 
     if (_accountId != null) {
-      final result = await _recordStep(
+      await _recordStep(
         lesson: lesson,
         stepIndex: _currentStepIndex,
         answerCorrect: step.isAnswerStep,
         completing: false,
       );
-      if (result != null) {
-        _errorMessage = null;
-        return result.xpAwarded;
-      }
     }
 
-    // Local fallback for XP award if cloud catalog RPC fails or is unmigrated
+    // A failed cloud write already fell back to local tracking inside
+    // _recordStep, so the answer still counts.
     _errorMessage = null;
-    final localXp = step.isAnswerStep ? 10 : 0;
-    _sessionXp += localXp;
-    return localXp;
+    return true;
   }
 
   Future<bool> completeLesson() async {
@@ -391,15 +389,7 @@ class LessonProvider extends ChangeNotifier {
         _completedLessonIds.add(lesson.lessonId);
         unawaited(_saveLocalCompletedLesson(accountId, lesson.lessonId));
       }
-      _sessionXp += result.xpAwarded;
-      final currentProfile = _profile;
-      _profile = LearningProfileSnapshot(
-        userId: accountId,
-        xp: result.totalXp,
-        level: result.level,
-        levelTitle: result.levelTitle,
-        streak: currentProfile?.streak ?? 0,
-      );
+      _profile = LearningProfileSnapshot(userId: accountId);
       _errorMessage = null;
       return result;
     } catch (error) {
@@ -435,12 +425,6 @@ class LessonProvider extends ChangeNotifier {
           _errorMessage = null;
           return RecordLessonStepResult(
             progress: localProgress,
-            xpAwarded: 0,
-            stepXpAwarded: 0,
-            completionXpAwarded: 0,
-            totalXp: _profile?.xp ?? 0,
-            level: _profile?.level ?? 1,
-            levelTitle: _profile?.levelTitle ?? 'Math Learner',
             completionRequirementsMet: true,
           );
         }
@@ -547,7 +531,6 @@ class LessonProvider extends ChangeNotifier {
     _persistedProgress.clear();
     _completedLessonIds.clear();
     _profile = null;
-    _sessionXp = 0;
     _currentStepAnswered = false;
     _isHydrating = false;
     _isRecording = false;

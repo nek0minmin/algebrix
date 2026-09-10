@@ -22,10 +22,6 @@ class _StubProgressRepository implements ProgressRepository {
   Future<LearningProfileSnapshot> fetchCurrentProfile() async =>
       const LearningProfileSnapshot(
         userId: 'student_1',
-        xp: 120,
-        level: 1,
-        levelTitle: 'Math Beginner',
-        streak: 0,
       );
 
   @override

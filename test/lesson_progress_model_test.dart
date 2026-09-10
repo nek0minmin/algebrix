@@ -5,17 +5,9 @@ void main() {
   test('LearningProfileSnapshot maps authoritative profile totals', () {
     final profile = LearningProfileSnapshot.fromJson({
       'id': 'user-1',
-      'xp': 1055,
-      'level': 2,
-      'level_title': 'Math Explorer',
-      'streak': 4,
     });
 
     expect(profile.userId, 'user-1');
-    expect(profile.xp, 1055);
-    expect(profile.level, 2);
-    expect(profile.levelTitle, 'Math Explorer');
-    expect(profile.streak, 4);
   });
 
   group('LessonProgress', () {
@@ -74,20 +66,10 @@ void main() {
         'updated_at': '2026-08-12T01:10:00Z',
         'completed_at': '2026-08-12T01:10:00Z',
       },
-      'xp_awarded': 25,
-      'step_xp_awarded': 0,
-      'completion_xp_awarded': 25,
-      'total_xp': 55,
-      'level': 1,
-      'level_title': 'Math Beginner',
       'completion_requirements_met': true,
     });
 
     expect(result.progress.status, LessonProgressStatus.completed);
-    expect(result.xpAwarded, 25);
-    expect(result.stepXpAwarded, 0);
-    expect(result.completionXpAwarded, 25);
-    expect(result.totalXp, 55);
     expect(result.completionRequirementsMet, isTrue);
   });
 }
