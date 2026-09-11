@@ -15,6 +15,7 @@ import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/services/note_correction_service.dart';
+import 'package:algebrix/services/note_draft_store.dart';
 import 'package:algebrix/widgets/notes/correction_suggestion_card.dart';
 import 'package:algebrix/widgets/notes/correction_text_controller.dart';
 import 'package:algebrix/widgets/notes/math_formatting_bar.dart';
@@ -25,9 +26,16 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class NoteFormScreen extends StatefulWidget {
-  const NoteFormScreen({super.key, this.note});
+  const NoteFormScreen({
+    super.key,
+    this.note,
+    this.draftStore = const NoteDraftStore(),
+  });
 
   final StudyNote? note;
+
+  /// Where unsaved writing is held between sessions.
+  final NoteDraftStore draftStore;
 
   bool get isEditing => note != null;
 
@@ -69,10 +77,13 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     _lastContentText = _contentController.text;
     _titleController.addListener(_handleTitleCaret);
     _contentController.addListener(_handleContentCaret);
+    _titleController.addListener(_scheduleDraftSave);
+    _contentController.addListener(_scheduleDraftSave);
     _lessonId = noteLessonOptionFor(widget.note?.lessonId ?? '')?.lessonId;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        unawaited(_restoreDraft());
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         try {
           final aiProvider = context.read<AiNotesProvider?>();
@@ -91,13 +102,142 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
   @override
   void dispose() {
     _sparkleTimer?.cancel();
+    // A debounce still in flight would otherwise lose the last few seconds of
+    // typing, which is exactly the window this feature exists to cover.
+    if (_draftTimer?.isActive ?? false) {
+      _draftTimer!.cancel();
+      unawaited(_writeDraftFor(_pendingDraft()));
+    }
     _titleController.removeListener(_handleTitleCaret);
     _contentController.removeListener(_handleContentCaret);
+    _titleController.removeListener(_scheduleDraftSave);
+    _contentController.removeListener(_scheduleDraftSave);
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
   }
 
+  // ── Offline drafts ─────────────────────────────────────────────────────────
+
+  /// Debounce so a draft is written once the learner pauses, not per keystroke.
+  static const _draftDebounce = Duration(milliseconds: 700);
+
+  Timer? _draftTimer;
+
+  /// Set once a draft has been restored, so the banner can offer a way back.
+  NoteDraft? _restoredDraft;
+  bool _draftBannerDismissed = false;
+
+  /// Last known account id, kept because `context` cannot be read during
+  /// dispose and that is exactly when the final draft flush happens.
+  String? _accountIdSnapshot;
+
+  String? get _accountId {
+    try {
+      final id = context.read<NotesProvider>().accountId;
+      if (id != null) _accountIdSnapshot = id;
+      return id;
+    } catch (_) {
+      return _accountIdSnapshot;
+    }
+  }
+
+  /// Puts back any writing that never reached Supabase.
+  ///
+  /// Runs once after the first frame, so the controllers already hold whatever
+  /// the saved note had and the draft can be compared against it.
+  Future<void> _restoreDraft() async {
+    final accountId = _accountId;
+    if (accountId == null) return;
+
+    final draft = await widget.draftStore.read(
+      accountId: accountId,
+      noteId: widget.note?.id,
+    );
+    if (draft == null || !mounted) return;
+
+    // A draft identical to the saved note is nothing to restore.
+    final matchesSaved = draft.title.trim() == (widget.note?.title.trim() ?? '')
+        && draft.content.trim() == (widget.note?.displayContent.trim() ?? '');
+    if (matchesSaved) {
+      await widget.draftStore.clear(
+        accountId: accountId,
+        noteId: widget.note?.id,
+      );
+      return;
+    }
+
+    setState(() {
+      _titleController.text = draft.title;
+      _contentController.text = draft.content;
+      _lastTitleText = draft.title;
+      _lastContentText = draft.content;
+      if (draft.lessonId != null &&
+          noteLessonOptionFor(draft.lessonId!) != null) {
+        _lessonId = draft.lessonId;
+      }
+      _restoredDraft = draft;
+      _draftBannerDismissed = false;
+    });
+  }
+
+  /// Throws away the restored draft and returns to the saved note.
+  void _revertToSaved() {
+    SoundService.playClick();
+    setState(() {
+      _titleController.text = widget.note?.title ?? '';
+      _contentController.text = widget.note?.displayContent ?? '';
+      _lastTitleText = _titleController.text;
+      _lastContentText = _contentController.text;
+      _lessonId = _initialLessonId;
+      _restoredDraft = null;
+      _corrections = const [];
+      _activeCorrection = null;
+    });
+    _titleController.corrections = const [];
+    _contentController.corrections = const [];
+    // Runs after the assignments above have already queued a debounce, and
+    // _clearDraft cancels it, so reverting leaves no draft behind.
+    unawaited(_clearDraft());
+  }
+
+  /// Queues a draft write. Called on every change to either field.
+  void _scheduleDraftSave() {
+    _draftTimer?.cancel();
+    _draftTimer = Timer(_draftDebounce, _writeDraft);
+  }
+
+  NoteDraft _pendingDraft() => NoteDraft(
+        noteId: widget.note?.id,
+        title: _titleController.text,
+        content: _contentController.text,
+        lessonId: _lessonId,
+        savedAt: DateTime.now(),
+      );
+
+  Future<void> _writeDraft() {
+    // Supersedes anything the debounce was about to write.
+    _draftTimer?.cancel();
+    return _writeDraftFor(_pendingDraft());
+  }
+
+  /// Takes the draft by value so it can still be written while the widget is
+  /// being torn down.
+  Future<void> _writeDraftFor(NoteDraft draft) async {
+    final accountId = _accountIdSnapshot;
+    if (accountId == null) return;
+    await widget.draftStore.write(draft, accountId: accountId);
+  }
+
+  Future<void> _clearDraft() async {
+    _draftTimer?.cancel();
+    final accountId = _accountId;
+    if (accountId == null) return;
+    await widget.draftStore.clear(
+      accountId: accountId,
+      noteId: widget.note?.id,
+    );
+  }
   // ── Leaving without saving ─────────────────────────────────────────────────
 
   /// The lesson tag this note started with, so a fresh pick counts as a change.
@@ -644,6 +784,19 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
             content: encodedContent,
           );
 
+    // Draft housekeeping is deliberately not awaited: the save is what the
+    // learner is waiting on, and slow device storage must not hold the screen
+    // open behind it. Both calls cancel the pending debounce first, so dispose
+    // cannot resurrect a draft that was just cleared.
+    if (success) {
+      // Supabase has it now, so the on-device copy is no longer the only one.
+      unawaited(_clearDraft());
+    } else {
+      // Keep the draft and make sure it reflects what is on screen right now,
+      // so closing the app after a failed save does not lose the writing.
+      unawaited(_writeDraft());
+    }
+
     if (!mounted) return;
     if (success) {
       SoundService.playComplete();
@@ -654,7 +807,8 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     showAlgebrixSnackBar(
       context,
       message: notesProvider.errorMessage ??
-          'Your study note could not be saved. Please try again.',
+          'Your study note could not be saved. It is kept on this device, so '
+              'you can try again in a moment.',
       isError: true,
     );
   }
@@ -703,11 +857,17 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
         if (didPop) return;
         // Captured before the await so no BuildContext crosses the gap.
         final navigator = Navigator.of(context);
+        // Leaving must not wait on device storage either; _clearDraft cancels
+        // the pending debounce synchronously, so nothing can write after it.
         if (!_hasUnsavedChanges) {
+          unawaited(_clearDraft());
           navigator.pop();
           return;
         }
-        if (await _confirmDiscard()) navigator.pop();
+        if (await _confirmDiscard()) {
+          unawaited(_clearDraft());
+          navigator.pop();
+        }
       },
       child: _buildForm(context),
     );
@@ -739,6 +899,16 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (_restoredDraft != null && !_draftBannerDismissed) ...[
+                      _RestoredDraftBanner(
+                        savedAt: _restoredDraft!.savedAt,
+                        isEditing: widget.isEditing,
+                        onRevert: widget.isEditing ? _revertToSaved : null,
+                        onDismiss: () =>
+                            setState(() => _draftBannerDismissed = true),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     const _FieldLabel(
                       label: 'Lesson tag',
                       helper:
@@ -951,6 +1121,106 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Tells the learner their unsaved writing came back, and offers a way out of
+/// it when they were editing something that already exists.
+class _RestoredDraftBanner extends StatelessWidget {
+  const _RestoredDraftBanner({
+    required this.savedAt,
+    required this.isEditing,
+    required this.onDismiss,
+    this.onRevert,
+  });
+
+  final DateTime savedAt;
+  final bool isEditing;
+  final VoidCallback onDismiss;
+  final VoidCallback? onRevert;
+
+  String get _when {
+    final elapsed = DateTime.now().difference(savedAt);
+    if (elapsed.inMinutes < 1) return 'a moment ago';
+    if (elapsed.inMinutes < 60) return '${elapsed.inMinutes} min ago';
+    if (elapsed.inHours < 24) {
+      return '${elapsed.inHours} hour${elapsed.inHours == 1 ? '' : 's'} ago';
+    }
+    return '${elapsed.inDays} day${elapsed.inDays == 1 ? '' : 's'} ago';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('restored-draft-banner'),
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+      decoration: BoxDecoration(
+        color: AppColors.lightMint,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.mint),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.history_rounded,
+            size: 20,
+            color: Color(0xFF12695E),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isEditing
+                      ? 'Restored your unsaved edits'
+                      : 'Picked up where you left off',
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF12695E),
+                  ),
+                ),
+                Text(
+                  'Saved on this device $_when.',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 11.5,
+                  ),
+                ),
+                if (onRevert != null) ...[
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    key: const Key('restored-draft-revert'),
+                    onTap: onRevert,
+                    behavior: HitTestBehavior.opaque,
+                    child: Text(
+                      'Revert to the saved note',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.darkPink,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.darkPink,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          IconButton(
+            key: const Key('restored-draft-dismiss'),
+            onPressed: onDismiss,
+            iconSize: 18,
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Dismiss',
+            icon: const Icon(Icons.close_rounded, color: AppColors.subtitle),
+          ),
+        ],
       ),
     );
   }

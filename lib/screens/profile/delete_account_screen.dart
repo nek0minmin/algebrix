@@ -6,7 +6,9 @@ import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/screens/auth/login_screen.dart';
 import 'package:algebrix/widgets/app_input_field.dart';
+import 'package:algebrix/core/providers/notes_provider.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
+import 'package:algebrix/services/note_draft_store.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 
@@ -100,7 +102,15 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
     setState(() => _isDeleting = true);
 
     final authProvider = context.read<AuthProvider>();
+    // Captured before deletion, because afterwards there is no account to ask.
+    final accountId = context.read<NotesProvider>().accountId;
     final success = await authProvider.deleteAccount();
+
+    if (success && accountId != null) {
+      // The server cascade cannot reach anything held on the device, and a
+      // shared phone should keep nothing of the learner who left.
+      await const NoteDraftStore().clearAll(accountId);
+    }
 
     if (!mounted) return;
     setState(() => _isDeleting = false);

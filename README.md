@@ -45,6 +45,16 @@ offline seed bank and Xy falls back to offline hints.
 
 See [API.md](API.md) for the full endpoint specification.
 
+## Offline behaviour
+
+Lesson content is compiled into the app, so lessons and the curated quiz seed
+banks work with no connection at all.
+
+Notes being written are held on the device by `NoteDraftStore` until the save
+reaches Supabase, keyed by account and by note. A failed save, a killed app or a
+back button never loses what was typed — reopening the editor restores it and
+says so. Drafts expire after 30 days and are wiped when an account is deleted.
+
 ## Tests
 
 ```bash
