@@ -6,7 +6,7 @@ This document provides complete technical specifications for all external and ba
 
 ## 📑 Table of Contents
 1. [Supabase REST & Authentication API](#1-supabase-rest--authentication-api)
-2. [Google Gemini AI Tutor API](#2-google-gemini-ai-tutor-api)
+2. [Algebrix AI Proxy (Supabase Edge Function)](#2-algebrix-ai-proxy-supabase-edge-function)
 3. [MathJS REST API](#3-mathjs-rest-api)
 4. [Newton Math REST API](#4-newton-math-rest-api)
 
@@ -101,48 +101,87 @@ Content-Type: application/json
 
 ---
 
-## 2. Google Gemini AI Tutor API
+## 2. Algebrix AI Proxy (Supabase Edge Function)
 
 ### Overview
-* **Base URL**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`
+Every AI call the app makes goes through one endpoint. The Gemini, Groq and
+NVIDIA keys live in Edge Function secrets and never reach the device, so an
+installed APK contains no provider credential.
+
+* **Endpoint**: `POST https://<YOUR_SUPABASE_PROJECT_ID>.supabase.co/functions/v1/ai-proxy`
 * **Protocol**: HTTPS REST POST
-* **Authentication**: API Key via URL Parameter (`?key=YOUR_GEMINI_API_KEY`)
+* **Authentication**: the learner's own Supabase session JWT. Anonymous calls are rejected with `401`.
+* **Source**: `supabase/functions/ai-proxy/index.ts`
+* **Client**: `lib/services/ai_gateway.dart`
+
+### Deploying
+
+```bash
+supabase functions deploy ai-proxy
+
+supabase secrets set GEMINI_API_KEY=...
+supabase secrets set GROQ_API_KEY=...
+supabase secrets set NVIDIA_API_KEY=...
+```
+
+Apply `supabase/migrations/202609120001_ai_usage_quota.sql` first — the
+function refuses to spend an upstream call without it.
 
 ### Request Specification
-* **Method**: `POST`
-* **Headers**: `Content-Type: application/json`
+* **Headers**:
+```http
+apikey: <YOUR_SUPABASE_ANON_KEY>
+Authorization: Bearer <USER_SESSION_JWT_TOKEN>
+Content-Type: application/json
+```
 * **Request Body**:
 ```json
 {
-  "contents": [
-    {
-      "parts": [
-        {
-          "text": "Explain in simple terms why subtracting 6 from both sides of 2x + 6 = 18 helps isolate x."
-        }
-      ]
-    }
-  ]
+  "task": "quiz",
+  "system": "You are Xy, the expert educational AI quiz master in Algebrix...",
+  "user": "Generate a fresh, unique 10-question progressive quiz for module5.",
+  "jsonMode": true
 }
 ```
+
+| Field | Type | Notes |
+|---|---|---|
+| `task` | string | `quiz` or `tutor`. Decides the provider chain and the hourly limit. |
+| `system` | string | Max 24,000 characters. |
+| `user` | string | Max 8,000 characters. |
+| `jsonMode` | boolean | Defaults to `true`. Set `false` for prose (note polishing). |
+
+### Provider chain
+| Task | Order | Hourly limit per learner |
+|---|---|---|
+| `quiz` | Gemini → Groq → NVIDIA NIM | 20 |
+| `tutor` | Groq → NVIDIA NIM | 60 |
 
 ### Response Specification
 * **Response (200 OK)**:
 ```json
 {
-  "candidates": [
-    {
-      "content": {
-        "parts": [
-          {
-            "text": "Subtracting 6 removes the constant on the left, leaving 2x = 12. Because we did it to both sides, the balance is maintained!"
-          }
-        ]
-      }
-    }
-  ]
+  "text": "{\"questions\":[ ... ]}",
+  "provider": "Gemini (gemini-2.5-flash)"
 }
 ```
+* **Errors**:
+
+| Status | `code` | Meaning |
+|---|---|---|
+| 400 | `bad_request` | Unknown task, or a prompt over the size cap. |
+| 401 | `unauthenticated` | No or invalid session JWT. |
+| 429 | `rate_limited` | Hourly quota spent. Includes `resetsAt`. |
+| 502 | `providers_unavailable` | No upstream provider answered. |
+| 503 | `quota_unavailable` | The quota RPC could not be reached. |
+
+Every error is a soft failure for the learner: `ModuleQuizService` falls back to
+its offline seed bank and `AiTutorService` to its offline hints, so the app
+stays usable with no network and no AI at all.
+
+### Usage RPCs
+* `consume_ai_quota(p_task text)` — spends one request, returns `allowed`, `used`, `hourly_limit`, `resets_at`. Called by the Edge Function, not the app.
+* `ai_quota_status(p_task text)` — reads the current hour's usage without spending one.
 
 ---
 

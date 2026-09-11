@@ -1,47 +1,58 @@
 import 'dart:convert';
+import 'package:algebrix/services/ai_gateway.dart';
 import 'package:algebrix/services/ai_tutor_service.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-void main() {
-  setUp(() async {
-    await dotenv.load(
-      mergeWith: {
-        'GROQ_API_KEY': 'test_groq_key',
-        'NVIDIA_NIM_API_KEY': 'test_nvidia_key',
-      },
-    );
-  });
+const _endpoint = 'https://example.supabase.co/functions/v1/ai-proxy';
 
+/// A gateway wired to a stub transport with a pretend signed-in session.
+///
+/// The provider chain now runs inside the Edge Function, so from Dart's side
+/// there is exactly one host to mock — and that is the point of the change.
+AiGateway _gateway(MockClient client, {String? token = 'test-access-token'}) {
+  return AiGateway(
+    client: client,
+    endpoint: _endpoint,
+    accessTokenReader: () => token,
+  );
+}
+
+http.Response _proxyResponse(Object content, {String provider = 'Groq (test)'}) {
+  return http.Response.bytes(
+    utf8.encode(jsonEncode({
+      'text': content is String ? content : jsonEncode(content),
+      'provider': provider,
+    })),
+    200,
+    headers: {'content-type': 'application/json; charset=utf-8'},
+  );
+}
+
+void main() {
   group('AiTutorService tests', () {
-    test('checkWorkedExample returns parsed json result from Groq API', () async {
+    test('checkWorkedExample returns parsed json result from the proxy',
+        () async {
       final mockClient = MockClient((request) async {
-        expect(request.url.host, 'api.groq.com');
-        final body = jsonEncode({
-          'choices': [
-            {
-              'message': {
-                'content': jsonEncode({
-                  'isCorrect': true,
-                  'title': '🐙 Looks good!',
-                  'message': 'You correctly subtracted 5 and divided by 2.',
-                  'whyItWorks': 'Inverse operations isolate X.',
-                  'keyConcept': 'Subtraction property of equality',
-                }),
-              },
-            }
-          ],
+        expect(request.url.toString(), _endpoint);
+        expect(request.headers['Authorization'], 'Bearer test-access-token');
+
+        final sent = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(sent['task'], 'tutor');
+        expect(sent['system'], contains('Xy'));
+        expect(sent['user'], contains('2x + 5 = 15'));
+
+        return _proxyResponse({
+          'isCorrect': true,
+          'title': '🐙 Looks good!',
+          'message': 'You correctly subtracted 5 and divided by 2.',
+          'whyItWorks': 'Inverse operations isolate X.',
+          'keyConcept': 'Subtraction property of equality',
         });
-        return http.Response.bytes(
-          utf8.encode(body),
-          200,
-          headers: {'content-type': 'application/json; charset=utf-8'},
-        );
       });
 
-      final service = AiTutorService(client: mockClient);
+      final service = AiTutorService(gateway: _gateway(mockClient));
       final result = await service.checkWorkedExample(
         problem: '2x + 5 = 15',
         solution: '2x = 10 -> x = 5',
@@ -50,38 +61,23 @@ void main() {
       expect(result.isCorrect, isTrue);
       expect(result.title, contains('Looks good!'));
       expect(result.whyItWorks, contains('Inverse operations isolate X.'));
-      expect(result.providerUsed, contains('Groq'));
+      expect(result.providerUsed, 'Groq (test)');
     });
 
-    test('falls back to NVIDIA NIM when Groq API returns non-200 status', () async {
+    test('reports whichever provider the proxy actually used', () async {
       final mockClient = MockClient((request) async {
-        if (request.url.host == 'api.groq.com') {
-          return http.Response('Rate limit exceeded', 429);
-        }
-        expect(request.url.host, 'integrate.api.nvidia.com');
-        final body = jsonEncode({
-          'choices': [
-            {
-              'message': {
-                'content': jsonEncode({
-                  'isCorrect': false,
-                  'title': "Let's look at what happened!",
-                  'message': 'You tried to divide first before undoing +4.',
-                  'keyConcept': 'Undo addition first',
-                  'promptForStudent': '💡 What did you learn?',
-                }),
-              },
-            }
-          ],
-        });
-        return http.Response.bytes(
-          utf8.encode(body),
-          200,
-          headers: {'content-type': 'application/json; charset=utf-8'},
+        return _proxyResponse(
+          {
+            'isCorrect': false,
+            'title': "Let's look at what happened!",
+            'message': 'You tried to divide first before undoing +4.',
+            'keyConcept': 'Undo addition first',
+          },
+          provider: 'NVIDIA NIM (meta/llama-3.3-70b-instruct)',
         );
       });
 
-      final service = AiTutorService(client: mockClient);
+      final service = AiTutorService(gateway: _gateway(mockClient));
       final result = await service.diagnoseMistake(
         problem: '3x + 4 = 16',
         incorrectAnswer: 'x = 16 / 3',
@@ -89,19 +85,76 @@ void main() {
 
       expect(result.isCorrect, isFalse);
       expect(result.title, contains('what happened'));
-      expect(result.providerUsed, 'NVIDIA NIM');
+      expect(result.providerUsed, startsWith('NVIDIA NIM'));
     });
 
-    test('returns friendly offline fallback when both APIs fail', () async {
+    test('falls back offline when the proxy has no provider left', () async {
       final mockClient = MockClient((request) async {
-        return http.Response('Server error', 500);
+        return http.Response(
+          jsonEncode({'error': 'No AI provider answered.', 'code': 'providers_unavailable'}),
+          502,
+        );
       });
 
-      final service = AiTutorService(client: mockClient);
+      final service = AiTutorService(gateway: _gateway(mockClient));
       final result = await service.getSocraticHint(question: 'Why subtract 5?');
 
       expect(result.title, contains('Learning Nudge'));
       expect(result.providerUsed, 'Offline Knowledge');
+    });
+
+    test('falls back offline when the hourly quota is spent', () async {
+      var calls = 0;
+      final mockClient = MockClient((request) async {
+        calls++;
+        return http.Response(
+          jsonEncode({
+            'error': 'You have used this hour\'s AI requests.',
+            'code': 'rate_limited',
+            'resetsAt': '2026-09-12T10:00:00Z',
+          }),
+          429,
+        );
+      });
+
+      final service = AiTutorService(gateway: _gateway(mockClient));
+      final result = await service.getSocraticHint(question: 'Why subtract 5?');
+
+      expect(calls, 1, reason: 'a refused call must not be retried in a loop');
+      expect(result.providerUsed, 'Offline Knowledge');
+    });
+
+    test('never calls the proxy when nobody is signed in', () async {
+      var called = false;
+      final mockClient = MockClient((request) async {
+        called = true;
+        return _proxyResponse({'title': 'should not happen'});
+      });
+
+      final service = AiTutorService(
+        gateway: _gateway(mockClient, token: null),
+      );
+      final result = await service.getSocraticHint(question: 'Why subtract 5?');
+
+      expect(called, isFalse);
+      expect(result.providerUsed, 'Offline Knowledge');
+    });
+
+    test('improveUnderstanding returns polished text from the proxy', () async {
+      final mockClient = MockClient((request) async {
+        final sent = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(sent['jsonMode'], isFalse,
+            reason: 'note polishing wants prose, not JSON');
+        return _proxyResponse(
+          '```markdown\nWhat I learned:\n• **2x = 10** means **x = 5**.\n```',
+        );
+      });
+
+      final service = AiTutorService(gateway: _gateway(mockClient));
+      final polished = await service.improveUnderstanding(rawNote: 'x is 5 i think');
+
+      expect(polished, startsWith('What I learned:'));
+      expect(polished, isNot(contains('```')));
     });
 
     test('isOffTopicText correctly identifies math notes vs off-topic content', () {

@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+# A newer push to the same branch makes the older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flutter:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Formatting is not enforced: the existing content files are hand-laid
+      # out and `dart format` would rewrite all of them.
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Test
+        run: flutter test --reporter expanded
+
+  secrets:
+    name: No bundled secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # A fast, dependency-free check that runs even if the Flutter job is
+      # still warming up: nothing that looks like a provider key, and no env
+      # file, may be committed.
+      - name: Scan tracked files for credentials
+        run: |
+          set -euo pipefail
+
+          if git ls-files | grep -E '(^|/)\.env$|\.env\.(local|production)$'; then
+            echo "::error::An environment file is tracked in git."
+            exit 1
+          fi
+
+          # git grep exits 1 when it finds nothing, which is the outcome we want.
+          if git grep -nEI \
+            'gsk_[A-Za-z0-9]{20,}|nvapi-[A-Za-z0-9_-]{20,}|AIza[A-Za-z0-9_-]{30,}|sk-[A-Za-z0-9]{32,}' \
+            -- ':(exclude)*.lock' ':(exclude).github/workflows/*'; then
+            echo "::error::A provider API key appears to be committed."
+            exit 1
+          fi
+
+          echo "No credentials found in tracked files."

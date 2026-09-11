@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:algebrix/services/ai_gateway.dart';
 
 /// Data model representing structured educational feedback from Xy AI tutor.
 class AiFeedbackResult {
@@ -51,31 +51,17 @@ class AiFeedbackResult {
   }
 }
 
-/// Service handling intelligent LLM tutoring with Groq -> NVIDIA NIM multi-tier fallback.
+/// Service handling intelligent LLM tutoring.
+///
+/// The Groq -> NVIDIA NIM fallback still happens, but server-side: this class
+/// makes one call to the `ai-proxy` Edge Function, which holds the provider
+/// keys. Nothing secret ships with the app, and an unreachable proxy simply
+/// lands on the offline fallback below.
 class AiTutorService {
-  final http.Client _client;
+  final AiGateway _gateway;
 
-  AiTutorService({http.Client? client}) : _client = client ?? http.Client();
-
-  String get _groqApiKey {
-    try {
-      return dotenv.isInitialized ? (dotenv.env['GROQ_API_KEY'] ?? '') : '';
-    } catch (_) {
-      return '';
-    }
-  }
-
-  String get _nvidiaApiKey {
-    try {
-      return dotenv.isInitialized
-          ? (dotenv.env['NVIDIA_NIM_API_KEY'] ??
-              dotenv.env['NVIDIA_API_KEY'] ??
-              '')
-          : '';
-    } catch (_) {
-      return '';
-    }
-  }
+  AiTutorService({http.Client? client, AiGateway? gateway})
+      : _gateway = gateway ?? AiGateway(client: client);
 
   /// 📝 Worked Example Verification: Validates student's self-written step-by-step solutions.
   Future<AiFeedbackResult> checkWorkedExample({
@@ -211,24 +197,27 @@ CRITICAL RULES:
 4. Format clearly with bullet points.
 ''';
 
+    const offlineNote =
+        'What I Learned:\n'
+        '• To solve equations, I isolate the variable step-by-step using inverse operations.\n'
+        '• Whatever I do to one side of the balance scale, I apply to the other side.';
+
+    if (!_gateway.isAvailable) return offlineNote;
+
     try {
-      final response = await _callGroq(
+      final completion = await _gateway.complete(
+        task: 'tutor',
         systemPrompt: systemPrompt,
         userPrompt: rawNote,
-        isJsonMode: false,
+        jsonMode: false,
       );
-      return _cleanMarkdownResponse(response);
-    } catch (_) {
-      try {
-        final response = await _callNvidia(
-          systemPrompt: systemPrompt,
-          userPrompt: rawNote,
-          isJsonMode: false,
-        );
-        return _cleanMarkdownResponse(response);
-      } catch (e) {
-        return 'What I Learned:\n• To solve equations, I isolate the variable step-by-step using inverse operations.\n• Whatever I do to one side of the balance scale, I apply to the other side.';
-      }
+      return _cleanMarkdownResponse(completion.text);
+    } on AiGatewayException catch (e) {
+      debugPrint('AI proxy unavailable (${e.failure.name}): ${e.message}');
+      return offlineNote;
+    } catch (e) {
+      debugPrint('Note polish failed: $e');
+      return offlineNote;
     }
   }
 
@@ -341,116 +330,25 @@ CRITICAL RULES:
       );
     }
 
+    if (!_gateway.isAvailable) {
+      return _getOfflineFallback(userPrompt);
+    }
+
     try {
-      final text = await _callGroq(
+      final completion = await _gateway.complete(
+        task: 'tutor',
         systemPrompt: systemPrompt,
         userPrompt: userPrompt,
-        isJsonMode: true,
       );
-      final json = _extractAndDecodeJson(text);
-      return AiFeedbackResult.fromJson(json, provider: 'Groq (Llama 3.3 70B)');
+      final json = _extractAndDecodeJson(completion.text);
+      return AiFeedbackResult.fromJson(json, provider: completion.provider);
+    } on AiGatewayException catch (e) {
+      debugPrint('AI proxy unavailable (${e.failure.name}): ${e.message}');
+      return _getOfflineFallback(userPrompt);
     } catch (e) {
-      debugPrint('Groq API error: $e. Falling back to NVIDIA NIM...');
-      try {
-        final text = await _callNvidia(
-          systemPrompt: systemPrompt,
-          userPrompt: userPrompt,
-          isJsonMode: true,
-        );
-        final json = _extractAndDecodeJson(text);
-        return AiFeedbackResult.fromJson(json, provider: 'NVIDIA NIM');
-      } catch (e2) {
-        debugPrint('NVIDIA API error: $e2. Using offline fallback.');
-        return _getOfflineFallback(userPrompt);
-      }
+      debugPrint('Tutor feedback failed: $e. Using offline fallback.');
+      return _getOfflineFallback(userPrompt);
     }
-  }
-
-  Future<String> _callGroq({
-    required String systemPrompt,
-    required String userPrompt,
-    required bool isJsonMode,
-  }) async {
-    final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
-    final models = [
-      'openai/gpt-oss-120b',
-      'openai/gpt-oss-20b',
-      'qwen/qwen3.6-27b',
-    ];
-
-    Object? lastError;
-    for (final model in models) {
-      try {
-        final bodyMap = <String, dynamic>{
-          'model': model,
-          'messages': [
-            {'role': 'system', 'content': systemPrompt},
-            {'role': 'user', 'content': userPrompt},
-          ],
-          'temperature': 0.3,
-        };
-
-        if (isJsonMode) {
-          bodyMap['response_format'] = {'type': 'json_object'};
-        }
-
-        final response = await _client.post(
-          url,
-          headers: {
-            'Authorization': 'Bearer $_groqApiKey',
-            'Content-Type': 'application/json; charset=utf-8',
-          },
-          body: jsonEncode(bodyMap),
-        ).timeout(const Duration(seconds: 10));
-
-        if (response.statusCode == 200) {
-          final decoded = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-          return decoded['choices'][0]['message']['content'] as String;
-        } else {
-          lastError = Exception('Groq $model status ${response.statusCode}: ${response.body}');
-        }
-      } catch (e) {
-        lastError = e;
-      }
-    }
-
-    throw lastError ?? Exception('All Groq models failed.');
-  }
-
-  Future<String> _callNvidia({
-    required String systemPrompt,
-    required String userPrompt,
-    required bool isJsonMode,
-  }) async {
-    final url = Uri.parse('https://integrate.api.nvidia.com/v1/chat/completions');
-    final bodyMap = <String, dynamic>{
-      'model': 'meta/llama-3.3-70b-instruct',
-      'messages': [
-        {'role': 'system', 'content': systemPrompt},
-        {'role': 'user', 'content': userPrompt},
-      ],
-      'temperature': 0.3,
-    };
-
-    if (isJsonMode) {
-      bodyMap['response_format'] = {'type': 'json_object'};
-    }
-
-    final response = await _client.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $_nvidiaApiKey',
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-      body: jsonEncode(bodyMap),
-    ).timeout(const Duration(seconds: 10));
-
-    if (response.statusCode != 200) {
-      throw Exception('NVIDIA status ${response.statusCode}: ${response.body}');
-    }
-
-    final decoded = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-    return decoded['choices'][0]['message']['content'] as String;
   }
 
   Map<String, dynamic> _extractAndDecodeJson(String text) {

@@ -1,41 +1,25 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_model.dart';
+import 'package:algebrix/services/ai_gateway.dart';
 
-/// Service powering AI-Generated Module Quizzes with multi-tier fallback (Gemini -> Groq -> NVIDIA -> Seed Bank).
-/// Enforces strict module-specific scope constraints, 10 progressive items, and mathematical accuracy.
+/// Service powering AI-Generated Module Quizzes, with the offline Seed Bank as
+/// the fallback whenever the AI proxy cannot answer.
+///
+/// The Gemini -> Groq -> NVIDIA chain used to run here with keys read from the
+/// bundled `.env`. It now runs inside the `ai-proxy` Edge Function, so no
+/// provider key ships with the app.
+///
+/// Enforces strict module-specific scope constraints, 10 progressive items, and
+/// mathematical accuracy.
 class ModuleQuizService {
-  final http.Client _client;
+  final AiGateway _gateway;
 
-  ModuleQuizService({http.Client? client}) : _client = client ?? http.Client();
-
-  String get _geminiApiKey {
-    try {
-      return dotenv.isInitialized ? (dotenv.env['GEMINI_API_KEY'] ?? '') : '';
-    } catch (_) {
-      return '';
-    }
-  }
-
-  String get _groqApiKey {
-    try {
-      return dotenv.isInitialized ? (dotenv.env['GROQ_API_KEY'] ?? '') : '';
-    } catch (_) {
-      return '';
-    }
-  }
-
-  String get _nvidiaApiKey {
-    try {
-      return dotenv.isInitialized ? (dotenv.env['NVIDIA_API_KEY'] ?? '') : '';
-    } catch (_) {
-      return '';
-    }
-  }
+  ModuleQuizService({http.Client? client, AiGateway? gateway})
+      : _gateway = gateway ?? AiGateway(client: client);
 
   /// Builds a dedicated, strict system prompt tailored to the requested module's exact curriculum.
   String _buildSystemPrompt(ModuleContent module) {
@@ -381,190 +365,34 @@ Return ONLY a JSON object with this EXACT structure:
         'Ensure unique numerical values, diverse variable letters (e.g. k, m, p, w, n, a, b, c, x, y, z), '
         'and different problem setups so every generated quiz is brand new and engaging.';
 
-    // 1. Try Gemini API if key is present
-    if (_geminiApiKey.isNotEmpty) {
+    // The provider chain lives in the Edge Function now; from here it is one
+    // call that either answers or does not. Every failure — no session, quota
+    // spent, providers down — lands on the same offline seed bank the app has
+    // always fallen back to, so a learner still gets a full 10 questions.
+    if (_gateway.isAvailable) {
       try {
-        debugPrint('Generating quiz via Google Gemini API...');
-        final rawJson = await _callGemini(
+        debugPrint('Generating quiz via the Algebrix AI proxy...');
+        final completion = await _gateway.complete(
+          task: 'quiz',
           systemPrompt: systemPrompt,
           userPrompt: userPrompt,
         );
         final parsed = _parseQuizJson(
-          rawJson,
+          completion.text,
           module: module,
-          provider: 'Google Gemini AI',
+          provider: completion.provider,
         );
         if (parsed.questions.length >= 8) return parsed;
+        debugPrint('Proxy returned too few questions. Using the seed bank.');
+      } on AiGatewayException catch (e) {
+        debugPrint('AI proxy unavailable (${e.failure.name}): ${e.message}');
       } catch (e) {
-        debugPrint('Gemini API error: $e. Falling back to Groq...');
+        debugPrint('Quiz generation failed: $e');
       }
     }
 
-    // 2. Try Groq API
-    if (_groqApiKey.isNotEmpty) {
-      try {
-        debugPrint('Generating quiz via Groq Llama 3.3 70B...');
-        final rawJson = await _callGroq(
-          systemPrompt: systemPrompt,
-          userPrompt: userPrompt,
-        );
-        final parsed = _parseQuizJson(
-          rawJson,
-          module: module,
-          provider: 'Groq (Llama 3.3 70B)',
-        );
-        if (parsed.questions.length >= 8) return parsed;
-      } catch (e) {
-        debugPrint('Groq API error: $e. Falling back to NVIDIA NIM...');
-      }
-    }
-
-    // 3. Try NVIDIA NIM API
-    if (_nvidiaApiKey.isNotEmpty) {
-      try {
-        debugPrint('Generating quiz via NVIDIA NIM API...');
-        final rawJson = await _callNvidia(
-          systemPrompt: systemPrompt,
-          userPrompt: userPrompt,
-        );
-        final parsed = _parseQuizJson(
-          rawJson,
-          module: module,
-          provider: 'NVIDIA NIM',
-        );
-        if (parsed.questions.length >= 8) return parsed;
-      } catch (e) {
-        debugPrint('NVIDIA API error: $e. Using offline Seed Bank.');
-      }
-    }
-
-    // 4. Offline Dynamic Seed Bank Fallback
-    debugPrint('Generating quiz via Algebrix Dynamic Seed Bank...');
+    debugPrint('Generating quiz via the Algebrix Dynamic Seed Bank...');
     return _generateSeedBankQuiz(module);
-  }
-
-  Future<String> _callGemini({
-    required String systemPrompt,
-    required String userPrompt,
-  }) async {
-    final models = [
-      'gemini-2.5-flash',
-      'gemini-2.5-flash-lite',
-      'gemini-flash-latest',
-      'gemini-2.5-pro',
-    ];
-
-    Object? lastError;
-    for (final model in models) {
-      try {
-        final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
-        );
-
-        final response = await _client.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'contents': [
-              {
-                'parts': [
-                  {'text': '$systemPrompt\n\n$userPrompt'}
-                ]
-              }
-            ],
-            'generationConfig': {
-              'temperature': 0.7,
-              'responseMimeType': 'application/json',
-            }
-          }),
-        ).timeout(const Duration(seconds: 14));
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          return data['candidates'][0]['content']['parts'][0]['text'] as String;
-        } else {
-          lastError = Exception('Gemini $model status ${response.statusCode}: ${response.body}');
-        }
-      } catch (e) {
-        lastError = e;
-      }
-    }
-
-    throw lastError ?? Exception('All Gemini models failed.');
-  }
-
-  Future<String> _callGroq({
-    required String systemPrompt,
-    required String userPrompt,
-  }) async {
-    final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
-    final models = [
-      'openai/gpt-oss-120b',
-      'openai/gpt-oss-20b',
-      'qwen/qwen3.6-27b',
-    ];
-
-    Object? lastError;
-    for (final model in models) {
-      try {
-        final response = await _client.post(
-          url,
-          headers: {
-            'Authorization': 'Bearer $_groqApiKey',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'model': model,
-            'messages': [
-              {'role': 'system', 'content': systemPrompt},
-              {'role': 'user', 'content': userPrompt},
-            ],
-            'temperature': 0.7,
-            'response_format': {'type': 'json_object'},
-          }),
-        ).timeout(const Duration(seconds: 12));
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          return data['choices'][0]['message']['content'] as String;
-        } else {
-          lastError = Exception('Groq $model status ${response.statusCode}: ${response.body}');
-        }
-      } catch (e) {
-        lastError = e;
-      }
-    }
-
-    throw lastError ?? Exception('All Groq models failed.');
-  }
-
-  Future<String> _callNvidia({
-    required String systemPrompt,
-    required String userPrompt,
-  }) async {
-    final url = Uri.parse('https://integrate.api.nvidia.com/v1/chat/completions');
-    final response = await _client.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $_nvidiaApiKey',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'model': 'meta/llama-3.3-70b-instruct',
-        'messages': [
-          {'role': 'system', 'content': systemPrompt},
-          {'role': 'user', 'content': userPrompt},
-        ],
-        'temperature': 0.7,
-      }),
-    ).timeout(const Duration(seconds: 12));
-
-    if (response.statusCode != 200) {
-      throw Exception('NVIDIA status ${response.statusCode}: ${response.body}');
-    }
-
-    final data = jsonDecode(response.body);
-    return data['choices'][0]['message']['content'] as String;
   }
 
   String _sanitizeExplanation(String explanation) {
