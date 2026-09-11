@@ -27,6 +27,7 @@ class QuestMapProvider extends ChangeNotifier {
   final Map<String, Map<int, QuestLevelProgress>> _allLandsProgress = {
     'balands': {},
     'pairadise': {},
+    'boundaria': {},
   };
   Map<int, QuestLevelProgress> _levelProgress = {}; // keyed by levelNumber
   int _totalStars = 0;
@@ -96,9 +97,37 @@ class QuestMapProvider extends ChangeNotifier {
   /// Whether Pairadise (Land of Pairs) is currently unlocked (>= 25 total stars).
   bool get isPairadiseUnlocked => isLandUnlocked('pairadise');
 
+  /// Whether Boundaria (Land of Boundaries) is unlocked (>= 55 total stars).
+  bool get isBoundariaUnlocked => isLandUnlocked('boundaria');
+
+  /// The furthest land the learner has unlocked, deepest first.
+  ///
+  /// Walks the land list rather than naming lands, so a fourth realm needs no
+  /// change here.
+  String get _frontierLandId {
+    for (final land in _defaultLands.reversed) {
+      if (isLandUnlocked(land.id)) return land.id;
+    }
+    return 'balands';
+  }
+
+  /// First level in [landId] that has not been cleared, capped at 10.
+  int _frontierLevelIn(String landId) {
+    final progress = _allLandsProgress[landId] ??
+        (landId == _activeLandId ? _levelProgress : const {});
+    for (var i = 1; i <= 10; i++) {
+      final p = progress[i];
+      if (p == null || p.starsEarned == 0) return i;
+    }
+    return 10;
+  }
+
   /// Static level definitions for the currently active land.
-  List<QuestLevelDefinition> get levelDefinitions =>
-      _activeLandId == 'pairadise' ? _pairadiseLevelDefs : _balandsLevelDefs;
+  List<QuestLevelDefinition> get levelDefinitions => switch (_activeLandId) {
+        'boundaria' => _boundariaLevelDefs,
+        'pairadise' => _pairadiseLevelDefs,
+        _ => _balandsLevelDefs,
+      };
 
   /// Whether a level is unlocked in the current land.
   /// Level 1 is always unlocked. Level N+1 requires level N to have ≥ 1 star.
@@ -137,42 +166,20 @@ class QuestMapProvider extends ChangeNotifier {
     return '$landName $roman';
   }
 
-  /// The player's absolute furthest unlocked frontier across ALL lands (e.g. "Pairadise V" even if navigating Balands).
+  /// The player's absolute furthest unlocked frontier across ALL lands
+  /// (e.g. "Boundaria V" even while navigating Balands).
   String get frontierLandAndLevelLabel {
-    if (isPairadiseUnlocked) {
-      final pairadiseMap = _allLandsProgress['pairadise'] ?? {};
-      int lvl = 10;
-      for (int i = 1; i <= 10; i++) {
-        final p = pairadiseMap[i];
-        if (p == null || p.starsEarned == 0) {
-          lvl = i;
-          break;
-        }
-      }
-      return 'Pairadise ${_toRoman(lvl)}';
-    } else {
-      final balandsMap = _allLandsProgress['balands'] ?? _levelProgress;
-      int lvl = 10;
-      for (int i = 1; i <= 10; i++) {
-        final p = balandsMap[i];
-        if (p == null || p.starsEarned == 0) {
-          lvl = i;
-          break;
-        }
-      }
-      return 'Balands ${_toRoman(lvl)}';
-    }
+    final landId = _frontierLandId;
+    final land = _defaultLands.firstWhere((l) => l.id == landId);
+    return '${land.name} ${_toRoman(_frontierLevelIn(landId))}';
   }
 
   /// Stars earned in the player's furthest unlocked realm.
   int get frontierLandStars {
-    if (isPairadiseUnlocked) {
-      final pairadiseMap = _allLandsProgress['pairadise'] ?? {};
-      return pairadiseMap.values.fold(0, (sum, p) => sum + p.starsEarned);
-    } else {
-      final balandsMap = _allLandsProgress['balands'] ?? _levelProgress;
-      return balandsMap.values.fold(0, (sum, p) => sum + p.starsEarned);
-    }
+    final landId = _frontierLandId;
+    final progress = _allLandsProgress[landId] ??
+        (landId == _activeLandId ? _levelProgress : const {});
+    return progress.values.fold(0, (sum, p) => sum + p.starsEarned);
   }
 
   static String _toRoman(int n) {
@@ -410,6 +417,14 @@ class QuestMapProvider extends ChangeNotifier {
       totalLevels: 10,
       unlockStarsRequired: 25,
     ),
+    QuestLand(
+      id: 'boundaria',
+      name: 'Boundaria',
+      subtitle: 'The Land of Boundaries',
+      sortOrder: 3,
+      totalLevels: 10,
+      unlockStarsRequired: 55,
+    ),
   ];
 
   // ---------------------------------------------------------------------------
@@ -472,6 +487,59 @@ class QuestMapProvider extends ChangeNotifier {
   // ---------------------------------------------------------------------------
   // Static Level Definitions for Pairadise (The Land of Pairs)
   // ---------------------------------------------------------------------------
+
+  static const List<QuestLevelDefinition> _boundariaLevelDefs = [
+    QuestLevelDefinition(
+      levelNumber: 1,
+      difficulty: 1,
+      description: 'First Border',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 2,
+      difficulty: 2,
+      description: 'The Included Lands',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 3,
+      difficulty: 3,
+      description: 'The Rising Border',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 4,
+      difficulty: 4,
+      description: 'Border Architect',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 5,
+      difficulty: 5,
+      description: 'Meet the Scout',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 6,
+      difficulty: 6,
+      description: 'Choose Your Own Scout',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 7,
+      difficulty: 7,
+      description: 'Hidden Border',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 8,
+      difficulty: 8,
+      description: 'The Reversed Rule',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 9,
+      difficulty: 9,
+      description: 'Broken Map',
+    ),
+    QuestLevelDefinition(
+      levelNumber: 10,
+      difficulty: 10,
+      description: 'The Final Territory',
+    ),
+  ];
 
   static const List<QuestLevelDefinition> _pairadiseLevelDefs = [
     QuestLevelDefinition(

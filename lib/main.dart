@@ -7,6 +7,7 @@ import 'core/providers/ai_notes_provider.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/balance_scale_provider.dart';
 import 'core/providers/pairadise_provider.dart';
+import 'core/providers/boundaria_provider.dart';
 import 'core/providers/lesson_provider.dart';
 import 'core/providers/notes_provider.dart';
 import 'core/providers/quest_map_provider.dart';
@@ -129,6 +130,9 @@ class AlgebrixApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<PairadiseProvider>(
           create: (_) => PairadiseProvider(),
+        ),
+        ChangeNotifierProvider<BoundariaProvider>(
+          create: (_) => BoundariaProvider(),
         ),
         ChangeNotifierProxyProvider2<
           AuthProvider,

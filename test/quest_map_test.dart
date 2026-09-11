@@ -360,6 +360,98 @@ void main() {
       expect(provider.levelDefinitions[0].description, 'Twin Introductions');
       expect(provider.levelDefinitions[9].description, 'The Twin Gate');
     });
+
+    test('Boundaria unlocks at 55 stars and ships its own ten levels', () async {
+      await provider.loadQuestMap();
+
+      expect(provider.isBoundariaUnlocked, isFalse);
+
+      // Clear Balands outright: 30 stars, still short of Boundaria.
+      for (var i = 1; i <= 10; i++) {
+        await provider.submitLevelResult(
+          landId: 'balands',
+          levelNumber: i,
+          moveCount: 1,
+          optimalMoves: 1,
+          reasoningPassed: true,
+        );
+      }
+      expect(provider.totalStars, 30);
+      expect(provider.isPairadiseUnlocked, isTrue);
+      expect(provider.isBoundariaUnlocked, isFalse);
+
+      // Eight levels of Pairadise brings the total to 54 — one short.
+      for (var i = 1; i <= 8; i++) {
+        await provider.submitLevelResult(
+          landId: 'pairadise',
+          levelNumber: i,
+          moveCount: 1,
+          optimalMoves: 1,
+          reasoningPassed: true,
+        );
+      }
+      expect(provider.totalStars, 54);
+      expect(provider.isBoundariaUnlocked, isFalse,
+          reason: 'the gate is 55, and 54 is not 55');
+
+      await provider.submitLevelResult(
+        landId: 'pairadise',
+        levelNumber: 9,
+        moveCount: 1,
+        optimalMoves: 1,
+        reasoningPassed: true,
+      );
+      expect(provider.isBoundariaUnlocked, isTrue);
+
+      await provider.switchLand('boundaria');
+      expect(provider.activeLandId, 'boundaria');
+      expect(provider.activeLand?.name, 'Boundaria');
+      expect(provider.activeLand?.subtitle, 'The Land of Boundaries');
+      expect(provider.levelDefinitions.length, 10);
+      expect(provider.levelDefinitions[0].description, 'First Border');
+      expect(provider.levelDefinitions[4].description, 'Meet the Scout');
+      expect(provider.levelDefinitions[9].description, 'The Final Territory');
+    });
+
+    test('the frontier label follows the deepest unlocked land', () async {
+      await provider.loadQuestMap();
+      expect(provider.frontierLandAndLevelLabel, startsWith('Balands'));
+
+      for (var i = 1; i <= 10; i++) {
+        await provider.submitLevelResult(
+          landId: 'balands',
+          levelNumber: i,
+          moveCount: 1,
+          optimalMoves: 1,
+          reasoningPassed: true,
+        );
+      }
+      expect(provider.frontierLandAndLevelLabel, startsWith('Pairadise'));
+
+      for (var i = 1; i <= 9; i++) {
+        await provider.submitLevelResult(
+          landId: 'pairadise',
+          levelNumber: i,
+          moveCount: 1,
+          optimalMoves: 1,
+          reasoningPassed: true,
+        );
+      }
+      expect(provider.isBoundariaUnlocked, isTrue);
+      expect(provider.frontierLandAndLevelLabel, 'Boundaria I',
+          reason: 'nothing cleared in Boundaria yet');
+
+      await provider.submitLevelResult(
+        landId: 'boundaria',
+        levelNumber: 1,
+        moveCount: 1,
+        optimalMoves: 1,
+        reasoningPassed: true,
+        starsEarned: 3,
+      );
+      expect(provider.frontierLandAndLevelLabel, 'Boundaria II');
+      expect(provider.frontierLandStars, 3);
+    });
   });
 
   group('QuestMapScreen UI Widget Tests', () {

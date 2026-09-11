@@ -5,6 +5,7 @@ import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/models/quest_map_model.dart';
 import 'package:algebrix/screens/practice/balance_scale_screen.dart';
+import 'package:algebrix/screens/practice/boundaria_screen.dart';
 import 'package:algebrix/screens/practice/pairadise_screen.dart';
 import 'package:algebrix/widgets/app_snack_bar.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
@@ -88,17 +89,22 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<QuestMapProvider>();
-    final isPairadise = provider.activeLandId == 'pairadise';
-    final landName = isPairadise
-        ? 'Pairadise'
-        : (provider.activeLand?.name ?? 'Balands');
-    final landSubtitle = isPairadise
-        ? 'The Land of Pairs'
-        : (provider.activeLand?.subtitle ?? 'The Land of Balancing');
+    final landId = provider.activeLandId ?? 'balands';
+    final isPairadise = landId == 'pairadise';
+    final isBoundaria = landId == 'boundaria';
+    final landName = provider.activeLand?.name ??
+        (isBoundaria ? 'Boundaria' : (isPairadise ? 'Pairadise' : 'Balands'));
+    final landSubtitle = provider.activeLand?.subtitle ??
+        (isBoundaria
+            ? 'The Land of Boundaries'
+            : (isPairadise ? 'The Land of Pairs' : 'The Land of Balancing'));
 
     return Scaffold(
-      backgroundColor:
-          isPairadise ? const Color(0xFFF0FDF4) : const Color(0xFFF9F7FD),
+      backgroundColor: isBoundaria
+          ? const Color(0xFFF7F5FD)
+          : (isPairadise
+              ? const Color(0xFFF0FDF4)
+              : const Color(0xFFF9F7FD)),
       body: Stack(
         children: [
           // ─── 1. Scrollable Algebrix World Map Canvas ───────────────────────
@@ -125,7 +131,17 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                               Positioned.fill(
                                 child: CustomPaint(
                                   size: Size(mapWidth, _mapCanvasHeight),
-                                  painter: isPairadise
+                                  painter: isBoundaria
+                                      ? _BoundariaMapLandscapePainter(
+                                          mapWidth: mapWidth,
+                                          mapHeight: _mapCanvasHeight,
+                                          completedLevels: [
+                                            for (int i = 1; i <= 10; i++)
+                                              if (provider.starsForLevel(i) > 0)
+                                                i,
+                                          ],
+                                        )
+                                      : isPairadise
                                       ? _PairadiseMapLandscapePainter(
                                           mapWidth: mapWidth,
                                           mapHeight: _mapCanvasHeight,
@@ -150,7 +166,7 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                               ),
 
                               // ── Waypoints for Active Land ──
-                              if (!isPairadise) ...[
+                              if (!isPairadise && !isBoundaria) ...[
                                 // Balands Waypoint 1 (Lower Valley)
                                 Positioned(
                                   left: mapWidth * 0.10,
@@ -337,6 +353,7 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
       builder: (sheetCtx) {
         final totalStars = provider.totalStars;
         final isPairadiseUnlocked = provider.isPairadiseUnlocked;
+        final isBoundariaUnlocked = provider.isBoundariaUnlocked;
         final activeLandId = provider.activeLandId ?? 'balands';
 
         return Container(
@@ -468,6 +485,39 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                         );
                       },
               ),
+              const SizedBox(height: 12),
+
+              // Realm 3: Boundaria
+              _RealmWorldCard(
+                landId: 'boundaria',
+                name: 'Boundaria',
+                subtitle: 'Map the Possibilities',
+                icon: Icons.explore_rounded,
+                iconColor: const Color(0xFF7C6BB5),
+                bgColor: const Color(0xFFEDE7F9).withValues(alpha: 0.6),
+                borderColor: const Color(0xFF9A8FB8),
+                isUnlocked: isBoundariaUnlocked,
+                isActive: activeLandId == 'boundaria',
+                statusText: isBoundariaUnlocked
+                    ? (activeLandId == 'boundaria' ? 'CURRENT' : 'TRAVEL ➔')
+                    : '🔒 55 ⭐ ($totalStars/55)',
+                onTap: isBoundariaUnlocked
+                    ? () {
+                        Navigator.of(sheetCtx).pop();
+                        if (activeLandId != 'boundaria') {
+                          provider.switchLand('boundaria');
+                        }
+                      }
+                    : () {
+                        showAlgebrixSnackBar(
+                          context,
+                          message:
+                              'Collect 55 stars across Balands and Pairadise to unlock Boundaria! ($totalStars/55 ⭐) 🔒',
+                          icon: Icons.lock_rounded,
+                          isError: true,
+                        );
+                      },
+              ),
             ],
           ),
         );
@@ -483,8 +533,11 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
     int? bestMoves,
   ) {
     final isPairadise = provider.activeLandId == 'pairadise';
+    final isBoundaria = provider.activeLandId == 'boundaria';
     final problem =
-        !isPairadise ? provider.getLevelProblem(def.levelNumber) : null;
+        (!isPairadise && !isBoundaria)
+            ? provider.getLevelProblem(def.levelNumber)
+            : null;
 
     showModalBottomSheet<void>(
       context: context,
@@ -750,7 +803,18 @@ class _QuestMapScreenState extends State<QuestMapScreen> {
                 label: 'Play Level ${def.levelNumber} 🚀',
                 onPressed: () {
                   Navigator.of(sheetCtx).pop();
-                  if (isPairadise) {
+                  if (isBoundaria) {
+                    Navigator.push(
+                      context,
+                      AppPageRoute(
+                        child: BoundariaScreen(
+                          questLevelNumber: def.levelNumber,
+                        ),
+                      ),
+                    ).then((_) {
+                      provider.loadQuestMap();
+                    });
+                  } else if (isPairadise) {
                     Navigator.push(
                       context,
                       AppPageRoute(
@@ -2201,6 +2265,202 @@ class _AlgebrixMapLandscapePainter extends CustomPainter {
 // =============================================================================
 // Pairadise (Land of Pairs) Map Canvas Painter
 // =============================================================================
+
+/// Boundaria's landscape: floating land plates suspended in a pale sky, cut by
+/// glowing boundary lines. Territories the learner has claimed carry colour;
+/// the rest stay under lavender fog.
+class _BoundariaMapLandscapePainter extends CustomPainter {
+  const _BoundariaMapLandscapePainter({
+    required this.mapWidth,
+    required this.mapHeight,
+    required this.completedLevels,
+  });
+
+  final double mapWidth;
+  final double mapHeight;
+  final List<int> completedLevels;
+
+  static const _cream = Color(0xFFFFFBF4);
+  static const _lavender = Color(0xFFEDE7F9);
+  static const _blush = Color(0xFFFBE4EF);
+  static const _mint = Color(0xFFDDF4EC);
+  static const _paleBlue = Color(0xFFDCEBF9);
+  static const _fog = Color(0xFFE6E1F0);
+  static const _gold = Color(0xFFE8B84B);
+  static const _gridInk = Color(0xFFCFC5E6);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // 1. Dreamy sky, not deep space — Boundaria is quiet, never dark.
+    final sky = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color(0xFFEFE8FB),
+          Color(0xFFF6F1FC),
+          Color(0xFFFDF6F9),
+          Color(0xFFF3F8FD),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), sky);
+
+    _drawCoordinateRoads(canvas, size);
+    _drawFloatingPlates(canvas, size);
+    _drawBoundaryBeams(canvas, size);
+  }
+
+  /// The axes are wide magical roads; the rest of the grid is faint.
+  void _drawCoordinateRoads(Canvas canvas, Size size) {
+    final faint = Paint()
+      ..color = _gridInk.withValues(alpha: 0.35)
+      ..strokeWidth = 1;
+
+    const step = 56.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), faint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), faint);
+    }
+
+    // The origin plaza sits low on the map, where level 1 begins.
+    final originY = size.height * 0.88;
+    final originX = size.width * 0.5;
+
+    final road = Paint()
+      ..color = _gold.withValues(alpha: 0.28)
+      ..strokeWidth = 7
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(0, originY), Offset(size.width, originY), road);
+    canvas.drawLine(Offset(originX, 0), Offset(originX, size.height), road);
+
+    canvas.drawCircle(
+      Offset(originX, originY),
+      34,
+      Paint()..color = _cream.withValues(alpha: 0.85),
+    );
+    canvas.drawCircle(
+      Offset(originX, originY),
+      34,
+      Paint()
+        ..color = _gold.withValues(alpha: 0.5)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+
+    // Gold markers where the roads cross, standing in for coordinates.
+    final marker = Paint()..color = _gold.withValues(alpha: 0.45);
+    for (double y = originY - step * 3; y > 0; y -= step * 3) {
+      canvas.drawCircle(Offset(originX, y), 3.5, marker);
+    }
+  }
+
+  /// Each plate is a little territory. Claimed ones regain their colour.
+  void _drawFloatingPlates(Canvas canvas, Size size) {
+    const palette = [_blush, _lavender, _paleBlue, _mint];
+
+    // Laid out so the plates read as a trail climbing towards the Citadel.
+    const layout = <({double x, double y, double w, double h, int level})>[
+      (x: 0.14, y: 0.80, w: 0.30, h: 0.075, level: 1),
+      (x: 0.56, y: 0.755, w: 0.30, h: 0.070, level: 2),
+      (x: 0.20, y: 0.665, w: 0.34, h: 0.075, level: 3),
+      (x: 0.58, y: 0.585, w: 0.30, h: 0.070, level: 4),
+      (x: 0.16, y: 0.505, w: 0.32, h: 0.075, level: 5),
+      (x: 0.55, y: 0.425, w: 0.33, h: 0.070, level: 6),
+      (x: 0.18, y: 0.345, w: 0.32, h: 0.075, level: 7),
+      (x: 0.56, y: 0.265, w: 0.31, h: 0.070, level: 8),
+      (x: 0.20, y: 0.185, w: 0.34, h: 0.075, level: 9),
+      (x: 0.33, y: 0.075, w: 0.38, h: 0.095, level: 10),
+    ];
+
+    for (final plate in layout) {
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * plate.x,
+          size.height * plate.y,
+          size.width * plate.w,
+          size.height * plate.h,
+        ),
+        const Radius.circular(26),
+      );
+
+      final claimed = completedLevels.contains(plate.level);
+      final fill = claimed
+          ? palette[plate.level % palette.length]
+          : _fog.withValues(alpha: 0.75);
+
+      // A soft shadow underneath is what makes a plate read as floating.
+      canvas.drawRRect(
+        rect.shift(const Offset(0, 6)),
+        Paint()
+          ..color = const Color(0xFF9A8FB8).withValues(alpha: 0.12)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      );
+      canvas.drawRRect(rect, Paint()..color = fill);
+      canvas.drawRRect(
+        rect,
+        Paint()
+          ..color = (claimed ? _gold : _gridInk).withValues(alpha: 0.45)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = claimed ? 2 : 1.2,
+      );
+
+      // The Citadel plate is crowned once the final territory is claimed.
+      if (plate.level == 10) {
+        final centre = rect.outerRect.center;
+        canvas.drawCircle(
+          centre,
+          claimed ? 20 : 15,
+          Paint()
+            ..color = (claimed ? _gold : _gridInk).withValues(alpha: 0.35),
+        );
+      }
+    }
+  }
+
+  /// Glowing lines cutting across the world, which is what Boundaria is about.
+  void _drawBoundaryBeams(Canvas canvas, Size size) {
+    const beams = <({double fromX, double fromY, double toX, double toY})>[
+      (fromX: 0.05, fromY: 0.72, toX: 0.95, toY: 0.62),
+      (fromX: 0.05, fromY: 0.40, toX: 0.95, toY: 0.50),
+      (fromX: 0.08, fromY: 0.16, toX: 0.92, toY: 0.24),
+    ];
+
+    for (var i = 0; i < beams.length; i++) {
+      final beam = beams[i];
+      final from = Offset(size.width * beam.fromX, size.height * beam.fromY);
+      final to = Offset(size.width * beam.toX, size.height * beam.toY);
+
+      final paint = Paint()
+        ..color = _gold.withValues(alpha: 0.30)
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round;
+
+      // Alternating solid and dashed, the distinction the land teaches.
+      if (i.isEven) {
+        canvas.drawLine(from, to, paint);
+      } else {
+        const dash = 14.0;
+        const gap = 10.0;
+        final total = (to - from).distance;
+        final step = (to - from) / total;
+        var travelled = 0.0;
+        while (travelled < total) {
+          final end = (travelled + dash).clamp(0.0, total);
+          canvas.drawLine(from + step * travelled, from + step * end, paint);
+          travelled = end + gap;
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_BoundariaMapLandscapePainter old) =>
+      old.completedLevels.length != completedLevels.length ||
+      old.mapWidth != mapWidth ||
+      old.mapHeight != mapHeight;
+}
 
 class _PairadiseMapLandscapePainter extends CustomPainter {
   const _PairadiseMapLandscapePainter({

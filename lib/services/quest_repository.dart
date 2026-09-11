@@ -52,6 +52,14 @@ class SupabaseQuestRepository implements QuestRepository {
       totalLevels: 10,
       unlockStarsRequired: 25,
     ),
+    QuestLand(
+      id: 'boundaria',
+      name: 'Boundaria',
+      subtitle: 'The Land of Boundaries',
+      sortOrder: 3,
+      totalLevels: 10,
+      unlockStarsRequired: 55,
+    ),
   ];
 
   @override
