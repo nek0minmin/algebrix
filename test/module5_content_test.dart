@@ -14,6 +14,8 @@ void main() {
       'm5_l4': 12,
       'm5_l5': 8,
       'm5_l6': 8,
+      'm5_l7': 12,
+      'm5_l8': 9,
     };
 
     const expectedAnswerSteps = <String, Set<String>>{
@@ -23,9 +25,17 @@ void main() {
       'm5_l4': {'m5_l4_s06', 'm5_l4_s07', 'm5_l4_s09', 'm5_l4_s11'},
       'm5_l5': {'m5_l5_s04', 'm5_l5_s06', 'm5_l5_s07'},
       'm5_l6': {'m5_l6_s04', 'm5_l6_s05', 'm5_l6_s06', 'm5_l6_s07'},
+      'm5_l7': {
+        'm5_l7_s02', 'm5_l7_s03', 'm5_l7_s04', 'm5_l7_s05', 'm5_l7_s06',
+        'm5_l7_s07', 'm5_l7_s08', 'm5_l7_s09', 'm5_l7_s10', 'm5_l7_s11',
+      },
+      'm5_l8': {
+        'm5_l8_s03', 'm5_l8_s04', 'm5_l8_s05', 'm5_l8_s06', 'm5_l8_s07',
+        'm5_l8_s08',
+      },
     };
 
-    test('ships the six approved lessons with exact step counts', () {
+    test('ships the eight approved lessons with exact step counts', () {
       expect(module5.id, 'module5');
       expect(module5.title, 'Linear Relationships');
       expect(
@@ -204,12 +214,18 @@ void main() {
     // record_lesson_step rejects the step and lesson progress silently stops
     // saving, so this pins them together.
     test('migration lists exactly the shipped steps', () {
-      final file = File(
-        'supabase/migrations/202609110001_module5_lessons_catalog.sql',
-      );
-      expect(file.existsSync(), isTrue, reason: 'catalog migration missing');
+      // 5.7 and 5.8 arrived after the first catalog was applied, so their
+      // rows live in an additive follow-up migration.
+      final files = [
+        File('supabase/migrations/202609110001_module5_lessons_catalog.sql'),
+        File('supabase/migrations/202609120002_module5_challenge_catalog.sql'),
+      ];
+      for (final file in files) {
+        expect(file.existsSync(), isTrue,
+            reason: '${file.path} is missing');
+      }
 
-      final sql = file.readAsStringSync();
+      final sql = files.map((f) => f.readAsStringSync()).join('\n');
 
       for (final lesson in module5.lessons) {
         for (var i = 0; i < lesson.steps.length; i++) {

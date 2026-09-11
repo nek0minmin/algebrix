@@ -6,24 +6,38 @@
 //
 //   dart run tool/generate_module_catalog_sql.dart module5
 //
+// A second argument limits the output to specific lessons, which is what you
+// want when a module's catalog is already applied and only new lessons need a
+// follow-up migration:
+//
+//   dart run tool/generate_module_catalog_sql.dart module5 m5_l7,m5_l8
+//
 // Prints the VALUES block to stdout; paste it into the migration.
 import 'package:algebrix/data/lesson_catalog.dart';
 
 void main(List<String> args) {
-  if (args.length != 1) {
-    print('usage: dart run tool/generate_module_catalog_sql.dart <moduleId>');
+  if (args.isEmpty || args.length > 2) {
+    print(
+      'usage: dart run tool/generate_module_catalog_sql.dart '
+      '<moduleId> [lessonId,lessonId,...]',
+    );
     return;
   }
 
-  final module = LessonCatalog.moduleById(args.single);
+  final module = LessonCatalog.moduleById(args.first);
   if (module == null) {
-    print('unknown module: ${args.single}');
+    print('unknown module: ${args.first}');
     return;
   }
+
+  final only = args.length == 2
+      ? args[1].split(',').map((id) => id.trim()).toSet()
+      : null;
 
   final rows = <String>[];
   for (var l = 0; l < module.lessons.length; l++) {
     final lesson = module.lessons[l];
+    if (only != null && !only.contains(lesson.lessonId)) continue;
     final number = '${LessonCatalog.moduleNumber(module.id)}.${l + 1}';
     rows.add(
       '  -- Lesson $number: ${lesson.title} (${lesson.steps.length} steps)',

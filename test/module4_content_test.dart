@@ -158,7 +158,7 @@ void main() {
     test('is registered in the catalog after module 3', () {
       expect(LessonCatalog.modules.map((m) => m.id).toList(),
           ['module1', 'module2', 'module3', 'module4', 'module5', 'module6']);
-      expect(LessonCatalog.totalLessons, 37);
+      expect(LessonCatalog.totalLessons, 41);
     });
 
     test('lesson lookups and labels resolve', () {

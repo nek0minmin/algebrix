@@ -128,11 +128,15 @@ List<String> _keywordsFor(String lessonId) {
     'm5_l4' => const ['y = mx + b', 'slope-intercept form', 'slope intercept', 'y-intercept', 'starting value', 'build an equation', 'linear equation'],
     'm5_l5' => const ['graphing linear equations', 'graph a line', 'plot the intercept', 'step by the slope', 'draw the line'],
     'm5_l6' => const ['reading a graph', 'reading linear graphs', 'interpret slope', 'slope in context', 'what the point means', 'starting amount'],
+    'm5_l7' => const ['line quest', 'module 5 challenge', 'linear challenge', 'mixed linear review'],
+    'm5_l8' => const ['line lab', 'slope slider', 'intercept slider', 'steeper line', 'horizontal line', 'parallel lines', 'exploring y = mx + b'],
     'm6_l1' => const ['polynomial', 'polynomials', 'monomial', 'binomial', 'trinomial', 'degree', 'exponent', 'constant term', 'like terms'],
     'm6_l2' => const ['adding polynomials', 'add polynomials', 'combine like terms', 'sum of polynomials'],
     'm6_l3' => const ['subtracting polynomials', 'subtract polynomials', 'distribute the negative', 'sign flip', 'flip every sign'],
     'm6_l4' => const ['multiplying polynomials', 'multiply polynomials', 'area model', 'foil', 'multiply binomials', 'every term'],
     'm6_l5' => const ['factoring polynomials', 'factor a polynomial', 'greatest common factor', 'gcf', 'factor a trinomial', 'multiply to and add to'],
+    'm6_l6' => const ['polynomial workshop', 'module 6 challenge', 'polynomial challenge', 'mixed polynomial review'],
+    'm6_l7' => const ['polynomial playground', 'algebra tiles', 'tiles', 'build a rectangle', 'tile rectangle', 'perfect square trinomial'],
     _ => const [],
   };
 }

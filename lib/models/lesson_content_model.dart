@@ -213,6 +213,107 @@ class AreaModelActivityData extends LessonActivityData {
   int get columns => topLabels.length;
 }
 
+/// A free exploration of `y = mx + b` driven by two sliders.
+///
+/// The learner is not being scored on a procedure here: they move m and b and
+/// watch the line answer. Each step poses one discovery goal ("make the line
+/// horizontal") that is satisfied the moment the line matches, so there is no
+/// way to get it wrong — only to keep adjusting until it is right.
+class LineLabActivityData extends LessonActivityData {
+  const LineLabActivityData({
+    required this.goal,
+    this.hint,
+    this.targetSlope,
+    this.targetIntercept,
+    this.startSlope = 1,
+    this.startIntercept = 0,
+    this.minSlope = -5,
+    this.maxSlope = 5,
+    this.minIntercept = -5,
+    this.maxIntercept = 5,
+  });
+
+  /// The discovery prompt, e.g. "Can you make the line horizontal?".
+  final String goal;
+
+  /// Optional nudge shown under the sliders.
+  final String? hint;
+
+  /// The slope that satisfies [goal], or null when any slope will do.
+  final int? targetSlope;
+
+  /// The intercept that satisfies [goal], or null when any intercept will do.
+  final int? targetIntercept;
+
+  final int startSlope;
+  final int startIntercept;
+
+  final int minSlope;
+  final int maxSlope;
+  final int minIntercept;
+  final int maxIntercept;
+
+  /// Whether [slope] and [intercept] answer the goal.
+  bool isSatisfiedBy(int slope, int intercept) {
+    if (targetSlope != null && slope != targetSlope) return false;
+    if (targetIntercept != null && intercept != targetIntercept) return false;
+    return true;
+  }
+
+  /// A lab with no target is pure play; the learner marks it done themselves.
+  bool get isOpenEnded => targetSlope == null && targetIntercept == null;
+}
+
+/// Which mode an algebra-tile workspace is in.
+enum AlgebraTilesMode {
+  /// Given the factors, lay out the tiles that fill the rectangle.
+  build,
+
+  /// Given the expanded expression, find the rectangle's sides.
+  factor,
+}
+
+/// Building a quadratic out of physical algebra tiles.
+///
+/// `x²` is a large square, `x` a rectangle and `1` a unit square. Laying
+/// `(x + p)(x + q)` out as a rectangle makes the expansion visible: the
+/// rectangle's area is the trinomial and its sides are the factors. Factoring
+/// is the same picture read the other way, which is exactly how 6.4 and 6.5
+/// teach it.
+class AlgebraTilesActivityData extends LessonActivityData {
+  const AlgebraTilesActivityData({
+    required this.mode,
+    required this.prompt,
+    required this.factorP,
+    required this.factorQ,
+    this.maxSide = 6,
+  });
+
+  final AlgebraTilesMode mode;
+
+  /// What the learner is being asked for, in words.
+  final String prompt;
+
+  /// The rectangle is `(x + factorP)(x + factorQ)`.
+  final int factorP;
+  final int factorQ;
+
+  /// Upper bound on either side's constant, which also bounds the tile counts.
+  final int maxSide;
+
+  /// Tiles in the finished rectangle.
+  int get squareTiles => 1;
+  int get xTiles => factorP + factorQ;
+  int get unitTiles => factorP * factorQ;
+
+  String get factoredLabel => '(x + $factorP)(x + $factorQ)';
+
+  String get expandedLabel {
+    final middle = xTiles == 1 ? 'x' : '${xTiles}x';
+    return 'x² + $middle + $unitTiles';
+  }
+}
+
 class ChoiceOption {
   final String label;
   final String? emoji;

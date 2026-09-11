@@ -209,22 +209,35 @@ void main() {
     });
 
     test('every seeded module quiz is internally consistent', () async {
+      // The seed banks randomise their numbers, and some combinations used to
+      // collapse two distractors onto the same string — a learner would see
+      // the same option listed twice. One generation per module only samples
+      // one draw, so this sweeps enough of them to catch a collision.
+      const draws = 60;
+
       for (final module in LessonCatalog.modules) {
-        final quiz = await quizService.generateQuiz(module: module);
+        for (var draw = 0; draw < draws; draw++) {
+          final quiz = await quizService.generateQuiz(module: module);
 
-        for (final q in quiz.questions) {
-          expect(q.correctIndex, greaterThanOrEqualTo(0),
-              reason: '${module.id} ${q.id} has no correct option');
-          expect(q.correctIndex, lessThan(q.options.length),
-              reason: '${module.id} ${q.id} points past the end of its options');
-          expect(q.options.toSet(), hasLength(q.options.length),
-              reason: '${module.id} ${q.id} offers the same option twice');
-          expect(q.explanation, isNotEmpty,
-              reason: '${module.id} ${q.id} has no explanation');
+          for (final q in quiz.questions) {
+            expect(q.correctIndex, greaterThanOrEqualTo(0),
+                reason: '${module.id} ${q.id} has no correct option');
+            expect(q.correctIndex, lessThan(q.options.length),
+                reason: '${module.id} ${q.id} points past its options');
+            expect(
+              q.options.toSet(),
+              hasLength(q.options.length),
+              reason: '${module.id} ${q.id} offers the same option twice: '
+                  '${q.question} -> ${q.options}',
+            );
+            expect(q.explanation, isNotEmpty,
+                reason: '${module.id} ${q.id} has no explanation');
 
-          if (q.type == QuizQuestionType.trueFalse) {
-            expect(q.options, ['True', 'False'],
-                reason: '${module.id} ${q.id} is a true/false with odd options');
+            if (q.type == QuizQuestionType.trueFalse) {
+              expect(q.options, ['True', 'False'],
+                  reason: '${module.id} ${q.id} is a true/false with odd '
+                      'options');
+            }
           }
         }
       }

@@ -66,7 +66,7 @@ void main() {
   group('LessonCatalog', () {
     test('registers every shipped module and lesson', () {
       expect(LessonCatalog.modules.length, 6);
-      expect(LessonCatalog.totalLessons, 37);
+      expect(LessonCatalog.totalLessons, 41);
     });
 
     test('resolves lessons and their owning module', () {

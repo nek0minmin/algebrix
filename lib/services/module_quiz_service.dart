@@ -251,7 +251,7 @@ Return ONLY a JSON object with this EXACT structure:
 You are Xy, the expert educational AI quiz master in Algebrix.
 Create an engaging, 10-item progressive algebra quiz strictly based on Module 5 ("Linear Relationships").
 
-MODULE 5 SCOPE (ONLY USE THESE 6 LESSONS):
+MODULE 5 SCOPE (ONLY USE THESE 6 TEACHING LESSONS):
 • Exploring the Coordinate Plane: x-axis and y-axis, the origin (0, 0), ordered pairs written (x, y) where x comes first, plotting and naming points, the four quadrants.
 • Discovering Slope: Slope as rise over run, the rate of change between two points, positive slope rising left-to-right, negative slope falling, zero slope for a horizontal line.
 • Understanding Linear Relationships: A relationship is linear when y changes by the same amount for each equal step in x; recognising linear versus non-linear tables and descriptions.
@@ -305,7 +305,7 @@ Return ONLY a JSON object with this EXACT structure:
 You are Xy, the expert educational AI quiz master in Algebrix.
 Create an engaging, 10-item progressive algebra quiz strictly based on Module 6 ("Polynomials").
 
-MODULE 6 SCOPE (ONLY USE THESE 5 LESSONS):
+MODULE 6 SCOPE (ONLY USE THESE 5 TEACHING LESSONS):
 • Meet the Polynomials: Terms separated by + and − with the sign belonging to the term after it; coefficient, variable, exponent and constant; monomial, binomial and trinomial; degree as the highest exponent; like terms need the same variable AND the same exponent.
 • Adding Polynomials: Dropping brackets and combining like terms only (e.g. (3x² + 2x + 1) + (2x² + 5x + 4) = 5x² + 7x + 5). Unlike terms stay side by side.
 • Subtracting Polynomials: Distributing the −1 across every term in the second group before combining, so signs already negative flip to positive (e.g. (5x + 4) − (2x − 3) = 3x + 7).
@@ -508,7 +508,13 @@ Return ONLY a JSON object with this EXACT structure:
     final vars = ['x', 'y', 'n', 'a', 'b', 'k', 'm', 'w'];
     final v = vars[rng.nextInt(vars.length)];
     final a = rng.nextInt(5) + 3; // 3 to 7
-    final b = rng.nextInt(7) + 2; // 2 to 8
+    // b must differ from a. When they match, q01 offers the coefficient and
+    // the constant as the same string, and in q07 the two distractors
+    // (a + b×c) and (a×c + b) collapse onto each other.
+    var b = rng.nextInt(7) + 2; // 2 to 8
+    while (b == a) {
+      b = rng.nextInt(7) + 2;
+    }
     final c = rng.nextInt(6) + 2; // 2 to 7
 
     final questions = <ModuleQuizQuestion>[
@@ -632,10 +638,20 @@ Return ONLY a JSON object with this EXACT structure:
     final vars = ['x', 'y', 'k', 'm', 'p', 'w', 'a', 'b'];
     final v = vars[rng.nextInt(vars.length)];
     final c1 = rng.nextInt(5) + 3; // 3 to 7
-    final c2 = rng.nextInt(5) + 2; // 2 to 6
-    final val = rng.nextInt(4) + 2; // 2 to 5
+    // q06 offers (c1·val + c2 + 4) and (c1·(val + c2)) as distractors, and
+    // they are the same number when c2 × (c1 − 1) == 4.
+    var c2 = rng.nextInt(5) + 2; // 2 to 6
+    while (c2 * (c1 - 1) == 4) {
+      c2 = rng.nextInt(5) + 2;
+    }
     final factor = rng.nextInt(3) + 2; // 2 to 4
     final insideConst = rng.nextInt(4) + 2; // 2 to 5
+    // q10's two distractors are (2a + b) and (a + 3b), which are the same
+    // number whenever a == 2b.
+    var val = rng.nextInt(4) + 2; // 2 to 5
+    while (val == 2 * insideConst) {
+      val = rng.nextInt(4) + 2;
+    }
 
     final questions = <ModuleQuizQuestion>[
       // Level 1: Foundations (Q1 to Q3)
@@ -758,10 +774,21 @@ Return ONLY a JSON object with this EXACT structure:
     final vars = ['x', 'y', 'k', 'm', 'w', 'p', 'a', 'n'];
     final v = vars[rng.nextInt(vars.length)];
     final multCoeff = rng.nextInt(5) + 3; // 3 to 7
-    final targetX = rng.nextInt(6) + 2; // 2 to 7
+    // q04 offers both (total − coefficient) and (answer + 2) as distractors,
+    // and they are equal when coefficient × (answer − 1) == answer + 2 —
+    // which inside these ranges means 4 and 2.
+    var targetX = rng.nextInt(6) + 2; // 2 to 7
+    while (multCoeff * (targetX - 1) == targetX + 2) {
+      targetX = rng.nextInt(6) + 2;
+    }
     final multTotal = multCoeff * targetX;
     final addConst = rng.nextInt(8) + 3; // 3 to 10
-    final subConst = rng.nextInt(7) + 2; // 2 to 8
+    // q03 offers (add − sub) and (−add) as distractors, and they are the same
+    // number when sub == 2 × add.
+    var subConst = rng.nextInt(7) + 2; // 2 to 8
+    while (subConst == 2 * addConst) {
+      subConst = rng.nextInt(7) + 2;
+    }
     final twoStepAns = rng.nextInt(5) + 2; // 2 to 6
     final twoStepA = rng.nextInt(3) + 2; // 2 to 4
     final twoStepB = rng.nextInt(5) + 2; // 2 to 6

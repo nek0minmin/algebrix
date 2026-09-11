@@ -14,7 +14,9 @@ import 'package:algebrix/widgets/lesson/math_highlight_box.dart';
 import 'package:algebrix/widgets/lesson/interactive_choice_grid.dart';
 import 'package:algebrix/widgets/lesson/lesson_nav_buttons.dart';
 import 'package:algebrix/screens/lessons/lesson_complete_screen.dart';
+import 'package:algebrix/widgets/lesson/activities/algebra_tiles_activity.dart';
 import 'package:algebrix/widgets/lesson/activities/area_model_activity.dart';
+import 'package:algebrix/widgets/lesson/activities/line_lab_activity.dart';
 import 'package:algebrix/widgets/lesson/activities/classification_activity.dart';
 import 'package:algebrix/widgets/lesson/activities/coordinate_plane_activity.dart';
 import 'package:algebrix/widgets/lesson/activities/number_line_activity.dart';
@@ -582,6 +584,20 @@ class _LessonScreenState extends State<LessonScreen> {
       );
     } else if (activity is AreaModelActivityData) {
       activityWidget = AreaModelActivity(
+        key: ValueKey(step.id),
+        data: activity,
+        enabled: enabled,
+        onAnswered: (isCorrect) => _handleAnswer(0, isCorrect),
+      );
+    } else if (activity is AlgebraTilesActivityData) {
+      activityWidget = AlgebraTilesActivity(
+        key: ValueKey(step.id),
+        data: activity,
+        enabled: enabled,
+        onAnswered: (isCorrect) => _handleAnswer(0, isCorrect),
+      );
+    } else if (activity is LineLabActivityData) {
+      activityWidget = LineLabActivity(
         key: ValueKey(step.id),
         data: activity,
         enabled: enabled,

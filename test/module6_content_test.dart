@@ -13,6 +13,8 @@ void main() {
       'm6_l3': 8,
       'm6_l4': 10,
       'm6_l5': 10,
+      'm6_l6': 12,
+      'm6_l7': 9,
     };
 
     const expectedAnswerSteps = <String, Set<String>>{
@@ -21,9 +23,16 @@ void main() {
       'm6_l3': {'m6_l3_s05', 'm6_l3_s06', 'm6_l3_s07'},
       'm6_l4': {'m6_l4_s04', 'm6_l4_s08', 'm6_l4_s09'},
       'm6_l5': {'m6_l5_s04', 'm6_l5_s07', 'm6_l5_s08', 'm6_l5_s09'},
+      'm6_l6': {
+        'm6_l6_s02', 'm6_l6_s03', 'm6_l6_s04', 'm6_l6_s05', 'm6_l6_s06',
+        'm6_l6_s07', 'm6_l6_s08', 'm6_l6_s09', 'm6_l6_s10', 'm6_l6_s11',
+      },
+      'm6_l7': {
+        'm6_l7_s04', 'm6_l7_s05', 'm6_l7_s06', 'm6_l7_s07', 'm6_l7_s08',
+      },
     };
 
-    test('ships the five approved lessons with exact step counts', () {
+    test('ships the seven approved lessons with exact step counts', () {
       expect(module6.id, 'module6');
       expect(module6.title, 'Polynomials');
       expect(
@@ -201,12 +210,18 @@ void main() {
 
   group('Module 6 Supabase catalog', () {
     test('migration lists exactly the shipped steps', () {
-      final file = File(
-        'supabase/migrations/202609110002_module6_lessons_catalog.sql',
-      );
-      expect(file.existsSync(), isTrue, reason: 'catalog migration missing');
+      // 6.6 and 6.7 arrived after the first catalog was applied, so their
+      // rows live in an additive follow-up migration.
+      final files = [
+        File('supabase/migrations/202609110002_module6_lessons_catalog.sql'),
+        File('supabase/migrations/202609120003_module6_challenge_catalog.sql'),
+      ];
+      for (final file in files) {
+        expect(file.existsSync(), isTrue,
+            reason: '${file.path} is missing');
+      }
 
-      final sql = file.readAsStringSync();
+      final sql = files.map((f) => f.readAsStringSync()).join('\n');
 
       for (final lesson in module6.lessons) {
         for (var i = 0; i < lesson.steps.length; i++) {
