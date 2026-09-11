@@ -345,6 +345,129 @@ void main() {
     expect(match?.lessonId, 'm1_l4');
     expect(match?.title, 'Expressions');
   });
+
+  testWidgets('leaving a note with typed work asks before discarding it', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(430, 900));
+    tester.view.physicalSize = const Size(430, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final repository = _MemoryNotesRepository();
+    final provider = NotesProvider(repository: repository);
+    provider.bindAccount('student-1');
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: const MaterialApp(home: Scaffold(body: NotesScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // An untouched form has nothing to lose, so backing out is immediate.
+    await tester.tap(find.byKey(const Key('new-note-button-compact')));
+    await tester.pumpAndSettle();
+    expect(find.text('New note'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('secondary-page-back-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('Leave without saving?'), findsNothing);
+    expect(find.text('Your ideas belong here'), findsOneWidget);
+
+    // Type something, and now it must ask.
+    await tester.tap(find.byKey(const Key('new-note-button-compact')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('note-title-field')),
+      'Half a thought',
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('secondary-page-back-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('Leave without saving?'), findsOneWidget);
+
+    // Keep editing puts them back in the form with the text intact.
+    await tester.tap(find.byKey(const Key('note-discard-keep-editing')));
+    await tester.pumpAndSettle();
+    expect(find.text('New note'), findsOneWidget);
+    expect(find.text('Half a thought'), findsOneWidget);
+
+    // Discard actually leaves, and nothing was written.
+    await tester.tap(find.byKey(const Key('secondary-page-back-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('note-discard-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Your ideas belong here'), findsOneWidget);
+    expect(repository.notes, isEmpty);
+  });
+
+  testWidgets('editing an existing note only prompts once it actually changes',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(430, 900));
+    tester.view.physicalSize = const Size(430, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final repository = _MemoryNotesRepository();
+    final provider = NotesProvider(repository: repository);
+    provider.bindAccount('student-1');
+    await provider.createNote(
+      moduleId: 'module1',
+      lessonId: 'm1_l2',
+      title: 'Why constants stay fixed',
+      content: 'A constant represents a value that does not change.',
+    );
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: const MaterialApp(home: Scaffold(body: NotesScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final noteId = repository.notes.single.id;
+    await tester.tap(find.byKey(Key('study-note-$noteId')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Edit study note'));
+    await tester.pumpAndSettle();
+
+    // Opening the editor and leaving it alone is not a change.
+    await tester.tap(find.byKey(const Key('secondary-page-back-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('Leave without saving?'), findsNothing);
+
+    // Reopen and actually edit it.
+    await tester.tap(find.byTooltip('Edit study note'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('note-title-field')),
+      'Constants in expressions',
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('secondary-page-back-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('Leave without saving?'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('note-discard-confirm')));
+    await tester.pumpAndSettle();
+
+    // Discarded, so the stored note keeps its original title.
+    expect(repository.notes.single.title, 'Why constants stay fixed');
+  });
 }
 
 class _MemoryNotesRepository implements NotesRepository {

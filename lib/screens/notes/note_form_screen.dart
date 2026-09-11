@@ -98,6 +98,132 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     super.dispose();
   }
 
+  // ── Leaving without saving ─────────────────────────────────────────────────
+
+  /// The lesson tag this note started with, so a fresh pick counts as a change.
+  String? get _initialLessonId =>
+      noteLessonOptionFor(widget.note?.lessonId ?? '')?.lessonId;
+
+  /// Whether anything in the form differs from what was loaded.
+  ///
+  /// A new note starts empty, so any text at all counts. An existing note is
+  /// compared field by field against what it was opened with.
+  bool get _hasUnsavedChanges {
+    if (_titleController.text.trim() != (widget.note?.title.trim() ?? '')) {
+      return true;
+    }
+    if (_contentController.text.trim() !=
+        (widget.note?.displayContent.trim() ?? '')) {
+      return true;
+    }
+    return _lessonId != _initialLessonId;
+  }
+
+  /// Asks before throwing away typed work. Returns true when it is safe to go.
+  Future<bool> _confirmDiscard() async {
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.white,
+        elevation: 8,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: const BoxDecoration(
+                  color: AppColors.extraLightPink,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Image.asset(
+                    AppAssets.xyQuestion,
+                    width: 44,
+                    height: 44,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Leave without saving?',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.text,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                widget.isEditing
+                    ? 'Your edits to this note have not been saved yet.'
+                    : 'This note has not been saved yet, and Xy cannot bring it back.',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.body2.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      key: const Key('note-discard-keep-editing'),
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(color: AppColors.border),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Text(
+                        'Keep editing',
+                        style: AppTextStyles.buttonSmall.copyWith(
+                          color: AppColors.text,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      key: const Key('note-discard-confirm'),
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        backgroundColor: AppColors.pink,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Text(
+                        'Discard',
+                        style: AppTextStyles.buttonSmall.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    return discard ?? false;
+  }
   // ── Inline corrections ─────────────────────────────────────────────────────
 
   void _handleTitleCaret() => _handleCaretMove(
@@ -564,6 +690,30 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Typed work lives only in memory until it saves, so leaving has to be
+    // deliberate. PopScope registers with the route, so this covers the app bar
+    // arrow, the Android back gesture and the hardware back button alike.
+    return PopScope(
+      // Always intercept, then decide in the callback. Deriving canPop from
+      // _hasUnsavedChanges here would read stale: canPop is captured during
+      // build, and typing in a TextField rebuilds the field without rebuilding
+      // this widget, so the first keystrokes would slip through unguarded.
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        // Captured before the await so no BuildContext crosses the gap.
+        final navigator = Navigator.of(context);
+        if (!_hasUnsavedChanges) {
+          navigator.pop();
+          return;
+        }
+        if (await _confirmDiscard()) navigator.pop();
+      },
+      child: _buildForm(context),
+    );
+  }
+
+  Widget _buildForm(BuildContext context) {
     final isSaving = context.watch<NotesProvider>().isSaving;
     final aiProvider = context.watch<AiNotesProvider?>();
     final isAnalyzing = aiProvider?.isAnalyzing ?? false;
