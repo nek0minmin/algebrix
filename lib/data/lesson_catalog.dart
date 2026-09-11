@@ -2,6 +2,8 @@ import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/data/module3_content.dart';
 import 'package:algebrix/data/module4_content.dart';
+import 'package:algebrix/data/module5_content.dart';
+import 'package:algebrix/data/module6_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 
 /// Single ordered registry of every shipped module and lesson.
@@ -18,6 +20,8 @@ class LessonCatalog {
     module2,
     module3,
     module4,
+    module5,
+    module6,
   ]);
 
   /// Every lesson across every module, in learning order.

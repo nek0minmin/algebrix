@@ -89,10 +89,15 @@ void main() {
     expect(find.text('MODULE 2 QUIZ'), findsOneWidget);
     expect(find.text('MODULE 3 QUIZ'), findsOneWidget);
     expect(find.text('Solving Equations'), findsOneWidget);
+    expect(find.text('MODULE 4 QUIZ'), findsOneWidget);
+    expect(find.text('MODULE 5 QUIZ'), findsOneWidget);
+    expect(find.text('MODULE 6 QUIZ'), findsOneWidget);
+    expect(find.text('Polynomials'), findsOneWidget);
 
-    // Module 1 is locked because 0/6 lessons are completed
+    // Module 1 is locked because 0/6 lessons are completed. Module 5 also has
+    // six lessons, so the progress label is not unique to Module 1.
     expect(find.text('Complete all 6 Module 1 lessons'), findsOneWidget);
-    expect(find.text('Tap to view lessons (0/6)'), findsOneWidget);
+    expect(find.text('Tap to view lessons (0/6)'), findsWidgets);
 
     // Module 3 is locked because Module 2 quiz is not passed
     expect(find.text('Score at least 60% on Module 2 Quiz'), findsOneWidget);

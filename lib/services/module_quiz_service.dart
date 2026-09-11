@@ -39,7 +39,11 @@ class ModuleQuizService {
 
   /// Builds a dedicated, strict system prompt tailored to the requested module's exact curriculum.
   String _buildSystemPrompt(ModuleContent module) {
-    if (module.id == 'module4') {
+    if (module.id == 'module6') {
+      return _buildModule6SystemPrompt();
+    } else if (module.id == 'module5') {
+      return _buildModule5SystemPrompt();
+    } else if (module.id == 'module4') {
       return _buildModule4SystemPrompt();
     } else if (module.id == 'module3') {
       return _buildModule3SystemPrompt();
@@ -251,6 +255,113 @@ Return ONLY a JSON object with this EXACT structure:
       "options": ["2", "5", "6"],
       "correctIndex": 2,
       "explanation": "Substituting 6 gives 6 < 6, which is false, so 6 is excluded.",
+      "difficulty": 1
+    }
+  ]
+}
+''';
+  }
+
+  String _buildModule5SystemPrompt() {
+    return '''
+You are Xy, the expert educational AI quiz master in Algebrix.
+Create an engaging, 10-item progressive algebra quiz strictly based on Module 5 ("Linear Relationships").
+
+MODULE 5 SCOPE (ONLY USE THESE 6 LESSONS):
+• Exploring the Coordinate Plane: x-axis and y-axis, the origin (0, 0), ordered pairs written (x, y) where x comes first, plotting and naming points, the four quadrants.
+• Discovering Slope: Slope as rise over run, the rate of change between two points, positive slope rising left-to-right, negative slope falling, zero slope for a horizontal line.
+• Understanding Linear Relationships: A relationship is linear when y changes by the same amount for each equal step in x; recognising linear versus non-linear tables and descriptions.
+• Building Linear Equations: The form y = mx + b, where m is the rate of change and b is the starting value; turning a word situation or a table into an equation.
+• Graphing Linear Equations: Plotting the y-intercept first, then using the slope to step to the next point, and drawing the line through them.
+• Reading Linear Graphs: Interpreting slope as a rate in context ("10 questions per hour") and the y-intercept as a starting amount; reading what a specific point means.
+
+STRICT NEGATIVE CONSTRAINTS (FORBIDDEN IN MODULE 5):
+❌ DO NOT ask questions about systems of equations or solving two equations at once.
+❌ DO NOT ask questions about point-slope form or standard form (Ax + By = C).
+❌ DO NOT ask questions about parallel or perpendicular slope relationships.
+❌ DO NOT ask questions about linear inequalities or shaded regions of the plane.
+❌ DO NOT ask questions about quadratic, exponential, or absolute value graphs.
+❌ DO NOT ask questions about distance or midpoint formulas.
+
+10-QUESTION PROGRESSION BREAKDOWN:
+- Questions 1 to 3 (Difficulty: 1, Foundations): Reading ordered pairs, identifying the origin and the axes, naming which coordinate moves horizontally, recognising that (2, 4) and (4, 2) are different points.
+- Questions 4 to 7 (Difficulty: 2, Procedural Operations): Computing slope from rise and run or from a table, identifying m and b in y = mx + b, turning a short word situation into an equation.
+- Questions 8 to 10 (Difficulty: 3, Multi-Step Mastery): Evaluating a linear equation at a given x, finding the y-intercept from an equation, interpreting what a specific point means in a real context.
+
+MATHEMATICAL RIGOR & EXPLANATION RULES:
+1. Every calculation MUST be exact. Verify the math before outputting choices!
+2. The correct answer MUST be present in the options list and match correctIndex.
+3. NEVER include internal chain-of-thought, reasoning steps, or scratchpad text in the explanation or question.
+4. Describe graphs in WORDS, never ASCII art: e.g. "a line passing through (0, 3) that rises 2 units for every 1 unit right".
+5. Write ordered pairs as (x, y) with a comma and a space.
+6. Distractors must be pedagogically meaningful — especially swapping x and y, or confusing the slope with the y-intercept.
+7. Mix Question Types: "multipleChoice" (3 or 4 options) and "trueFalse" (2 options).
+8. Zero-Emoji Rule: NEVER include hint emojis in question text or options.
+
+Return ONLY a JSON object with this EXACT structure:
+{
+  "questions": [
+    {
+      "id": "m5_q1",
+      "subLessonTitle": "Exploring the Coordinate Plane",
+      "question": "In the point (3, 5), which number tells you how far to move right?",
+      "type": "multipleChoice",
+      "options": ["3", "5", "8"],
+      "correctIndex": 0,
+      "explanation": "The first number of an ordered pair is the x-coordinate, which moves horizontally.",
+      "difficulty": 1
+    }
+  ]
+}
+''';
+  }
+
+  String _buildModule6SystemPrompt() {
+    return '''
+You are Xy, the expert educational AI quiz master in Algebrix.
+Create an engaging, 10-item progressive algebra quiz strictly based on Module 6 ("Polynomials").
+
+MODULE 6 SCOPE (ONLY USE THESE 5 LESSONS):
+• Meet the Polynomials: Terms separated by + and − with the sign belonging to the term after it; coefficient, variable, exponent and constant; monomial, binomial and trinomial; degree as the highest exponent; like terms need the same variable AND the same exponent.
+• Adding Polynomials: Dropping brackets and combining like terms only (e.g. (3x² + 2x + 1) + (2x² + 5x + 4) = 5x² + 7x + 5). Unlike terms stay side by side.
+• Subtracting Polynomials: Distributing the −1 across every term in the second group before combining, so signs already negative flip to positive (e.g. (5x + 4) − (2x − 3) = 3x + 7).
+• Multiplying Polynomials: Every term of the first group multiplying every term of the second, shown as a rectangle area model; FOIL only as a nickname for those same four products (e.g. (x + 2)(x + 3) = x² + 5x + 6).
+• Factoring Polynomials: Pulling out the greatest common factor (e.g. 6x + 9 = 3(2x + 3), 4x² + 6x = 2x(2x + 3)) and factoring a simple trinomial by finding two numbers that multiply to the constant and add to the middle coefficient.
+
+STRICT NEGATIVE CONSTRAINTS (FORBIDDEN IN MODULE 6):
+❌ DO NOT ask questions about polynomial division (long or synthetic).
+❌ DO NOT ask questions about solving quadratic equations, the quadratic formula, or roots and zeros.
+❌ DO NOT ask questions about factoring when the leading coefficient is not 1 (e.g. 2x² + 7x + 3).
+❌ DO NOT ask questions about special products by name (difference of squares, perfect square trinomials).
+❌ DO NOT ask questions about polynomials in more than one variable beyond simple like-term comparison.
+❌ DO NOT ask questions about negative or fractional exponents, or about graphing polynomials.
+
+10-QUESTION PROGRESSION BREAKDOWN:
+- Questions 1 to 3 (Difficulty: 1, Foundations): Counting terms, naming monomial/binomial/trinomial, identifying a coefficient or constant, reading the degree, deciding whether two terms are like terms.
+- Questions 4 to 7 (Difficulty: 2, Procedural Operations): Adding two polynomials, subtracting with a sign flip, spotting the error when a learner forgets to distribute the negative.
+- Questions 8 to 10 (Difficulty: 3, Multi-Step Mastery): Multiplying two binomials, factoring out a greatest common factor, factoring a simple trinomial with a leading coefficient of 1.
+
+MATHEMATICAL RIGOR & EXPLANATION RULES:
+1. Every calculation MUST be exact. Expand and re-check every product before outputting choices!
+2. The correct answer MUST be present in the options list and match correctIndex.
+3. NEVER include internal chain-of-thought, reasoning steps, or scratchpad text in the explanation or question.
+4. Write exponents with superscript characters: x², x³. Never write x^2.
+5. Always write polynomials in descending order of degree.
+6. Distractors must be pedagogically meaningful — especially adding exponents when combining like terms, or missing the sign flip in a subtraction.
+7. Mix Question Types: "multipleChoice" (3 or 4 options) and "trueFalse" (2 options).
+8. Zero-Emoji Rule: NEVER include hint emojis in question text or options.
+
+Return ONLY a JSON object with this EXACT structure:
+{
+  "questions": [
+    {
+      "id": "m6_q1",
+      "subLessonTitle": "Meet the Polynomials",
+      "question": "How many terms does 4x² + 3x − 7 have?",
+      "type": "multipleChoice",
+      "options": ["2", "3", "4"],
+      "correctIndex": 1,
+      "explanation": "Terms are separated by + and −, so the three terms are 4x², 3x and −7.",
       "difficulty": 1
     }
   ]
@@ -546,11 +657,15 @@ Return ONLY a JSON object with this EXACT structure:
     return trimmed;
   }
 
-  /// High-quality dynamic seed bank for Modules 1-4 with 10 progressive items strictly within scope.
+  /// High-quality dynamic seed bank for Modules 1-6 with 10 progressive items strictly within scope.
   ModuleQuiz _generateSeedBankQuiz(ModuleContent module) {
     final rng = Random();
 
-    if (module.id == 'module4') {
+    if (module.id == 'module6') {
+      return _buildModule6SeedQuiz(rng);
+    } else if (module.id == 'module5') {
+      return _buildModule5SeedQuiz(rng);
+    } else if (module.id == 'module4') {
       return _buildModule4SeedQuiz(rng);
     } else if (module.id == 'module3') {
       return _buildModule3SeedQuiz(rng);
@@ -1100,6 +1215,282 @@ Return ONLY a JSON object with this EXACT structure:
     return ModuleQuiz(
       moduleId: 'module4',
       moduleTitle: 'Inequalities',
+      questions: questions,
+      generatedAt: DateTime.now(),
+      providerUsed: 'Algebrix Curated Seed Bank',
+    );
+  }
+
+  ModuleQuiz _buildModule5SeedQuiz(Random rng) {
+    // Randomised within a narrow, verified range so repeat attempts differ
+    // without ever producing an unsolvable or off-scope item.
+    final m = 2 + rng.nextInt(4); // 2..5
+    final b = 1 + rng.nextInt(6); // 1..6
+    final yAtTwo = m * 2 + b;
+
+    final questions = <ModuleQuizQuestion>[
+      ModuleQuizQuestion(
+        id: 'm5_seed_1',
+        subLessonTitle: 'Exploring the Coordinate Plane',
+        question:
+            'In the point (3, 5), which number tells you how far to move right?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['3', '5', '8'],
+        correctIndex: 0,
+        explanation:
+            'The first number of an ordered pair is the x-coordinate, and x moves horizontally.',
+        difficulty: 1,
+      ),
+      ModuleQuizQuestion(
+        id: 'm5_seed_2',
+        subLessonTitle: 'Exploring the Coordinate Plane',
+        question: 'What is the point (0, 0) called?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['The origin', 'The slope', 'The y-intercept'],
+        correctIndex: 0,
+        explanation:
+            'The origin is where the x-axis and y-axis cross, at zero across and zero up.',
+        difficulty: 1,
+      ),
+      ModuleQuizQuestion(
+        id: 'm5_seed_3',
+        subLessonTitle: 'Exploring the Coordinate Plane',
+        question: 'Are (2, 4) and (4, 2) the same point?',
+        type: QuizQuestionType.trueFalse,
+        options: const ['True', 'False'],
+        correctIndex: 1,
+        explanation:
+            'Order matters. (2, 4) is 2 right and 4 up, while (4, 2) is 4 right and 2 up.',
+        difficulty: 1,
+      ),
+      ModuleQuizQuestion(
+        id: 'm5_seed_4',
+        subLessonTitle: 'Discovering Slope',
+        question:
+            'A line rises 6 units for every 3 units it runs to the right. What is its slope?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['2', '3', '18'],
+        correctIndex: 0,
+        explanation: 'Slope is rise over run, so 6 ÷ 3 = 2.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm5_seed_5',
+        subLessonTitle: 'Discovering Slope',
+        question: 'A line falls as you move to the right. Its slope is:',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['Negative', 'Positive', 'Zero'],
+        correctIndex: 0,
+        explanation:
+            'Falling means the rise is negative, so the slope is negative. A flat line would have slope zero.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm5_seed_6',
+        subLessonTitle: 'Understanding Linear Relationships',
+        question:
+            'In a table, y goes 7, 10, 13 as x goes 1, 2, 3. What is the rate of change?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['3', '7', '10'],
+        correctIndex: 0,
+        explanation:
+            'Each step of 1 in x adds 3 to y, and because that step is always the same, the relationship is linear.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm5_seed_7',
+        subLessonTitle: 'Building Linear Equations',
+        question:
+            'You start with 5 coins and earn 2 coins per level. Which equation fits?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['y = 2x + 5', 'y = 5x + 2', 'y = 7x'],
+        correctIndex: 0,
+        explanation:
+            'The rate of change rides with x, so 2x, and the starting amount is added on, giving y = 2x + 5.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm5_seed_8',
+        subLessonTitle: 'Graphing Linear Equations',
+        question: 'Where does the line y = 3x − 4 cross the y-axis?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['−4', '3', '4'],
+        correctIndex: 0,
+        explanation:
+            'At the y-axis x is 0, so y = 3(0) − 4 = −4. The b in y = mx + b is the y-intercept.',
+        difficulty: 3,
+      ),
+      ModuleQuizQuestion(
+        id: 'm5_seed_9',
+        subLessonTitle: 'Graphing Linear Equations',
+        question: 'For y = ${m}x + $b, what is y when x = 2?',
+        type: QuizQuestionType.multipleChoice,
+        options: ['$yAtTwo', '${m + b}', '${2 * (m + b)}'],
+        correctIndex: 0,
+        explanation:
+            'Substitute x = 2: y = $m × 2 + $b = $yAtTwo.',
+        difficulty: 3,
+      ),
+      ModuleQuizQuestion(
+        id: 'm5_seed_10',
+        subLessonTitle: 'Reading Linear Graphs',
+        question:
+            'Coins per level follow y = 4x + 6. What does the point (3, 18) mean?',
+        type: QuizQuestionType.multipleChoice,
+        options: const [
+          '18 coins at level 3',
+          '3 coins at level 18',
+          '18 coins earned each level',
+        ],
+        correctIndex: 0,
+        explanation:
+            'x is the level and y is the coins, and 4(3) + 6 = 18, so it means 18 coins at level 3.',
+        difficulty: 3,
+      ),
+    ];
+
+    return ModuleQuiz(
+      moduleId: 'module5',
+      moduleTitle: 'Linear Relationships',
+      questions: questions,
+      generatedAt: DateTime.now(),
+      providerUsed: 'Algebrix Curated Seed Bank',
+    );
+  }
+
+  ModuleQuiz _buildModule6SeedQuiz(Random rng) {
+    // p and q are kept distinct so the sum and the product can never collide,
+    // which would make two options identical.
+    final p = 1 + rng.nextInt(4); // 1..4
+    final q = p + 1 + rng.nextInt(3); // p+1..p+3
+    final sum = p + q;
+    final product = p * q;
+
+    final questions = <ModuleQuizQuestion>[
+      ModuleQuizQuestion(
+        id: 'm6_seed_1',
+        subLessonTitle: 'Meet the Polynomials',
+        question: 'How many terms does 4x² + 3x − 7 have?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['2', '3', '4'],
+        correctIndex: 1,
+        explanation:
+            'Terms are separated by + and −, so the three terms are 4x², 3x and −7.',
+        difficulty: 1,
+      ),
+      ModuleQuizQuestion(
+        id: 'm6_seed_2',
+        subLessonTitle: 'Meet the Polynomials',
+        question: 'In the term 5x², what is the coefficient?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['5', '2', 'x'],
+        correctIndex: 0,
+        explanation:
+            'The coefficient is the number multiplying the variable. The 2 is the exponent.',
+        difficulty: 1,
+      ),
+      ModuleQuizQuestion(
+        id: 'm6_seed_3',
+        subLessonTitle: 'Meet the Polynomials',
+        question: 'A polynomial with exactly two terms is called a:',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['Monomial', 'Binomial', 'Trinomial'],
+        correctIndex: 1,
+        explanation:
+            'Bi means two, so x + 3 is a binomial. One term is a monomial and three is a trinomial.',
+        difficulty: 1,
+      ),
+      ModuleQuizQuestion(
+        id: 'm6_seed_4',
+        subLessonTitle: 'Adding Polynomials',
+        question: 'Add (3x² + 2x) + (2x² + 5x).',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['5x² + 7x', '5x⁴ + 7x²', '7x² + 5x'],
+        correctIndex: 0,
+        explanation:
+            'Combine like terms: 3x² + 2x² = 5x² and 2x + 5x = 7x. Exponents never add here.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm6_seed_5',
+        subLessonTitle: 'Meet the Polynomials',
+        question: 'Are 3x² and 2x like terms?',
+        type: QuizQuestionType.trueFalse,
+        options: const ['True', 'False'],
+        correctIndex: 1,
+        explanation:
+            'Like terms need the same variable AND the same exponent. These have different exponents.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm6_seed_6',
+        subLessonTitle: 'Subtracting Polynomials',
+        question: 'Subtract (5x + 4) − (2x − 3).',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['3x + 7', '3x + 1', '7x + 1'],
+        correctIndex: 0,
+        explanation:
+            'Distribute the negative: 5x + 4 − 2x + 3. The −3 becomes +3, giving 3x + 7.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm6_seed_7',
+        subLessonTitle: 'Subtracting Polynomials',
+        question:
+            'When you subtract the group (x² − 2x + 5), what does the −2x become?',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['+2x', '−2x', '−2'],
+        correctIndex: 0,
+        explanation:
+            'Every term is multiplied by −1, so −2x becomes +2x. Terms that were already negative turn positive.',
+        difficulty: 2,
+      ),
+      ModuleQuizQuestion(
+        id: 'm6_seed_8',
+        subLessonTitle: 'Multiplying Polynomials',
+        question: 'Multiply (x + 2)(x + 3).',
+        type: QuizQuestionType.multipleChoice,
+        options: const ['x² + 5x + 6', 'x² + 6x + 5', 'x² + 6'],
+        correctIndex: 0,
+        explanation:
+            'Every piece meets every piece: x² + 3x + 2x + 6, and the middle terms combine to 5x.',
+        difficulty: 3,
+      ),
+      ModuleQuizQuestion(
+        id: 'm6_seed_9',
+        subLessonTitle: 'Multiplying Polynomials',
+        question: 'Multiply (x + $p)(x + $q).',
+        type: QuizQuestionType.multipleChoice,
+        options: [
+          'x² + ${sum}x + $product',
+          'x² + ${product}x + $sum',
+          'x² + $product',
+        ],
+        correctIndex: 0,
+        explanation:
+            'The two numbers add to give the middle term ($sum) and multiply to give the constant ($product).',
+        difficulty: 3,
+      ),
+      ModuleQuizQuestion(
+        id: 'm6_seed_10',
+        subLessonTitle: 'Factoring Polynomials',
+        question: 'Factor x² + 7x + 12.',
+        type: QuizQuestionType.multipleChoice,
+        options: const [
+          '(x + 3)(x + 4)',
+          '(x + 2)(x + 6)',
+          '(x + 1)(x + 12)',
+        ],
+        correctIndex: 0,
+        explanation:
+            'Find two numbers that multiply to 12 and add to 7. Only 3 and 4 do both.',
+        difficulty: 3,
+      ),
+    ];
+
+    return ModuleQuiz(
+      moduleId: 'module6',
+      moduleTitle: 'Polynomials',
       questions: questions,
       generatedAt: DateTime.now(),
       providerUsed: 'Algebrix Curated Seed Bank',

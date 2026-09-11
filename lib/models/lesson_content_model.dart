@@ -120,6 +120,99 @@ class NumberLineActivityData extends LessonActivityData {
       ];
 }
 
+/// A lattice point on a coordinate plane.
+class GridPoint {
+  const GridPoint(this.x, this.y);
+
+  final int x;
+  final int y;
+
+  @override
+  bool operator ==(Object other) =>
+      other is GridPoint && other.x == x && other.y == y;
+
+  @override
+  int get hashCode => Object.hash(x, y);
+
+  @override
+  String toString() => '($x, $y)';
+}
+
+/// Plotting points on a coordinate plane.
+///
+/// Covers the whole of Module 5's spatial work: dropping a single point,
+/// walking a slope from one point to another, and laying down the points of a
+/// line before connecting them. The learner taps real grid positions rather
+/// than picking a coordinate from a list, so "3 across, 2 up" stays physical.
+class CoordinatePlaneActivityData extends LessonActivityData {
+  const CoordinatePlaneActivityData({
+    required this.targets,
+    this.minX = -5,
+    this.maxX = 5,
+    this.minY = -5,
+    this.maxY = 5,
+    this.prompt = 'Tap the grid to place your point',
+    this.connectWhenComplete = false,
+    this.orderMatters = false,
+  });
+
+  /// Every point that must be plotted for the activity to be correct.
+  final List<GridPoint> targets;
+
+  final int minX;
+  final int maxX;
+  final int minY;
+  final int maxY;
+
+  final String prompt;
+
+  /// Draws a line through the plotted points once they are all placed —
+  /// the moment a table of values becomes visibly straight.
+  final bool connectWhenComplete;
+
+  /// When true the learner must plot the targets in the listed order.
+  final bool orderMatters;
+
+  List<int> get xTicks => [for (var v = minX; v <= maxX; v++) v];
+  List<int> get yTicks => [for (var v = minY; v <= maxY; v++) v];
+}
+
+/// Filling in an area model for a polynomial product.
+///
+/// Multiplication is taught as "every piece meets every piece" before FOIL is
+/// named, so the grid is the concept and FOIL is the shortcut.
+class AreaModelActivityData extends LessonActivityData {
+  const AreaModelActivityData({
+    required this.expression,
+    required this.topLabels,
+    required this.sideLabels,
+    required this.cells,
+    required this.choices,
+    required this.result,
+  });
+
+  /// The product being expanded, e.g. `(x + 2)(x + 3)`.
+  final String expression;
+
+  /// Column headers, left to right.
+  final List<String> topLabels;
+
+  /// Row headers, top to bottom.
+  final List<String> sideLabels;
+
+  /// Correct cell contents in row-major order.
+  final List<String> cells;
+
+  /// Tiles offered to the learner, including plausible wrong ones.
+  final List<String> choices;
+
+  /// The combined result revealed once the grid is complete.
+  final String result;
+
+  int get rows => sideLabels.length;
+  int get columns => topLabels.length;
+}
+
 class ChoiceOption {
   final String label;
   final String? emoji;

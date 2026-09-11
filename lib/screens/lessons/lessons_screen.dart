@@ -13,6 +13,8 @@ import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/data/module3_content.dart';
 import 'package:algebrix/data/module4_content.dart';
+import 'package:algebrix/data/module5_content.dart';
+import 'package:algebrix/data/module6_content.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/core/animations/app_page_route.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
@@ -35,12 +37,16 @@ class _LessonsScreenState extends State<LessonsScreen> {
     final isModule2Unlocked = quizProvider.isModuleUnlocked('module2');
     final isModule3Unlocked = quizProvider.isModuleUnlocked('module3');
     final isModule4Unlocked = quizProvider.isModuleUnlocked('module4');
+    final isModule5Unlocked = quizProvider.isModuleUnlocked('module5');
+    final isModule6Unlocked = quizProvider.isModuleUnlocked('module6');
 
     final allLessons = [
       ...module1.lessons,
       ...module2.lessons,
       ...module3.lessons,
       ...module4.lessons,
+      ...module5.lessons,
+      ...module6.lessons,
     ];
     final filteredLessons = _searchQuery.isEmpty
         ? <LessonContent>[]
@@ -228,27 +234,75 @@ class _LessonsScreenState extends State<LessonsScreen> {
 
                 const SizedBox(height: 16),
 
-                // Module 5 — Linear Relationships (Locked)
-                _LockedModuleCard(
-                  title: 'Linear Relationships',
-                  description:
-                      'Coordinate plane, slope, linear equations, and graphing.',
-                  moduleNumber: 5,
-                  icon: '📈',
-                  accentColor: AppColors.info,
-                ),
+                // Module 5 — Linear Relationships (Dynamic Unlock)
+                if (isModule5Unlocked)
+                  _ModuleCard(
+                    module: module5,
+                    moduleNumber: 5,
+                    accentColor: AppColors.info,
+                    isLocked: false,
+                    onTap: () {
+                      final lessonProvider = context.read<LessonProvider>();
+                      lessonProvider.startModule(module5);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const ModuleOverviewScreen(),
+                        ),
+                      );
+                    },
+                  )
+                else
+                  _LockedModuleCard(
+                    title: module5.title,
+                    description: 'Pass Module 4 Quiz with at least 60% to unlock.',
+                    moduleNumber: 5,
+                    icon: '📈',
+                    accentColor: AppColors.info,
+                    onTapLocked: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Score at least 60% on the Module 4 Quiz to unlock Module 5!'),
+                          backgroundColor: AppColors.info,
+                        ),
+                      );
+                    },
+                  ),
 
                 const SizedBox(height: 16),
 
-                // Module 6 — Polynomials (Locked)
-                _LockedModuleCard(
-                  title: 'Polynomials',
-                  description:
-                      'Adding, subtracting, multiplying, and factoring.',
-                  moduleNumber: 6,
-                  icon: '🔢',
-                  accentColor: AppColors.error,
-                ),
+                // Module 6 — Polynomials (Dynamic Unlock)
+                if (isModule6Unlocked)
+                  _ModuleCard(
+                    module: module6,
+                    moduleNumber: 6,
+                    accentColor: AppColors.darkPink,
+                    isLocked: false,
+                    onTap: () {
+                      final lessonProvider = context.read<LessonProvider>();
+                      lessonProvider.startModule(module6);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const ModuleOverviewScreen(),
+                        ),
+                      );
+                    },
+                  )
+                else
+                  _LockedModuleCard(
+                    title: module6.title,
+                    description: 'Pass Module 5 Quiz with at least 60% to unlock.',
+                    moduleNumber: 6,
+                    icon: '🔷',
+                    accentColor: AppColors.darkPink,
+                    onTapLocked: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Score at least 60% on the Module 5 Quiz to unlock Module 6!'),
+                          backgroundColor: AppColors.darkPink,
+                        ),
+                      );
+                    },
+                  ),
 
                 const SizedBox(height: 24),
               ],

@@ -2,6 +2,8 @@ import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/data/module3_content.dart';
 import 'package:algebrix/data/module4_content.dart';
+import 'package:algebrix/data/module5_content.dart';
+import 'package:algebrix/data/module6_content.dart';
 
 class NoteLessonOption {
   const NoteLessonOption({
@@ -68,6 +70,28 @@ final List<NoteLessonOption> noteLessonOptions = List.unmodifiable([
       keywords: _keywordsFor(entry.value.lessonId),
     ),
   ),
+  ...module5.lessons.asMap().entries.map(
+    (entry) => NoteLessonOption(
+      moduleId: module5.id,
+      moduleName: 'Module 5: ${module5.title}',
+      lessonId: entry.value.lessonId,
+      lessonNumber: '5.${entry.key + 1}',
+      title: entry.value.title,
+      label: '5.${entry.key + 1} • ${entry.value.title}',
+      keywords: _keywordsFor(entry.value.lessonId),
+    ),
+  ),
+  ...module6.lessons.asMap().entries.map(
+    (entry) => NoteLessonOption(
+      moduleId: module6.id,
+      moduleName: 'Module 6: ${module6.title}',
+      lessonId: entry.value.lessonId,
+      lessonNumber: '6.${entry.key + 1}',
+      title: entry.value.title,
+      label: '6.${entry.key + 1} • ${entry.value.title}',
+      keywords: _keywordsFor(entry.value.lessonId),
+    ),
+  ),
 ]);
 
 List<String> _keywordsFor(String lessonId) {
@@ -98,6 +122,17 @@ List<String> _keywordsFor(String lessonId) {
     'm4_l3' => const ['negative number rule', 'reverse the inequality', 'flip the sign', 'multiply by a negative', 'divide by a negative', 'reversing the sign'],
     'm4_l4' => const ['two-step inequality', 'two step inequality', 'negative coefficient', 'multi-step inequality'],
     'm4_l5' => const ['graphing inequalities', 'graph an inequality', 'number line', 'open circle', 'closed circle', 'boundary point', 'shading', 'solution set'],
+    'm5_l1' => const ['coordinate plane', 'ordered pair', 'ordered pairs', 'x-axis', 'y-axis', 'origin', 'quadrant', 'quadrants', 'plot a point', 'plotting points'],
+    'm5_l2' => const ['slope', 'rise over run', 'rate of change', 'steepness', 'positive slope', 'negative slope', 'zero slope'],
+    'm5_l3' => const ['linear relationship', 'linear relationships', 'constant rate', 'linear table', 'non-linear', 'straight line pattern'],
+    'm5_l4' => const ['y = mx + b', 'slope-intercept form', 'slope intercept', 'y-intercept', 'starting value', 'build an equation', 'linear equation'],
+    'm5_l5' => const ['graphing linear equations', 'graph a line', 'plot the intercept', 'step by the slope', 'draw the line'],
+    'm5_l6' => const ['reading a graph', 'reading linear graphs', 'interpret slope', 'slope in context', 'what the point means', 'starting amount'],
+    'm6_l1' => const ['polynomial', 'polynomials', 'monomial', 'binomial', 'trinomial', 'degree', 'exponent', 'constant term', 'like terms'],
+    'm6_l2' => const ['adding polynomials', 'add polynomials', 'combine like terms', 'sum of polynomials'],
+    'm6_l3' => const ['subtracting polynomials', 'subtract polynomials', 'distribute the negative', 'sign flip', 'flip every sign'],
+    'm6_l4' => const ['multiplying polynomials', 'multiply polynomials', 'area model', 'foil', 'multiply binomials', 'every term'],
+    'm6_l5' => const ['factoring polynomials', 'factor a polynomial', 'greatest common factor', 'gcf', 'factor a trinomial', 'multiply to and add to'],
     _ => const [],
   };
 }

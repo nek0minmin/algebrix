@@ -12,6 +12,8 @@ import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/data/module3_content.dart';
 import 'package:algebrix/data/module4_content.dart';
+import 'package:algebrix/data/module5_content.dart';
+import 'package:algebrix/data/module6_content.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_progress_model.dart';
 import 'package:algebrix/screens/lessons/module_overview_screen.dart';
@@ -37,6 +39,8 @@ class QuizHubScreen extends StatelessWidget {
     final m2Progress = quizProvider.getQuizProgress('module2');
     final m3Progress = quizProvider.getQuizProgress('module3');
     final m4Progress = quizProvider.getQuizProgress('module4');
+    final m5Progress = quizProvider.getQuizProgress('module5');
+    final m6Progress = quizProvider.getQuizProgress('module6');
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -115,6 +119,18 @@ class QuizHubScreen extends StatelessWidget {
                         title: module4.title,
                         progress: m4Progress,
                         isUnlocked: quizProvider.isQuizUnlocked('module4', lessonProvider),
+                      ),
+                      _QuizBreakdownItem(
+                        moduleNumber: 5,
+                        title: module5.title,
+                        progress: m5Progress,
+                        isUnlocked: quizProvider.isQuizUnlocked('module5', lessonProvider),
+                      ),
+                      _QuizBreakdownItem(
+                        moduleNumber: 6,
+                        title: module6.title,
+                        progress: m6Progress,
+                        isUnlocked: quizProvider.isQuizUnlocked('module6', lessonProvider),
                       ),
                     ],
                   ),
@@ -302,19 +318,85 @@ class QuizHubScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // ── 9. Future Module Quizzes (Locked Previews) ────────────
-                  _LockedFutureQuizCard(
+                  // ── 9. Module 5 Quiz Card ─────────────────────────────────
+                  _ModuleQuizHubCard(
+                    module: module5,
                     moduleNumber: 5,
-                    title: 'Linear Relationships Quiz',
-                    prerequisite: 'Pass Module 4 Quiz (at least 60%)',
                     accentColor: AppColors.info,
+                    isUnlocked:
+                        quizProvider.isQuizUnlocked('module5', lessonProvider),
+                    progress: m5Progress,
+                    completedLessons:
+                        lessonProvider.completedLessonsInModule('module5'),
+                    totalLessons: module5.lessons.length,
+                    unlockRequirement: !quizProvider.isModuleUnlocked('module5')
+                        ? 'Score at least 60% on Module 4 Quiz'
+                        : 'Complete all ${module5.lessons.length} Module 5 lessons',
+                    onStart: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: ModuleQuizScreen(module: module5),
+                        ),
+                      );
+                    },
+                    onGoToLessons: () {
+                      if (!quizProvider.isModuleUnlocked('module5')) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Pass the Module 4 Quiz first with at least 60% to unlock Module 5!'),
+                            backgroundColor: AppColors.info,
+                          ),
+                        );
+                        return;
+                      }
+                      lessonProvider.startModule(module5);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const ModuleOverviewScreen(),
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 12),
-                  _LockedFutureQuizCard(
+                  const SizedBox(height: 16),
+
+                  // ── 10. Module 6 Quiz Card ────────────────────────────────
+                  _ModuleQuizHubCard(
+                    module: module6,
                     moduleNumber: 6,
-                    title: 'Polynomials Quiz',
-                    prerequisite: 'Pass Module 5 Quiz (at least 60%)',
-                    accentColor: AppColors.error,
+                    accentColor: AppColors.darkPink,
+                    isUnlocked:
+                        quizProvider.isQuizUnlocked('module6', lessonProvider),
+                    progress: m6Progress,
+                    completedLessons:
+                        lessonProvider.completedLessonsInModule('module6'),
+                    totalLessons: module6.lessons.length,
+                    unlockRequirement: !quizProvider.isModuleUnlocked('module6')
+                        ? 'Score at least 60% on Module 5 Quiz'
+                        : 'Complete all ${module6.lessons.length} Module 6 lessons',
+                    onStart: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: ModuleQuizScreen(module: module6),
+                        ),
+                      );
+                    },
+                    onGoToLessons: () {
+                      if (!quizProvider.isModuleUnlocked('module6')) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Pass the Module 5 Quiz first with at least 60% to unlock Module 6!'),
+                            backgroundColor: AppColors.darkPink,
+                          ),
+                        );
+                        return;
+                      }
+                      lessonProvider.startModule(module6);
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: const ModuleOverviewScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -1297,81 +1379,6 @@ class _ModuleQuizHubCard extends StatelessWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-/// Locked Future Module Card
-class _LockedFutureQuizCard extends StatelessWidget {
-  final int moduleNumber;
-  final String title;
-  final String prerequisite;
-  final Color accentColor;
-
-  const _LockedFutureQuizCard({
-    required this.moduleNumber,
-    required this.title,
-    required this.prerequisite,
-    required this.accentColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Opacity(
-      opacity: 0.65,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: AppColors.divider,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.lock_rounded, size: 18, color: AppColors.subtitle),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'MODULE $moduleNumber QUIZ',
-                    style: GoogleFonts.nunito(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.subtitle,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                  Text(
-                    title,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.text,
-                    ),
-                  ),
-                  Text(
-                    prerequisite,
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

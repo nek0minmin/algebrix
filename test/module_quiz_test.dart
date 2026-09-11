@@ -5,6 +5,10 @@ import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/data/module1_content.dart';
 import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/data/module3_content.dart';
+import 'package:algebrix/data/module5_content.dart';
+import 'package:algebrix/data/module6_content.dart';
+import 'package:algebrix/data/lesson_catalog.dart';
+import 'package:algebrix/services/concept_resolver.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/module_quiz_model.dart';
 import 'package:algebrix/services/module_quiz_service.dart';
@@ -149,6 +153,124 @@ void main() {
         expect(lowerQ, isNot(contains('system of equations')));
         expect(lowerQ, isNot(contains('quadratic formula')));
         expect(lowerQ, isNot(contains('inequality')));
+      }
+    });
+
+    test('Module 5 generates exactly 10 progressive items strictly within Module 5 scope', () async {
+      final quiz = await quizService.generateQuiz(module: module5);
+
+      expect(quiz.moduleId, 'module5');
+      expect(quiz.questions.length, 10);
+
+      for (var i = 0; i < 3; i++) {
+        expect(quiz.questions[i].difficulty, 1);
+      }
+      for (var i = 3; i < 7; i++) {
+        expect(quiz.questions[i].difficulty, 2);
+      }
+      for (var i = 7; i < 10; i++) {
+        expect(quiz.questions[i].difficulty, 3);
+      }
+
+      // Verify strict scope: no systems, no point-slope, no quadratics.
+      for (final q in quiz.questions) {
+        final lowerQ = q.question.toLowerCase();
+        expect(lowerQ, isNot(contains('system of equations')));
+        expect(lowerQ, isNot(contains('point-slope')));
+        expect(lowerQ, isNot(contains('perpendicular')));
+        expect(lowerQ, isNot(contains('quadratic')));
+      }
+    });
+
+    test('Module 6 generates exactly 10 progressive items strictly within Module 6 scope', () async {
+      final quiz = await quizService.generateQuiz(module: module6);
+
+      expect(quiz.moduleId, 'module6');
+      expect(quiz.questions.length, 10);
+
+      for (var i = 0; i < 3; i++) {
+        expect(quiz.questions[i].difficulty, 1);
+      }
+      for (var i = 3; i < 7; i++) {
+        expect(quiz.questions[i].difficulty, 2);
+      }
+      for (var i = 7; i < 10; i++) {
+        expect(quiz.questions[i].difficulty, 3);
+      }
+
+      // Verify strict scope: no division, no roots, no quadratic solving.
+      for (final q in quiz.questions) {
+        final lowerQ = q.question.toLowerCase();
+        expect(lowerQ, isNot(contains('synthetic division')));
+        expect(lowerQ, isNot(contains('quadratic formula')));
+        expect(lowerQ, isNot(contains('difference of squares')));
+        expect(lowerQ, isNot(contains('solve for x')));
+      }
+    });
+
+    test('every seeded module quiz is internally consistent', () async {
+      for (final module in LessonCatalog.modules) {
+        final quiz = await quizService.generateQuiz(module: module);
+
+        for (final q in quiz.questions) {
+          expect(q.correctIndex, greaterThanOrEqualTo(0),
+              reason: '${module.id} ${q.id} has no correct option');
+          expect(q.correctIndex, lessThan(q.options.length),
+              reason: '${module.id} ${q.id} points past the end of its options');
+          expect(q.options.toSet(), hasLength(q.options.length),
+              reason: '${module.id} ${q.id} offers the same option twice');
+          expect(q.explanation, isNotEmpty,
+              reason: '${module.id} ${q.id} has no explanation');
+
+          if (q.type == QuizQuestionType.trueFalse) {
+            expect(q.options, ['True', 'False'],
+                reason: '${module.id} ${q.id} is a true/false with odd options');
+          }
+        }
+      }
+    });
+
+    test('every seeded sub-lesson title resolves to a real lesson', () async {
+      // A title that resolves to nothing is silently dropped from mastery and
+      // from the review list, so the question stops counting for anything.
+      // Resolving to an earlier module is fine and deliberate: the resolver
+      // widens its search when a label names a prerequisite concept, which is
+      // how "Multi-Variable Substitution" in Module 2 reaches Module 1.
+      const resolver = ConceptResolver();
+
+      for (final module in LessonCatalog.modules) {
+        final quiz = await quizService.generateQuiz(module: module);
+
+        for (final q in quiz.questions) {
+          final lessonId =
+              resolver.resolveLessonId(q.subLessonTitle, moduleId: module.id);
+          expect(
+            lessonId,
+            isNotNull,
+            reason: '${module.id} "${q.subLessonTitle}" matches no lesson, so '
+                'the question cannot feed mastery or the review list',
+          );
+        }
+      }
+    });
+
+    test('Module 5 and 6 sub-lesson titles name their own lessons', () async {
+      // Both seed banks were written so each label is a shipped lesson title,
+      // which keeps their mastery breakdown pointing at the right lesson.
+      const resolver = ConceptResolver();
+
+      for (final module in [module5, module6]) {
+        final quiz = await quizService.generateQuiz(module: module);
+
+        for (final q in quiz.questions) {
+          final lessonId =
+              resolver.resolveLessonId(q.subLessonTitle, moduleId: module.id);
+          expect(
+            LessonCatalog.lessonById(lessonId)?.moduleId,
+            module.id,
+            reason: '"${q.subLessonTitle}" resolved outside ${module.id}',
+          );
+        }
       }
     });
 
