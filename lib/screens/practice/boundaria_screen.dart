@@ -215,6 +215,8 @@ class _RuleHeader extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 8),
+          _ActiveTermCard(phase: provider.currentPhase, problem: problem),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -257,39 +259,264 @@ class _RuleHeader extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Formula syntax highlight badge
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ActiveTermCard extends StatelessWidget {
+  const _ActiveTermCard({required this.phase, required this.problem});
+
+  final BoundariaPhase? phase;
+  final BoundariaProblem problem;
+
+  @override
+  Widget build(BuildContext context) {
+    if (phase == null) return const SizedBox.shrink();
+
+    final ({Color accent, Color background, IconData icon, String label, String description}) info =
+        switch (phase!) {
+      BoundariaPhase.rearrange => (
+          accent: AppColors.purple,
+          background: AppColors.lightPurple.withValues(alpha: 0.5),
+          icon: Icons.transform_rounded,
+          label: 'Algebra Stage: Isolate y',
+          description: 'Rearrange the rule into slope-intercept form (y > mx + b)',
+        ),
+      BoundariaPhase.plotIntercept => (
+          accent: AppColors.mint,
+          background: AppColors.lightMint,
+          icon: Icons.pin_drop_rounded,
+          label: 'Anchor: y-intercept (b = ${problem.intercept})',
+          description: 'Find (0, ${problem.intercept}) where the border touches the vertical y-axis',
+        ),
+      BoundariaPhase.buildSlope => (
+          accent: AppColors.purple,
+          background: AppColors.lightPurple,
+          icon: Icons.directions_walk_rounded,
+          label: 'Slope Guide: m = ${problem.riseOverRun.rise}/${problem.riseOverRun.run}',
+          description:
+              'From your anchor, step ${problem.riseOverRun.run} right and ${problem.riseOverRun.rise.abs()} ${problem.riseOverRun.rise < 0 ? 'down' : 'up'}',
+        ),
+      BoundariaPhase.chooseBoundary => (
+          accent: const Color(0xFF9A6B00),
+          background: AppColors.lightYellow,
+          icon: Icons.line_style_rounded,
+          label: 'Barrier Type: "${problem.sign.symbol}"',
+          description: problem.sign.includesBoundary
+              ? 'Solid border ━ (Points on the line count: ≤ or ≥)'
+              : 'Dashed border ✦ (Points on the line excluded: < or >)',
+        ),
+      BoundariaPhase.scout => (
+          accent: AppColors.mint,
+          background: AppColors.lightMint,
+          icon: Icons.explore_rounded,
+          label: 'Scout Exploration',
+          description: 'Test a location to see if it satisfies the inequality',
+        ),
+      BoundariaPhase.claim => (
+          accent: AppColors.mint,
+          background: AppColors.lightMint,
+          icon: Icons.auto_awesome_rounded,
+          label: 'Claim Territory',
+          description:
+              'Shade the half-plane that contains the solutions (${problem.sign.solutionIsAbove ? 'Above ▲' : 'Below ▼'})',
+        ),
+      BoundariaPhase.inspectMaps => (
+          accent: AppColors.purple,
+          background: AppColors.lightPurple,
+          icon: Icons.map_rounded,
+          label: 'Cartographer Inspection',
+          description: 'Identify the map that correctly follows the rule',
+        ),
+    };
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: info.background,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: info.accent.withValues(alpha: 0.45), width: 1.2),
+      ),
+      child: Row(
+        children: [
+          Icon(info.icon, size: 18, color: info.accent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  info.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.nunito(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: info.accent,
+                  ),
+                ),
+                Text(
+                  info.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.nunito(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CoordinateInspectorPill extends StatelessWidget {
+  const _CoordinateInspectorPill({
+    required this.hoverPoint,
+    required this.phase,
+  });
+
+  final ({int x, int y})? hoverPoint;
+  final BoundariaPhase? phase;
+
+  @override
+  Widget build(BuildContext context) {
+    if (hoverPoint == null) return const SizedBox.shrink();
+
+    final pt = hoverPoint!;
+    final isYAxis = pt.x == 0;
+    final isXAxis = pt.y == 0;
+    final isOrigin = pt.x == 0 && pt.y == 0;
+
+    final badge = isOrigin
+        ? 'Origin'
+        : isYAxis
+            ? 'y-axis'
+            : isXAxis
+                ? 'x-axis'
+                : null;
+
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.extraLightPink.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.pink, width: 1.3),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.my_location_rounded, size: 13, color: AppColors.darkPink),
+            const SizedBox(width: 5),
+            Text(
+              '(${pt.x}, ${pt.y})',
+              style: GoogleFonts.nunito(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w900,
+                color: AppColors.darkPink,
+              ),
+            ),
+            if (badge != null) ...[
+              const SizedBox(width: 5),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: AppColors.pink,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  badge,
+                  style: GoogleFonts.nunito(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Middle: the territory itself
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _TerritoryBoard extends StatelessWidget {
+class _TerritoryBoard extends StatefulWidget {
   const _TerritoryBoard({required this.provider, required this.problem});
 
   final BoundariaProvider provider;
   final BoundariaProblem problem;
 
+  @override
+  State<_TerritoryBoard> createState() => _TerritoryBoardState();
+}
+
+class _TerritoryBoardState extends State<_TerritoryBoard> {
+  ({int x, int y})? _hoverPoint;
+
   /// Lattice points are only tappable while a stage is asking for one.
   bool get _acceptsTaps {
-    final phase = provider.currentPhase;
+    final phase = widget.provider.currentPhase;
     return phase == BoundariaPhase.plotIntercept ||
         phase == BoundariaPhase.buildSlope ||
-        (phase == BoundariaPhase.scout && !problem.scoutPointIsFixed);
+        (phase == BoundariaPhase.scout && !widget.problem.scoutPointIsFixed);
   }
 
   void _handleTap(int x, int y) {
-    switch (provider.currentPhase) {
+    if (mounted) {
+      setState(() => _hoverPoint = (x: x, y: y));
+    }
+    switch (widget.provider.currentPhase) {
       case BoundariaPhase.plotIntercept:
       case BoundariaPhase.buildSlope:
-        provider.plotPoint(x, y);
+        widget.provider.plotPoint(x, y);
       case BoundariaPhase.scout:
-        provider.sendScout(x, y);
+        widget.provider.sendScout(x, y);
       default:
         break;
     }
   }
 
+  void _handlePan(Offset localPos, double dimension, int range) {
+    if (!_acceptsTaps || dimension <= 0 || !mounted) return;
+    final span = range * 2;
+    final unit = dimension / span;
+    final gx = ((localPos.dx / unit) - range).round().clamp(-range, range);
+    final gy = (range - (localPos.dy / unit)).round().clamp(-range, range);
+    if (_hoverPoint?.x != gx || _hoverPoint?.y != gy) {
+      setState(() {
+        _hoverPoint = (x: gx, y: gy);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final range = problem.gridRange;
+    final range = widget.problem.gridRange;
     final ticks = [for (var v = -range; v <= range; v++) v];
+    final acceptsTaps = _acceptsTaps;
+    final activeHover = acceptsTaps ? _hoverPoint : null;
+    final showSlopeGuide = widget.provider.currentPhase == BoundariaPhase.buildSlope &&
+        widget.provider.interceptBeacon != null;
 
     return Center(
       child: ConstrainedBox(
@@ -305,52 +532,74 @@ class _TerritoryBoard extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(18),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: _TerritoryPainter(
-                        problem: problem,
-                        showLine: provider.hasBoundaryLine,
-                        style: provider.chosenStyle ?? problem.correctStyle,
-                        styleDecided: provider.chosenStyle != null ||
-                            !problem.phases
-                                .contains(BoundariaPhase.chooseBoundary),
-                        claimed: provider.claimedSide,
-                        beacons: [
-                          if (provider.interceptBeacon != null)
-                            provider.interceptBeacon!,
-                          if (provider.slopeBeacon != null)
-                            provider.slopeBeacon!,
-                        ],
-                        scout: provider.scoutPoint,
-                        scoutVerdict: provider.scoutVerdict,
-                      ),
-                    ),
-                  ),
-                  // A transparent tap target per lattice point.
-                  if (_acceptsTaps)
-                    Column(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onPanDown: (details) =>
+                        _handlePan(details.localPosition, constraints.maxWidth, range),
+                    onPanUpdate: (details) =>
+                        _handlePan(details.localPosition, constraints.maxWidth, range),
+                    child: Stack(
                       children: [
-                        for (final y in ticks.reversed)
-                          Expanded(
-                            child: Row(
-                              children: [
-                                for (final x in ticks)
-                                  Expanded(
-                                    child: GestureDetector(
-                                      key: Key('boundaria-cell-${x}_$y'),
-                                      behavior: HitTestBehavior.opaque,
-                                      onTap: () => _handleTap(x, y),
-                                      child: const SizedBox.expand(),
-                                    ),
-                                  ),
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: _TerritoryPainter(
+                              problem: widget.problem,
+                              showLine: widget.provider.hasBoundaryLine,
+                              style: widget.provider.chosenStyle ?? widget.problem.correctStyle,
+                              styleDecided: widget.provider.chosenStyle != null ||
+                                  !widget.problem.phases.contains(BoundariaPhase.chooseBoundary),
+                              claimed: widget.provider.claimedSide,
+                              beacons: [
+                                if (widget.provider.interceptBeacon != null)
+                                  widget.provider.interceptBeacon!,
+                                if (widget.provider.slopeBeacon != null)
+                                  widget.provider.slopeBeacon!,
                               ],
+                              scout: widget.provider.scoutPoint,
+                              scoutVerdict: widget.provider.scoutVerdict,
+                              hoverPoint: activeHover,
+                              showSlopeGuide: showSlopeGuide,
                             ),
+                          ),
+                        ),
+                        // Floating coordinate HUD pill overlay
+                        if (activeHover != null)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: _CoordinateInspectorPill(
+                              hoverPoint: activeHover,
+                              phase: widget.provider.currentPhase,
+                            ),
+                          ),
+                        // A transparent tap target per lattice point.
+                        if (acceptsTaps)
+                          Column(
+                            children: [
+                              for (final y in ticks.reversed)
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      for (final x in ticks)
+                                        Expanded(
+                                          child: GestureDetector(
+                                            key: Key('boundaria-cell-${x}_$y'),
+                                            behavior: HitTestBehavior.opaque,
+                                            onTap: () => _handleTap(x, y),
+                                            child: const SizedBox.expand(),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                            ],
                           ),
                       ],
                     ),
-                ],
+                  );
+                },
               ),
             ),
           ),
@@ -370,6 +619,8 @@ class _TerritoryPainter extends CustomPainter {
     required this.beacons,
     required this.scout,
     required this.scoutVerdict,
+    this.hoverPoint,
+    this.showSlopeGuide = false,
   });
 
   final BoundariaProblem problem;
@@ -380,6 +631,8 @@ class _TerritoryPainter extends CustomPainter {
   final List<({int x, int y})> beacons;
   final ({int x, int y})? scout;
   final ScoutVerdict? scoutVerdict;
+  final ({int x, int y})? hoverPoint;
+  final bool showSlopeGuide;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -442,6 +695,157 @@ class _TerritoryPainter extends CustomPainter {
       toScreen(0, range.toDouble()),
       axis,
     );
+
+    // Axis tick marks & coordinate number labels (every 2 units)
+    final axisTickPaint = Paint()
+      ..color = _Sky.axis.withValues(alpha: 0.7)
+      ..strokeWidth = 1.5;
+
+    for (var i = -range; i <= range; i++) {
+      if (i == 0) continue;
+      // Tick mark on X-axis
+      final xPos = toScreen(i.toDouble(), 0);
+      canvas.drawLine(
+        Offset(xPos.dx, xPos.dy - 3),
+        Offset(xPos.dx, xPos.dy + 3),
+        axisTickPaint,
+      );
+
+      // Tick mark on Y-axis
+      final yPos = toScreen(0, i.toDouble());
+      canvas.drawLine(
+        Offset(yPos.dx - 3, yPos.dy),
+        Offset(yPos.dx + 3, yPos.dy),
+        axisTickPaint,
+      );
+
+      // Number labels every 2 units
+      if (i % 2 == 0 && i.abs() < range) {
+        // X label
+        final xSpan = TextSpan(
+          text: '$i',
+          style: GoogleFonts.nunito(
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            color: _Sky.axis.withValues(alpha: 0.8),
+          ),
+        );
+        final xPainter = TextPainter(
+          text: xSpan,
+          textDirection: TextDirection.ltr,
+        )..layout();
+        xPainter.paint(
+          canvas,
+          Offset(xPos.dx - xPainter.width / 2, xPos.dy + 4),
+        );
+
+        // Y label
+        final ySpan = TextSpan(
+          text: '$i',
+          style: GoogleFonts.nunito(
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            color: _Sky.axis.withValues(alpha: 0.8),
+          ),
+        );
+        final yPainter = TextPainter(
+          text: ySpan,
+          textDirection: TextDirection.ltr,
+        )..layout();
+        yPainter.paint(
+          canvas,
+          Offset(yPos.dx - yPainter.width - 5, yPos.dy - yPainter.height / 2),
+        );
+      }
+    }
+
+    // Label the X and Y axes
+    final xLabelPainter = TextPainter(
+      text: TextSpan(
+        text: 'x',
+        style: GoogleFonts.nunito(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          color: _Sky.axis,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    xLabelPainter.paint(
+      canvas,
+      Offset(toScreen(range.toDouble(), 0).dx - 12, toScreen(range.toDouble(), 0).dy + 4),
+    );
+
+    final yLabelPainter = TextPainter(
+      text: TextSpan(
+        text: 'y',
+        style: GoogleFonts.nunito(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          color: _Sky.axis,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    yLabelPainter.paint(
+      canvas,
+      Offset(toScreen(0, range.toDouble()).dx + 4, toScreen(0, range.toDouble()).dy + 2),
+    );
+
+    // Slope guide staircase: illustrates rise and run from intercept beacon
+    if (showSlopeGuide && beacons.isNotEmpty) {
+      final anchor = beacons.first;
+      final target = problem.slopeStepPoint;
+      final start = toScreen(anchor.x.toDouble(), anchor.y.toDouble());
+      final corner = toScreen(target.x.toDouble(), anchor.y.toDouble());
+      final end = toScreen(target.x.toDouble(), target.y.toDouble());
+
+      final slopeGuidePaint = Paint()
+        ..color = AppColors.purple.withValues(alpha: 0.55)
+        ..strokeWidth = 2.2
+        ..strokeCap = StrokeCap.round;
+
+      _drawDashed(canvas, start, corner, slopeGuidePaint);
+      _drawDashed(canvas, corner, end, slopeGuidePaint);
+
+      // Target ghost beacon indicator
+      canvas.drawCircle(
+        end,
+        8,
+        Paint()
+          ..color = AppColors.purple.withValues(alpha: 0.25)
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        end,
+        8,
+        Paint()
+          ..color = AppColors.purple
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5,
+      );
+    }
+
+    // Crosshair through active/hovered point
+    if (hoverPoint != null) {
+      final hp = toScreen(hoverPoint!.x.toDouble(), hoverPoint!.y.toDouble());
+      final crossPaint = Paint()
+        ..color = AppColors.purple.withValues(alpha: 0.35)
+        ..strokeWidth = 1.2;
+      _drawDashed(canvas, Offset(0, hp.dy), Offset(size.width, hp.dy), crossPaint);
+      _drawDashed(canvas, Offset(hp.dx, 0), Offset(hp.dx, size.height), crossPaint);
+
+      // Targeting reticle
+      canvas.drawCircle(hp, 13, Paint()..color = AppColors.purple.withValues(alpha: 0.15));
+      canvas.drawCircle(
+        hp,
+        7,
+        Paint()
+          ..color = AppColors.purple
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+    }
 
     if (showLine) {
       final a = _boundaryPointAt(-range.toDouble());
@@ -532,7 +936,9 @@ class _TerritoryPainter extends CustomPainter {
       old.claimed != claimed ||
       old.beacons.length != beacons.length ||
       old.scout != scout ||
-      old.scoutVerdict != scoutVerdict;
+      old.scoutVerdict != scoutVerdict ||
+      old.hoverPoint != hoverPoint ||
+      old.showSlopeGuide != showSlopeGuide;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
