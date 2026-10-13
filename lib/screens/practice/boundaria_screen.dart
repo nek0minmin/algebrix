@@ -88,6 +88,15 @@ class _BoundariaScreenState extends State<BoundariaScreen> {
     });
   }
 
+  void _showHowToPlay(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const _HowToPlaySheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<BoundariaProvider>();
@@ -122,6 +131,15 @@ class _BoundariaScreenState extends State<BoundariaScreen> {
           ),
         ),
         actions: [
+          IconButton(
+            key: const Key('boundaria-how-to-play'),
+            tooltip: 'How to Play',
+            icon: const Icon(
+              Icons.help_outline_rounded,
+              color: _Sky.axis,
+            ),
+            onPressed: () => _showHowToPlay(context),
+          ),
           IconButton(
             key: const Key('boundaria-hint'),
             tooltip: 'Hint',
@@ -883,8 +901,33 @@ class _TerritoryPainter extends CustomPainter {
         ScoutVerdict.doesNotBelong => AppColors.pink,
         _ => _Sky.gold,
       };
-      canvas.drawCircle(centre, 11, Paint()..color = colour.withValues(alpha: 0.3));
+      // Soft radar ripple & glowing core
+      canvas.drawCircle(centre, 16, Paint()..color = colour.withValues(alpha: 0.18));
+      canvas.drawCircle(centre, 10, Paint()..color = colour.withValues(alpha: 0.35));
       canvas.drawCircle(centre, 6.5, Paint()..color = colour);
+      canvas.drawCircle(
+        centre,
+        6.5,
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.8,
+      );
+
+      // Coordinate tag pinned above scout
+      final tagSpan = TextSpan(
+        text: '(${scout!.x}, ${scout!.y})',
+        style: GoogleFonts.nunito(
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+          color: colour,
+        ),
+      );
+      final tagPainter = TextPainter(text: tagSpan, textDirection: TextDirection.ltr)..layout();
+      tagPainter.paint(
+        canvas,
+        Offset(centre.dx - tagPainter.width / 2, centre.dy - tagPainter.height - 8),
+      );
     }
   }
 
@@ -1144,16 +1187,19 @@ class _ControlDeck extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (provider.feedback != null) ...[
-            Text(
-              provider.feedback!,
-              key: const Key('boundaria-feedback'),
-              textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w800,
-                color: provider.feedbackIsError ? AppColors.error : _Sky.ink,
+            if (provider.scoutVerdict != null && provider.scoutPoint != null)
+              _ScoutReportDialogue(provider: provider, problem: problem)
+            else
+              Text(
+                provider.feedback!,
+                key: const Key('boundaria-feedback'),
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                  color: provider.feedbackIsError ? AppColors.error : _Sky.ink,
+                ),
               ),
-            ),
             const SizedBox(height: 10),
           ] else ...[
             Text(
@@ -1543,6 +1589,342 @@ class _ResultDialog extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Scout Probe Speech Card
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ScoutReportDialogue extends StatelessWidget {
+  const _ScoutReportDialogue({
+    required this.provider,
+    required this.problem,
+  });
+
+  final BoundariaProvider provider;
+  final BoundariaProblem problem;
+
+  @override
+  Widget build(BuildContext context) {
+    final pt = provider.scoutPoint;
+    final verdict = provider.scoutVerdict;
+    if (pt == null || verdict == null) {
+      return Text(
+        provider.feedback ?? '',
+        key: const Key('boundaria-feedback'),
+        textAlign: TextAlign.center,
+        style: GoogleFonts.nunito(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w800,
+          color: provider.feedbackIsError ? AppColors.error : _Sky.ink,
+        ),
+      );
+    }
+
+    final isBelongs = verdict == ScoutVerdict.belongs;
+    final isOnBorder = verdict == ScoutVerdict.onBorder;
+    final mascotAsset = isBelongs
+        ? AppAssets.xyInsight
+        : isOnBorder
+            ? AppAssets.xyIdea
+            : AppAssets.xyExplaining;
+
+    final badgeColor = isBelongs
+        ? AppColors.mint
+        : isOnBorder
+            ? const Color(0xFF9A6B00)
+            : AppColors.pink;
+
+    final bgColor = isBelongs
+        ? AppColors.lightMint
+        : isOnBorder
+            ? AppColors.lightYellow
+            : AppColors.extraLightPink;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.4), width: 1.2),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset(
+                mascotAsset,
+                width: 38,
+                height: 38,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Scout Probe at (${pt.x}, ${pt.y})',
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.nunito(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w900,
+                              color: badgeColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: badgeColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            isBelongs
+                                ? '✓ Belongs'
+                                : isOnBorder
+                                    ? '✦ On Line'
+                                    : '✗ Outside',
+                            style: GoogleFonts.nunito(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    // Preserves exact feedback string with key for test backward compatibility
+                    Text(
+                      provider.feedback!,
+                      key: const Key('boundaria-feedback'),
+                      style: GoogleFonts.nunito(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: _Sky.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// How to Play Tutorial Modal Sheet
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _HowToPlaySheet extends StatelessWidget {
+  const _HowToPlaySheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Pull handle
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Image.asset(
+                    AppAssets.xyExplaining,
+                    width: 52,
+                    height: 52,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'How to Play Boundaria',
+                          key: const Key('boundaria-how-to-play-title'),
+                          style: GoogleFonts.nunito(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: _Sky.ink,
+                          ),
+                        ),
+                        Text(
+                          'Master 3 ideas to earn all 3 stars!',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              _buildStarRuleCard(
+                icon: Icons.push_pin_rounded,
+                accentColor: AppColors.purple,
+                bgColor: AppColors.lightPurple.withValues(alpha: 0.5),
+                title: '⭐ 1. The Boundary (The Line)',
+                subtitle: 'Anchor & Slope',
+                description:
+                    'Drop your anchor at the y-intercept (0, b). Then walk the slope m = rise/run by stepping right by run and up/down by rise.',
+              ),
+              const SizedBox(height: 10),
+              _buildStarRuleCard(
+                icon: Icons.line_style_rounded,
+                accentColor: const Color(0xFF9A6B00),
+                bgColor: AppColors.lightYellow,
+                title: '⭐ 2. The Border (The Barrier)',
+                subtitle: 'Solid vs. Dashed',
+                description:
+                    'If the sign has "or equal to" (≤ or ≥), raise a Solid ━ barrier. If it is strict (< or >), raise a Dashed ✦ barrier.',
+              ),
+              const SizedBox(height: 10),
+              _buildStarRuleCard(
+                icon: Icons.explore_rounded,
+                accentColor: AppColors.mint,
+                bgColor: AppColors.lightMint,
+                title: '⭐ 3. The Region (The Territory)',
+                subtitle: 'Scout & Claim',
+                description:
+                    'Send a Scout to test any coordinate (like (0, 0)). If the inequality holds true (✓), claim that half-plane!',
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  key: const Key('boundaria-how-to-play-close'),
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.purple,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: Text(
+                    "Got it, let's explore!",
+                    style: GoogleFonts.nunito(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStarRuleCard({
+    required IconData icon,
+    required Color accentColor,
+    required Color bgColor,
+    required String title,
+    required String subtitle,
+    required String description,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accentColor.withValues(alpha: 0.35), width: 1.2),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 18, color: accentColor),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: GoogleFonts.nunito(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w900,
+                          color: _Sky.ink,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        subtitle,
+                        style: GoogleFonts.nunito(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: accentColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  description,
+                  style: GoogleFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

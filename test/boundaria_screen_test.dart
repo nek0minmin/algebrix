@@ -223,6 +223,21 @@ void main() {
     expect(boundaria.isSolved, isFalse);
     expect(find.byKey(const Key('boundaria-style-dashed')), findsOneWidget);
   });
+
+  testWidgets('tapping how-to-play opens the tutorial sheet and closes it',
+      (tester) async {
+    await pumpLevel(tester, 1);
+
+    expect(find.byKey(const Key('boundaria-how-to-play-title')), findsNothing);
+
+    await tapKey(tester, 'boundaria-how-to-play');
+    expect(find.byKey(const Key('boundaria-how-to-play-title')), findsOneWidget);
+    expect(find.text('How to Play Boundaria'), findsOneWidget);
+    expect(find.textContaining('1. The Boundary'), findsOneWidget);
+
+    await tapKey(tester, 'boundaria-how-to-play-close');
+    expect(find.byKey(const Key('boundaria-how-to-play-title')), findsNothing);
+  });
 }
 
 class _SavedResult {
