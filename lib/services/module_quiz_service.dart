@@ -660,7 +660,7 @@ Return ONLY a JSON object with this EXACT structure:
         subLessonTitle: 'Like and Unlike Terms',
         question: 'Which of the following pairs contains LIKE TERMS?',
         type: QuizQuestionType.multipleChoice,
-        options: ['${c1}$v and ${c1 + 5}$v', '${c1}$v and ${c1}z', '${c1}$v and ${c1}$v²'],
+        options: ['$c1$v and ${c1 + 5}$v', '$c1$v and ${c1}z', '$c1$v and $c1$v²'],
         correctIndex: 0,
         explanation: 'Like terms must have the exact same variable raised to the exact same exponent ($v).',
         difficulty: 1,
@@ -668,7 +668,7 @@ Return ONLY a JSON object with this EXACT structure:
       ModuleQuizQuestion(
         id: 'm2_q02',
         subLessonTitle: 'Combining Like Terms',
-        question: 'Simplify: ${c1}$v + ${c2}$v',
+        question: 'Simplify: $c1$v + $c2$v',
         type: QuizQuestionType.multipleChoice,
         options: ['${c1 + c2}$v', '${c1 + c2}$v²', '${c1 * c2}$v'],
         correctIndex: 0,
@@ -710,7 +710,7 @@ Return ONLY a JSON object with this EXACT structure:
       ModuleQuizQuestion(
         id: 'm2_q06',
         subLessonTitle: 'Evaluating Expressions',
-        question: 'If $v = $val, evaluate the expression: ${c1}$v + $c2',
+        question: 'If $v = $val, evaluate the expression: $c1$v + $c2',
         type: QuizQuestionType.multipleChoice,
         options: ['${(c1 * val) + c2}', '${(c1 * val) + c2 + 4}', '${c1 * (val + c2)}'],
         correctIndex: 0,
@@ -732,21 +732,21 @@ Return ONLY a JSON object with this EXACT structure:
       ModuleQuizQuestion(
         id: 'm2_q08',
         subLessonTitle: 'Simplifying Expressions',
-        question: 'Simplify the expression by combining like terms: ${c1 + 3}$v + $c2 − ${c1}$v + ${c2 + 5}',
+        question: 'Simplify the expression by combining like terms: ${c1 + 3}$v + $c2 − $c1$v + ${c2 + 5}',
         type: QuizQuestionType.multipleChoice,
         options: ['3$v + ${2 * c2 + 5}', '${2 * c1 + 3}$v + ${2 * c2 + 5}', '3$v + 5'],
         correctIndex: 0,
-        explanation: 'Group like terms: (${c1 + 3}$v − ${c1}$v) + ($c2 + ${c2 + 5}) = 3$v + ${2 * c2 + 5}.',
+        explanation: 'Group like terms: (${c1 + 3}$v − $c1$v) + ($c2 + ${c2 + 5}) = 3$v + ${2 * c2 + 5}.',
         difficulty: 3,
       ),
       ModuleQuizQuestion(
         id: 'm2_q09',
         subLessonTitle: 'Distribute & Combine',
-        question: 'Simplify completely: $factor($v + 2) + ${c2}$v',
+        question: 'Simplify completely: $factor($v + 2) + $c2$v',
         type: QuizQuestionType.multipleChoice,
         options: ['${factor + c2}$v + ${factor * 2}', '${factor + c2}$v + 2', '$factor$v + ${factor * 2}'],
         correctIndex: 0,
-        explanation: 'Distribute first: $factor$v + ${factor * 2} + ${c2}$v. Combine like terms: ($factor$v + ${c2}$v) + ${factor * 2} = ${factor + c2}$v + ${factor * 2}.',
+        explanation: 'Distribute first: $factor$v + ${factor * 2} + $c2$v. Combine like terms: ($factor$v + $c2$v) + ${factor * 2} = ${factor + c2}$v + ${factor * 2}.',
         difficulty: 3,
       ),
       ModuleQuizQuestion(
@@ -838,7 +838,7 @@ Return ONLY a JSON object with this EXACT structure:
       ModuleQuizQuestion(
         id: 'm3_q04',
         subLessonTitle: 'Multiplication Equations',
-        question: 'Solve for $v: ${multCoeff}$v = $multTotal',
+        question: 'Solve for $v: $multCoeff$v = $multTotal',
         type: QuizQuestionType.multipleChoice,
         options: [
           '$v = ${multTotal - multCoeff}',
@@ -853,7 +853,7 @@ Return ONLY a JSON object with this EXACT structure:
       ModuleQuizQuestion(
         id: 'm3_q05',
         subLessonTitle: 'Two-Step Equations',
-        question: 'Solve for $v: ${twoStepA}$v + $twoStepB = $twoStepTotal',
+        question: 'Solve for $v: $twoStepA$v + $twoStepB = $twoStepTotal',
         type: QuizQuestionType.multipleChoice,
         options: [
           '$v = $twoStepAns',
@@ -862,7 +862,7 @@ Return ONLY a JSON object with this EXACT structure:
           '$v = ${twoStepTotal + twoStepB}',
         ],
         correctIndex: 0,
-        explanation: 'Subtract $twoStepB (${twoStepA}$v = ${twoStepTotal - twoStepB}), then divide by $twoStepA: $v = $twoStepAns.',
+        explanation: 'Subtract $twoStepB ($twoStepA$v = ${twoStepTotal - twoStepB}), then divide by $twoStepA: $v = $twoStepAns.',
         difficulty: 2,
       ),
       const ModuleQuizQuestion(

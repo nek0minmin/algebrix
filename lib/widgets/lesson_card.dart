@@ -3,9 +3,6 @@ import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
 
-import 'package:algebrix/core/constants/app_assets.dart';
-import 'package:algebrix/widgets/xy_mascot.dart';
-
 /// Continue Learning card for the dashboard with tactile spring press.
 class LessonCard extends StatelessWidget {
   final String lessonTitle;

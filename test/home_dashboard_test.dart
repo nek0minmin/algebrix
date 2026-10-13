@@ -8,11 +8,14 @@ import 'package:algebrix/models/quest_map_model.dart';
 import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/models/user_model.dart';
 import 'package:algebrix/navigation/main_shell.dart';
-import 'package:algebrix/screens/home/home_screen.dart';
 import 'package:algebrix/services/auth_service.dart';
 import 'package:algebrix/services/notes_repository.dart';
 import 'package:algebrix/services/progress_repository.dart';
 import 'package:algebrix/services/quest_repository.dart';
+import 'package:algebrix/core/providers/mastery_provider.dart';
+import 'package:algebrix/core/providers/quiz_review_provider.dart';
+import 'package:algebrix/services/mastery_repository.dart';
+import 'package:algebrix/services/quiz_review_repository.dart';
 import 'package:algebrix/services/quiz_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -376,6 +379,74 @@ void main() {
 
       expect(find.text("Xy's Note Insight"), findsOneWidget);
       expect(find.text('Great Job!'), findsOneWidget);
+    });
+
+    testWidgets('Spaced Practice Queue card reflects due count and navigates to ReviewHubScreen', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(430, 932));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final fakeUser = UserModel(
+        id: 'test-u',
+        name: 'Min',
+        lastActive: DateTime.now(),
+      );
+      final authProvider = AuthProvider(authService: _FakeAuthService(fakeUser));
+      final lessonProvider = LessonProvider(repository: _FakeProgressRepository());
+      final fakeNotesRepo = _FakeNotesRepository();
+      final notesProvider = NotesProvider(repository: fakeNotesRepo);
+      final fakeQuestRepo = _FakeQuestRepository();
+      final questProvider = QuestMapProvider(repository: fakeQuestRepo);
+      final quizProvider = QuizProvider(repository: MemoryQuizRepository());
+
+      final masteryRepo = MemoryMasteryRepository();
+      await masteryRepo.recordLessonMiss(
+        moduleId: 'module1',
+        lessonId: 'm1_l1',
+        stepId: 'step1',
+        stepIndex: 0,
+        question: 'Identify the variable',
+        options: const ['x', '5'],
+        correctIndex: 0,
+        selectedIndex: 1,
+        explanation: 'x is the variable',
+      );
+
+      final masteryProvider = MasteryProvider(repository: masteryRepo);
+      masteryProvider.bindAccount('test-u');
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+
+      final quizReviewProvider = QuizReviewProvider(
+        repository: MemoryQuizReviewRepository(),
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
+            ChangeNotifierProvider<LessonProvider>.value(value: lessonProvider),
+            ChangeNotifierProvider<NotesProvider>.value(value: notesProvider),
+            ChangeNotifierProvider<QuestMapProvider>.value(value: questProvider),
+            ChangeNotifierProvider<QuizProvider>.value(value: quizProvider),
+            ChangeNotifierProvider<MasteryProvider>.value(value: masteryProvider),
+            ChangeNotifierProvider<QuizReviewProvider>.value(value: quizReviewProvider),
+          ],
+          child: const MaterialApp(
+            home: MainShell(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Spaced Practice Queue'), findsOneWidget);
+      expect(find.text('1 concept due for review'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('dashboard-spaced-practice-card')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Review & Mastery'), findsOneWidget);
     });
   });
 }

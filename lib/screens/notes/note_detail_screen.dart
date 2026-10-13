@@ -65,7 +65,7 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
       barrierDismissible: false,
       builder: (_) => _DeleteNoteDialog(note: _displayNote),
     );
-    if (deleted == true && context.mounted) {
+    if (deleted == true && mounted) {
       SoundService.playComplete();
       Navigator.of(context).pop(true);
     }

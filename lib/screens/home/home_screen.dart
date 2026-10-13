@@ -3,17 +3,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
 import 'package:algebrix/core/constants/app_text_styles.dart';
-import 'package:algebrix/core/constants/app_strings.dart';
 import 'package:algebrix/core/providers/auth_provider.dart';
 import 'package:algebrix/core/providers/lesson_provider.dart';
+import 'package:algebrix/core/providers/mastery_provider.dart';
 import 'package:algebrix/core/providers/notes_provider.dart';
 import 'package:algebrix/core/providers/quiz_provider.dart';
+import 'package:algebrix/data/lesson_catalog.dart';
+import 'package:algebrix/screens/review/review_hub_screen.dart';
 import 'package:algebrix/models/user_model.dart';
 import 'package:algebrix/models/lesson_content_model.dart';
 import 'package:algebrix/models/study_note_model.dart';
 import 'package:algebrix/data/module1_content.dart';
-import 'package:algebrix/data/module2_content.dart';
-import 'package:algebrix/data/module3_content.dart';
 import 'package:algebrix/widgets/lesson_card.dart';
 import 'package:algebrix/widgets/primary_button.dart';
 import 'package:algebrix/widgets/page_headers.dart';
@@ -74,7 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = authProvider.currentUser ?? UserModel.placeholder();
 
     // Determine latest unlocked module and active resumable lesson
-    final allModules = [module1, module2, module3];
+    final allModules = LessonCatalog.modules;
+    final totalQuizzes = allModules.length;
     final unlockedModules = allModules
         .where((m) => quizProvider.isModuleUnlocked(m.id))
         .toList();
@@ -101,32 +102,37 @@ class _HomeScreenState extends State<HomeScreen> {
     final currentLessonRecord =
         lessonProvider.progressForLesson(activeLesson.lessonId);
 
-    // Quiz Mastery calculation
-    final passedQuizzesCount = ['module1', 'module2', 'module3']
-        .where((id) => quizProvider.isModuleQuizPassed(id))
+    // Quiz Mastery calculation across all catalog modules
+    final passedQuizzesCount = allModules
+        .where((m) => quizProvider.isModuleQuizPassed(m.id))
         .length;
 
-    String nextQuizTitle = 'Module 1 Quiz';
+    ModuleContent nextQuizModule = allModules.first;
+    String nextQuizTitle = 'Module 1 Quiz (Foundations)';
     bool isNextQuizReady = quizProvider.isQuizUnlocked('module1', lessonProvider);
-    ModuleContent nextQuizModule = module1;
 
-    if (!quizProvider.isModuleQuizPassed('module1')) {
-      nextQuizTitle = 'Module 1 Quiz (Foundations)';
-      isNextQuizReady = quizProvider.isQuizUnlocked('module1', lessonProvider);
-      nextQuizModule = module1;
-    } else if (!quizProvider.isModuleQuizPassed('module2')) {
-      nextQuizTitle = 'Module 2 Quiz (Expressions)';
-      isNextQuizReady = quizProvider.isQuizUnlocked('module2', lessonProvider);
-      nextQuizModule = module2;
-    } else if (!quizProvider.isModuleQuizPassed('module3')) {
-      nextQuizTitle = 'Module 3 Quiz (Equations)';
-      isNextQuizReady = quizProvider.isQuizUnlocked('module3', lessonProvider);
-      nextQuizModule = module3;
-    } else {
+    bool foundNextQuiz = false;
+    for (var i = 0; i < allModules.length; i++) {
+      final mod = allModules[i];
+      if (!quizProvider.isModuleQuizPassed(mod.id)) {
+        nextQuizModule = mod;
+        nextQuizTitle = 'Module ${i + 1} Quiz (${mod.title})';
+        isNextQuizReady = quizProvider.isQuizUnlocked(mod.id, lessonProvider);
+        foundNextQuiz = true;
+        break;
+      }
+    }
+
+    if (!foundNextQuiz) {
       nextQuizTitle = 'All Quizzes Mastered';
       isNextQuizReady = true;
-      nextQuizModule = module3;
+      nextQuizModule = allModules.last;
     }
+
+    // Spaced Practice Queue counts
+    final masteryProvider = context.watch<MasteryProvider?>();
+    final dueConceptsCount = masteryProvider?.needsReview.length ?? 0;
+    final openMistakesCount = masteryProvider?.openLessonMistakes.length ?? 0;
 
     final isSearching = _searchQuery.trim().isNotEmpty;
 
@@ -150,11 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _UniversalSearchResults(
                     query: _searchQuery,
                     notes: notesProvider.notes,
-                    lessons: [
-                      ...module1.lessons,
-                      ...module2.lessons,
-                      ...module3.lessons,
-                    ],
+                    lessons: LessonCatalog.lessons,
                     onOpenLesson: (lesson) =>
                         _openLesson(context, lessonProvider, lesson),
                     onOpenNote: (note) {
@@ -204,10 +206,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // 2. Quiz Mastery Status Card
+                  // 2. Spaced Practice Queue (Concept Retain & Mistake Resolution)
+                  _SpacedPracticeQueueCard(
+                    dueConceptsCount: dueConceptsCount,
+                    openMistakesCount: openMistakesCount,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        AppPageRoute(
+                          child: ReviewHubScreen(
+                            initialTab: dueConceptsCount > 0
+                                ? ReviewHubTab.practice
+                                : ReviewHubTab.mastery,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 3. Quiz Mastery Status Card
                   _QuizMasteryDashboardCard(
                     passedCount: passedQuizzesCount,
-                    totalQuizzes: 3,
+                    totalQuizzes: totalQuizzes,
                     nextQuizTitle: nextQuizTitle,
                     isNextQuizReady: isNextQuizReady,
                     onTap: () {
@@ -283,11 +303,8 @@ class _HomeScreenState extends State<HomeScreen> {
     LessonContent lesson,
   ) async {
     if (lessonProvider.isBusy) return;
-    final parentModule = module1.lessons.any((l) => l.lessonId == lesson.lessonId)
-        ? module1
-        : (module2.lessons.any((l) => l.lessonId == lesson.lessonId)
-            ? module2
-            : module3);
+    final parentModule =
+        LessonCatalog.moduleForLesson(lesson.lessonId) ?? module1;
     lessonProvider.startModule(parentModule);
     final opened = await lessonProvider.startLesson(lesson);
     if (!context.mounted) return;
@@ -1352,6 +1369,157 @@ class _AlgebriaDashboardShortcut extends StatelessWidget {
               size: 20,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SpacedPracticeQueueCard extends StatelessWidget {
+  const _SpacedPracticeQueueCard({
+    required this.dueConceptsCount,
+    required this.openMistakesCount,
+    required this.onTap,
+  });
+
+  final int dueConceptsCount;
+  final int openMistakesCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasDue = dueConceptsCount > 0;
+    final hasMistakes = openMistakesCount > 0;
+
+    return Semantics(
+      button: true,
+      label: 'Spaced Practice Queue',
+      child: BouncyPressable(
+        key: const Key('dashboard-spaced-practice-card'),
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: hasDue
+                  ? AppColors.pink.withValues(alpha: 0.35)
+                  : AppColors.mint.withValues(alpha: 0.35),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: (hasDue ? AppColors.pink : AppColors.mint)
+                    .withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: hasDue
+                          ? AppColors.extraLightPink
+                          : AppColors.lightMint,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Center(
+                      child: XyMascot(
+                        asset: hasDue ? AppAssets.xyInsight : AppAssets.xyHappy,
+                        size: 32,
+                        shadowBlur: 0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Spaced Practice Queue',
+                          style: GoogleFonts.nunito(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.text,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          hasDue
+                              ? '$dueConceptsCount ${dueConceptsCount == 1 ? 'concept' : 'concepts'} due for review'
+                              : 'All caught up! Mastery is strong ⭐',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                            color: hasDue ? AppColors.darkPink : const Color(0xFF1B8A7A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: hasDue
+                          ? AppColors.extraLightPink
+                          : AppColors.lightMint,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          hasDue ? '$dueConceptsCount Due' : 'Mastery',
+                          style: GoogleFonts.nunito(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w900,
+                            color: hasDue
+                                ? AppColors.darkPink
+                                : const Color(0xFF1B8A7A),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 11,
+                          color: hasDue
+                              ? AppColors.darkPink
+                              : const Color(0xFF1B8A7A),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                hasDue
+                    ? 'Strengthen fading memory traces with rapid, targeted concept problems.'
+                    : (hasMistakes
+                        ? 'You have $openMistakesCount unreviewed lesson ${openMistakesCount == 1 ? 'mistake' : 'mistakes'} to inspect in History.'
+                        : 'Explore how your knowledge retention holds up across all algebraic concepts.'),
+                style: GoogleFonts.nunito(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

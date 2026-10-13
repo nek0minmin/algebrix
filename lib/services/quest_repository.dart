@@ -125,7 +125,7 @@ class SupabaseQuestRepository implements QuestRepository {
 
     if (userId == null) {
       int localTotal = 0;
-      for (final land in ['balands', 'pairadise']) {
+      for (final land in ['balands', 'pairadise', 'boundaria']) {
         final list = await _loadLocalLandProgress(land, userId: effectiveUserId);
         for (final p in list) {
           localTotal += p.starsEarned;
@@ -152,7 +152,7 @@ class SupabaseQuestRepository implements QuestRepository {
     } catch (e) {
       debugPrint('QuestRepository fetchTotalStars fallback: $e');
       int localTotal = 0;
-      for (final land in ['balands', 'pairadise']) {
+      for (final land in ['balands', 'pairadise', 'boundaria']) {
         final list = await _loadLocalLandProgress(land, userId: effectiveUserId);
         for (final p in list) {
           localTotal += p.starsEarned;

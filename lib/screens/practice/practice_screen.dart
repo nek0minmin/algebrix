@@ -1,9 +1,12 @@
 import 'package:algebrix/core/constants/app_assets.dart';
 import 'package:algebrix/core/constants/app_colors.dart';
+import 'package:algebrix/core/providers/mastery_provider.dart';
 import 'package:algebrix/core/providers/quest_map_provider.dart';
 import 'package:algebrix/core/providers/quiz_provider.dart';
+import 'package:algebrix/data/lesson_catalog.dart';
 import 'package:algebrix/screens/practice/quest_map_screen.dart';
 import 'package:algebrix/screens/quiz/quiz_hub_screen.dart';
+import 'package:algebrix/screens/review/review_hub_screen.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 import 'package:algebrix/core/animations/app_page_route.dart';
 import 'package:algebrix/widgets/bouncy_pressable.dart';
@@ -39,11 +42,13 @@ class PracticeScreen extends StatelessWidget {
                         final questProvider = context.watch<QuestMapProvider>();
                         final questStars = questProvider.activeLandStars;
                         final landName = questProvider.activeLand?.name ?? 'Balands';
+                        final totalStarsInLand =
+                            (questProvider.activeLand?.totalLevels ?? 10) * 3;
 
                         return _ExploreAlgebriaHeroCard(
                           key: const Key('practice-mode-balance-scale'),
                           starsEarned: questStars,
-                          maxStars: 30,
+                          maxStars: totalStarsInLand,
                           landName: landName,
                           onTap: () {
                             Navigator.push(
@@ -67,12 +72,41 @@ class PracticeScreen extends StatelessWidget {
                         return _ModuleQuizHeroCard(
                           key: const Key('practice-mode-quiz'),
                           quizzesPassed: analytics.totalQuizzesPassed,
-                          totalQuizzes: 3,
+                          totalQuizzes: LessonCatalog.modules.length,
                           accuracy: analytics.overallAccuracyPercentage,
                           onTap: () {
                             Navigator.push(
                               context,
                               AppPageRoute(child: const QuizHubScreen()),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Mode 3: Spaced Review & Mastery Hub
+                    Builder(
+                      builder: (context) {
+                        final masteryProvider = context.watch<MasteryProvider?>();
+                        final dueCount = masteryProvider?.needsReview.length ?? 0;
+                        final mistakeCount =
+                            masteryProvider?.openLessonMistakes.length ?? 0;
+
+                        return _ReviewMasteryHeroCard(
+                          key: const Key('practice-mode-review-hub'),
+                          dueCount: dueCount,
+                          mistakeCount: mistakeCount,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              AppPageRoute(
+                                child: ReviewHubScreen(
+                                  initialTab: dueCount > 0
+                                      ? ReviewHubTab.practice
+                                      : ReviewHubTab.mastery,
+                                ),
+                              ),
                             );
                           },
                         );
@@ -593,6 +627,172 @@ class _CoverPill extends StatelessWidget {
           fontWeight: FontWeight.w900,
           color: color,
           letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
+class _ReviewMasteryHeroCard extends StatelessWidget {
+  const _ReviewMasteryHeroCard({
+    super.key,
+    required this.dueCount,
+    required this.mistakeCount,
+    required this.onTap,
+  });
+
+  final int dueCount;
+  final int mistakeCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasDue = dueCount > 0;
+
+    return BouncyPressable(
+      shrinkFactor: 0.97,
+      enableHaptics: true,
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: (hasDue ? AppColors.pink : AppColors.mint).withValues(alpha: 0.45),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: (hasDue ? AppColors.pink : AppColors.mint).withValues(alpha: 0.14),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Cover band
+            SizedBox(
+              height: 148,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          hasDue ? AppColors.extraLightPink : AppColors.lightMint,
+                          AppColors.lightYellow,
+                        ],
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: XyMascot(
+                        asset: hasDue ? AppAssets.xyInsight : AppAssets.xyHappy,
+                        size: 126,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 14,
+                    left: 14,
+                    child: _CoverPill(
+                      label: 'SPACED REPETITION',
+                      color: hasDue ? AppColors.darkPink : const Color(0xFF1B8A7A),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Review & Mastery Hub',
+                    style: GoogleFonts.nunito(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    hasDue
+                        ? '$dueCount Concepts Due For Practice'
+                        : 'Memory Retention & Concept Health',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: hasDue ? AppColors.darkPink : const Color(0xFF1B8A7A),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    hasDue
+                        ? 'Keep your algebra intuition sharp. Practice concepts before they fade from memory.'
+                        : 'Explore your concept mastery ratings, inspect quiz attempts, and resolve lesson mistakes.',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: hasDue ? AppColors.extraLightPink : AppColors.lightMint,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: (hasDue ? AppColors.pink : AppColors.mint).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          hasDue ? Icons.schedule_rounded : Icons.verified_rounded,
+                          size: 20,
+                          color: hasDue ? AppColors.darkPink : const Color(0xFF1B8A7A),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            hasDue
+                                ? '$dueCount ${dueCount == 1 ? 'concept' : 'concepts'} waiting in your queue'
+                                : (mistakeCount > 0
+                                    ? '$mistakeCount past ${mistakeCount == 1 ? 'mistake' : 'mistakes'} recorded'
+                                    : 'All concept memory levels verified'),
+                            style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: hasDue ? AppColors.darkPink : const Color(0xFF1B8A7A),
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 18,
+                          color: hasDue ? AppColors.darkPink : const Color(0xFF1B8A7A),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

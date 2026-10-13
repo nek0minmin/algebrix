@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:algebrix/core/providers/notes_provider.dart';
 import 'package:algebrix/models/note_correction_model.dart';
+import 'package:algebrix/models/study_note_model.dart';
+import 'package:algebrix/screens/notes/note_form_screen.dart';
 import 'package:algebrix/services/ai_tutor_service.dart';
 import 'package:algebrix/services/note_correction_service.dart';
+import 'package:algebrix/services/notes_repository.dart';
 import 'package:algebrix/widgets/notes/correction_suggestion_card.dart';
 import 'package:algebrix/widgets/notes/correction_text_controller.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Mirrors the feedback in the reported screenshot.
 AiFeedbackResult _distributiveFeedback() => const AiFeedbackResult(
@@ -105,6 +111,72 @@ void main() {
         service.detect(title: 'x', body: 'commutative', feedback: null),
         isEmpty,
       );
+    });
+
+    test('detects equation solution mistake (e.g. x = 2 when solution is x = 4)', () {
+      const body = 'i solved 2x - 8 by putting 8 on the other side and dividing it by 4 to get x = 2';
+      const feedback = AiFeedbackResult(
+        title: "Let's check step by step!",
+        message: 'To solve 2x - 8 = 0, first move the constant to the other side. The correct solution is x = 4.',
+        steps: [
+          'Add 8 to both sides to get 2x = 8',
+          'Divide both sides by 2 to isolate x, giving x = 4',
+        ],
+        whyItWorks: 'Dividing by the coefficient isolates x.',
+        providerUsed: 'test',
+        isCorrect: false,
+      );
+
+      final corrections = service.detect(title: 'Solving 2x - 8', body: body, feedback: feedback);
+      expect(corrections, isNotEmpty);
+      expect(corrections.any((c) => c.original == 'x = 2' && c.suggestions.contains('x = 4')), isTrue);
+    });
+
+    test('detects operation mistake (e.g. dividing it by 4 when step says divide by 2)', () {
+      const body = 'i solved 2x - 8 by putting 8 on the other side and dividing it by 4 to get x = 2';
+      const feedback = AiFeedbackResult(
+        title: "Let's check step by step!",
+        message: 'Divide by the coefficient of x (2), not 4.',
+        steps: [
+          'Add 8 to both sides to get 2x = 8',
+          'Divide both sides by 2 to isolate x, giving x = 4',
+        ],
+        whyItWorks: 'Dividing by 2 isolates x.',
+        providerUsed: 'test',
+        isCorrect: false,
+      );
+
+      final corrections = service.detect(title: 'Solving 2x - 8', body: body, feedback: feedback);
+      expect(corrections.any((c) => c.original.contains('4') && c.suggestions.any((s) => s.contains('2'))), isTrue);
+    });
+
+    test('uses structured corrections returned by AI feedback directly', () {
+      const body = 'I solved 3x + 12 = 0 and wrote x = 3 because 12 / 3 is 3.';
+      const feedback = AiFeedbackResult(
+        title: "Let's check step by step!",
+        message: 'Close, but check the calculation.',
+        corrections: [
+          AiCorrectionItem(
+            original: 'x = 3',
+            replacement: 'x = -4',
+            why: 'Subtracting 12 gives 3x = -12, so x = -4.',
+          ),
+          AiCorrectionItem(
+            original: '12 / 3 is 3',
+            replacement: '12 / 3 is 4',
+            why: '12 divided by 3 equals 4.',
+          ),
+        ],
+        providerUsed: 'test',
+        isCorrect: false,
+      );
+
+      final corrections = service.detect(title: '', body: body, feedback: feedback);
+      expect(corrections, hasLength(2));
+      expect(corrections.first.original, 'x = 3');
+      expect(corrections.first.suggestions, ['x = -4']);
+      expect(corrections.last.original, '12 / 3 is 3');
+      expect(corrections.last.suggestions, ['12 / 3 is 4']);
     });
   });
 
@@ -337,4 +409,218 @@ void main() {
       );
     });
   });
+
+  group('NoteFormScreen unapplied corrections confirmation dialog', () {
+    late _TestNotesRepository repository;
+    late NotesProvider notesProvider;
+
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      repository = _TestNotesRepository();
+      notesProvider = NotesProvider(repository: repository);
+      notesProvider.bindAccount('student-1');
+    });
+
+    Widget buildTestApp(StudyNote note) {
+      return ChangeNotifierProvider<NotesProvider>.value(
+        value: notesProvider,
+        child: MaterialApp(
+          home: Scaffold(
+            body: NoteFormScreen(note: note),
+          ),
+        ),
+      );
+    }
+
+    testWidgets(
+        'shows confirmation dialog when saving with unapplied corrections, cancels on "Review & fix"',
+        (tester) async {
+      tester.view.physicalSize = const Size(430, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final note = StudyNote(
+        id: 'note-1',
+        userId: 'student-1',
+        moduleId: 'module1',
+        lessonId: 'm1_l1',
+        title: 'Linear equation steps',
+        content: StudyNote.encodeContentWithAiFeedback(
+          'I solved 2x = 8 by dividing it by 4 to get x = 2.',
+          const AiFeedbackResult(
+            title: 'Equation Check',
+            message: 'You should divide by 2, not 4, giving x = 4.',
+            providerUsed: 'test',
+            corrections: [
+              AiCorrectionItem(
+                original: 'x = 2',
+                replacement: 'x = 4',
+                why: 'The solution is x = 4.',
+              ),
+            ],
+          ),
+        ),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      repository.notes.add(note);
+
+      await tester.pumpWidget(buildTestApp(note));
+      await tester.pumpAndSettle();
+
+      // Tap "Save note"
+      await tester.ensureVisible(find.byKey(const Key('save-note-button')));
+      await tester.tap(find.byKey(const Key('save-note-button')));
+      await tester.pumpAndSettle();
+
+      // Verify the confirmation dialog is displayed
+      expect(find.text('Uncorrected Mistakes in Note'), findsOneWidget);
+      expect(
+        find.text(
+          'Do you want to review and fix them first, or save the note without changing?',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('cancel-save-for-corrections-button')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('confirm-save-uncorrected-button')),
+        findsOneWidget,
+      );
+
+      // Tap "Review & fix"
+      await tester.tap(find.byKey(const Key('cancel-save-for-corrections-button')));
+      await tester.pumpAndSettle();
+
+      // Dialog is dismissed
+      expect(find.text('Uncorrected Mistakes in Note'), findsNothing);
+      // Correction suggestion card remains visible
+      expect(find.byType(CorrectionSuggestionCard), findsOneWidget);
+      // Note still contains original text
+      expect(repository.notes.single.displayContent, contains('x = 2'));
+    });
+
+    testWidgets('proceeds with save when user taps "Save anyway"',
+        (tester) async {
+      tester.view.physicalSize = const Size(430, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final note = StudyNote(
+        id: 'note-1',
+        userId: 'student-1',
+        moduleId: 'module1',
+        lessonId: 'm1_l1',
+        title: 'Linear equation steps',
+        content: StudyNote.encodeContentWithAiFeedback(
+          'I solved 2x = 8 by dividing it by 4 to get x = 2.',
+          const AiFeedbackResult(
+            title: 'Equation Check',
+            message: 'You should divide by 2, not 4, giving x = 4.',
+            providerUsed: 'test',
+            corrections: [
+              AiCorrectionItem(
+                original: 'x = 2',
+                replacement: 'x = 4',
+                why: 'The solution is x = 4.',
+              ),
+            ],
+          ),
+        ),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      repository.notes.add(note);
+
+      await tester.pumpWidget(buildTestApp(note));
+      await tester.pumpAndSettle();
+
+      // Tap "Save note"
+      await tester.ensureVisible(find.byKey(const Key('save-note-button')));
+      await tester.tap(find.byKey(const Key('save-note-button')));
+      await tester.pumpAndSettle();
+
+      // Verify confirmation dialog is displayed
+      expect(find.text('Uncorrected Mistakes in Note'), findsOneWidget);
+
+      // Tap "Save anyway"
+      await tester.tap(find.byKey(const Key('confirm-save-uncorrected-button')));
+      await tester.pumpAndSettle();
+
+      // Dialog is gone
+      expect(find.text('Uncorrected Mistakes in Note'), findsNothing);
+      expect(repository.notes.single.displayContent, contains('x = 2'));
+    });
+  });
+}
+
+class _TestNotesRepository implements NotesRepository {
+  final List<StudyNote> notes = [];
+
+  @override
+  Future<List<StudyNote>> fetchNotes({String? moduleId, String? lessonId}) async => notes;
+
+  @override
+  Future<StudyNote?> fetchNoteById(String noteId) async {
+    for (final note in notes) {
+      if (note.id == noteId) return note;
+    }
+    return null;
+  }
+
+  @override
+  Future<StudyNote> createNote({
+    required String moduleId,
+    required String lessonId,
+    required String title,
+    required String content,
+  }) async {
+    final note = StudyNote(
+      id: 'note-${notes.length + 1}',
+      userId: 'student-1',
+      moduleId: moduleId,
+      lessonId: lessonId,
+      title: title,
+      content: content,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    notes.add(note);
+    return note;
+  }
+
+  @override
+  Future<StudyNote> updateNote({
+    required String noteId,
+    required String moduleId,
+    required String lessonId,
+    required String title,
+    required String content,
+  }) async {
+    final idx = notes.indexWhere((n) => n.id == noteId);
+    if (idx < 0) throw StateError('Missing note');
+    final updated = notes[idx].copyWith(
+      moduleId: moduleId,
+      lessonId: lessonId,
+      title: title,
+      content: content,
+      updatedAt: DateTime.now(),
+    );
+    notes[idx] = updated;
+    return updated;
+  }
+
+  @override
+  Future<bool> deleteNote(String noteId) async {
+    notes.removeWhere((n) => n.id == noteId);
+    return true;
+  }
 }

@@ -94,7 +94,6 @@ class ConceptMasteryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = masteryBandColors(concept.band);
-    final accuracy = concept.quizAccuracy;
 
     return Semantics(
       button: true,
@@ -113,7 +112,7 @@ class ConceptMasteryTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Accuracy dial, or a dash when never quizzed.
+              // Lesson number badge (e.g. "1.1", "2.5"), color-coded by mastery band.
               Container(
                 width: 48,
                 height: 48,
@@ -127,9 +126,9 @@ class ConceptMasteryTile extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    accuracy == null ? '—' : '${accuracy.round()}%',
+                    concept.lessonNumberLabel,
                     style: GoogleFonts.nunito(
-                      fontSize: accuracy == null ? 16 : 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.w900,
                       color: colors.accent == AppColors.yellow
                           ? const Color(0xFF9A6B00)
@@ -144,7 +143,7 @@ class ConceptMasteryTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${concept.lessonNumberLabel} · ${concept.lessonTitle}',
+                      concept.lessonTitle,
                       style: GoogleFonts.nunito(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w800,

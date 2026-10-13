@@ -90,11 +90,18 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
           if (aiProvider != null) {
             if (widget.note?.aiFeedbackResult != null) {
               aiProvider.setFeedback(widget.note!.aiFeedbackResult!);
+              _refreshCorrections(widget.note!.aiFeedbackResult);
             } else {
               aiProvider.clearFeedback();
             }
+          } else if (widget.note?.aiFeedbackResult != null) {
+            _refreshCorrections(widget.note!.aiFeedbackResult);
           }
-        } catch (_) {}
+        } catch (_) {
+          if (widget.note?.aiFeedbackResult != null) {
+            _refreshCorrections(widget.note!.aiFeedbackResult);
+          }
+        }
       }
     });
   }
@@ -179,6 +186,12 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
       _restoredDraft = draft;
       _draftBannerDismissed = false;
     });
+
+    final currentFeedback = widget.note?.aiFeedbackResult ??
+        (mounted ? context.read<AiNotesProvider?>()?.currentFeedback : null);
+    if (currentFeedback != null) {
+      _refreshCorrections(currentFeedback);
+    }
   }
 
   /// Throws away the restored draft and returns to the saved note.
@@ -196,6 +209,9 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     });
     _titleController.corrections = const [];
     _contentController.corrections = const [];
+    if (widget.note?.aiFeedbackResult != null) {
+      _refreshCorrections(widget.note!.aiFeedbackResult);
+    }
     // Runs after the assignments above have already queued a debounce, and
     // _clearDraft cancels it, so reverting leaves no draft behind.
     unawaited(_clearDraft());
@@ -423,7 +439,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
     setState(() {
       _corrections = detected;
-      _activeCorrection = null;
+      _activeCorrection = detected.isNotEmpty ? detected.first : null;
       _syncControllerCorrections();
     });
   }
@@ -762,6 +778,175 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
 
       if (confirm != true) return;
     }
+
+    if (!mounted) return;
+
+    // Check if the user has unapplied correction suggestions in their note
+    final unappliedCorrections = _corrections.where((c) {
+      final controller = c.target == NoteCorrectionTarget.title
+          ? _titleController
+          : _contentController;
+      return !c.isApplied && c.matches(controller.text);
+    }).toList();
+
+    if (unappliedCorrections.isNotEmpty) {
+      final confirmSaveUncorrected = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          backgroundColor: Colors.white,
+          elevation: 8,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: const BoxDecoration(
+                    color: AppColors.extraLightPink,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Image.asset(
+                      AppAssets.xyInsight,
+                      width: 44,
+                      height: 44,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Uncorrected Mistakes in Note',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.text,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Xy noticed mathematical steps or terms that haven\'t been corrected yet:',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.extraLightPink,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.lightPink),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: unappliedCorrections.take(4).map((c) {
+                      final replacement = c.suggestions.isNotEmpty ? c.suggestions.first : '';
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2.5),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.only(top: 6),
+                              child: Icon(Icons.circle, size: 5, color: AppColors.darkPink),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '"${c.original}"  →  Suggested: "$replacement"',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.darkPink,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Do you want to review and fix them first, or save the note without changing?',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        key: const Key('cancel-save-for-corrections-button'),
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: const BorderSide(color: AppColors.border),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          'Review & fix',
+                          style: AppTextStyles.buttonSmall.copyWith(
+                            color: AppColors.text,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        key: const Key('confirm-save-uncorrected-button'),
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          backgroundColor: AppColors.pink,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          'Save anyway',
+                          style: AppTextStyles.buttonSmall.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      if (confirmSaveUncorrected != true) {
+        setState(() {
+          _activeCorrection = unappliedCorrections.first;
+        });
+        return;
+      }
+    }
+
+    if (!mounted) return;
 
     // Encode AI feedback persistently into note content if generated
     final encodedContent = StudyNote.encodeContentWithAiFeedback(

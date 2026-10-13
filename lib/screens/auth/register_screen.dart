@@ -108,7 +108,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
 
     final success = await authProvider.register(
       name: name,
@@ -121,6 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (success) {
       // Log out auto-created session so user lands on Login Screen
       await authProvider.signOut();
+      if (!mounted) return;
 
       showAlgebrixSnackBar(
         context,

@@ -408,14 +408,8 @@ void main() {
       await tester.tap(find.byKey(const Key('review-tab-history')));
       await tester.pumpAndSettle();
 
-      // History opens on quiz attempts, with lesson mistakes behind a toggle.
+      // History opens directly on quiz attempts.
       expect(find.text('Latest attempt'), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('history-source-lessons')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('No open lesson mistakes'), findsOneWidget);
-      expect(find.text('Latest attempt'), findsNothing);
     });
 
     testWidgets('AttemptReviewScreen opens on missed questions and can show all',

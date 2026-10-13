@@ -3,7 +3,6 @@ import 'package:algebrix/core/providers/lesson_provider.dart';
 import 'package:algebrix/core/providers/quiz_provider.dart';
 import 'package:algebrix/data/lesson_catalog.dart';
 import 'package:algebrix/data/module1_content.dart';
-import 'package:algebrix/data/module2_content.dart';
 import 'package:algebrix/models/lesson_progress_model.dart';
 import 'package:algebrix/services/progress_repository.dart';
 import 'package:algebrix/services/quiz_repository.dart';

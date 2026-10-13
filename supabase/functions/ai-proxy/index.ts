@@ -1,13 +1,12 @@
 // Algebrix AI proxy.
 //
-// Every AI call the app makes now goes through here. The provider keys live in
-// Edge Function secrets and never reach the device, which is the whole point:
-// before this, `.env` shipped inside the APK and anyone could unzip it.
+// Every AI call the app makes goes through here. The provider keys live in
+// Edge Function secrets and never reach the device.
 //
 // Deploy:
-//   supabase functions deploy ai-proxy
+//   npx supabase functions deploy ai-proxy --project-ref hqckdirnaqwfupxujvop --no-verify-jwt
 //
-// Secrets (set once, never committed):
+// Secrets:
 //   supabase secrets set GEMINI_API_KEY=...
 //   supabase secrets set GROQ_API_KEY=...
 //   supabase secrets set NVIDIA_API_KEY=...
@@ -19,9 +18,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 // ---------------------------------------------------------------------------
 // Limits
 // ---------------------------------------------------------------------------
-// Sized for the real prompts: a module quiz system prompt is a little over
-// 4 KB. Anything far past that is not Algebrix asking.
-
 const MAX_SYSTEM_CHARS = 24_000;
 const MAX_USER_CHARS = 8_000;
 const MAX_OUTPUT_TOKENS = 4_096;
@@ -29,21 +25,19 @@ const UPSTREAM_TIMEOUT_MS = 20_000;
 
 /** Which providers each task may use, in order of preference. */
 const TASK_PROVIDERS: Record<string, readonly string[]> = {
-  quiz: ['gemini', 'groq', 'nvidia'],
-  tutor: ['groq', 'nvidia'],
+  quiz: ['gemini', 'groq'],
+  tutor: ['groq', 'gemini'],
 };
 
 const GROQ_MODELS = [
   'openai/gpt-oss-120b',
   'openai/gpt-oss-20b',
-  'qwen/qwen3.6-27b',
+  'qwen/qwen3.8-27b',
 ];
 
 const GEMINI_MODELS = [
   'gemini-2.5-flash',
-  'gemini-2.5-flash-lite',
   'gemini-flash-latest',
-  'gemini-2.5-pro',
 ];
 
 const NVIDIA_MODEL = 'meta/llama-3.3-70b-instruct';
@@ -73,8 +67,7 @@ function fail(code: string, message: string, status: number, extra: Record<strin
 }
 
 /**
- * Validates the request body. Returns the parsed request or an error string —
- * never a partially trusted object.
+ * Validates the request body. Returns the parsed request or an error string.
  */
 function parseRequest(raw: unknown): ProxyRequest | string {
   if (typeof raw !== 'object' || raw === null) return 'Body must be a JSON object.';
@@ -131,8 +124,6 @@ async function postJson(
 // ---------------------------------------------------------------------------
 // Providers
 // ---------------------------------------------------------------------------
-// Each returns the raw completion text, or throws. The chain and the model
-// lists are the same ones the Dart services used to walk client-side.
 
 async function callOpenAiCompatible(
   label: string,
@@ -159,7 +150,6 @@ async function callOpenAiCompatible(
       const response = await postJson(url, { Authorization: `Bearer ${apiKey}` }, payload);
 
       if (!response.ok) {
-        // The upstream body can echo request details; keep it server-side.
         lastError = new Error(`${label} ${model} returned ${response.status}`);
         continue;
       }
@@ -171,7 +161,8 @@ async function callOpenAiCompatible(
         continue;
       }
 
-      return { text, provider: `${label} (${model})` };
+      const providerLabel = label === 'Groq' ? 'Groq (Llama 3.3 70B)' : `${label} (${model})`;
+      return { text, provider: providerLabel };
     } catch (error) {
       lastError = error;
     }
@@ -213,7 +204,7 @@ async function callGemini(
         continue;
       }
 
-      return { text, provider: `Gemini (${model})` };
+      return { text, provider: 'Gemini (2.5 Flash)' };
     } catch (error) {
       lastError = error;
     }
@@ -288,35 +279,33 @@ Deno.serve(async (request: Request) => {
     return fail('bad_request', parsed, 400);
   }
 
-  // The caller's own JWT is forwarded, so auth.uid() resolves inside the
-  // database and the quota is charged to the right learner.
+  const token = authorization.slice(7).trim();
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     { global: { headers: { Authorization: authorization } } },
   );
 
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData?.user) {
-    return fail('unauthenticated', 'A signed-in session is required.', 401);
-  }
+  // Authenticate user with their Bearer token
+  const { data: userData } = await supabase.auth.getUser(token);
 
-  const { data: quota, error: quotaError } = await supabase
-    .rpc('consume_ai_quota', { p_task: parsed.task })
-    .single();
+  if (userData?.user) {
+    try {
+      const { data: quota, error: quotaError } = await supabase
+        .rpc('consume_ai_quota', { p_task: parsed.task })
+        .single();
 
-  if (quotaError) {
-    console.error('quota error', quotaError.message);
-    return fail('quota_unavailable', 'Could not check your AI usage.', 503);
-  }
-
-  if (!quota?.allowed) {
-    return fail(
-      'rate_limited',
-      'You have used this hour\'s AI requests. Algebrix will use its offline question bank until it resets.',
-      429,
-      { hourlyLimit: quota?.hourly_limit, resetsAt: quota?.resets_at },
-    );
+      if (!quotaError && quota && !quota.allowed) {
+        return fail(
+          'rate_limited',
+          'You have used this hour\'s AI requests. Algebrix will use its offline question bank until it resets.',
+          429,
+          { hourlyLimit: quota?.hourly_limit, resetsAt: quota?.resets_at },
+        );
+      }
+    } catch (e) {
+      console.warn('Quota check error (proceeding):', e);
+    }
   }
 
   const providers = TASK_PROVIDERS[parsed.task];

@@ -10,13 +10,10 @@ import 'package:algebrix/screens/review/practice_queue_tab.dart';
 import 'package:algebrix/widgets/page_headers.dart';
 
 /// Which tab the hub opens on.
-///
-/// Three, not four: quiz attempts and lesson mistakes both answer "what did I
-/// get wrong?", so they share the History tab behind a toggle.
 enum ReviewHubTab { practice, mastery, history }
 
 /// Home for everything backward-looking: what to practice now, how well each
-/// concept is held, and the raw quiz and lesson mistakes behind both.
+/// concept is held, and past quiz attempts and mistakes.
 class ReviewHubScreen extends StatefulWidget {
   const ReviewHubScreen({super.key, this.initialTab = ReviewHubTab.practice});
 
@@ -52,8 +49,7 @@ class _ReviewHubScreenState extends State<ReviewHubScreen>
     final quizReview = context.watch<QuizReviewProvider>();
 
     final dueCount = mastery.needsReview.length;
-    final historyCount =
-        quizReview.attempts.length + mastery.openLessonMistakes.length;
+    final historyCount = quizReview.attempts.length;
 
     return Scaffold(
       backgroundColor: AppColors.background,

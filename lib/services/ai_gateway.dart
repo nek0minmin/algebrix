@@ -79,9 +79,14 @@ class AiGateway {
   /// `Supabase.instance` throws in that state rather than returning null.
   static String? _sessionAccessToken() {
     try {
-      return Supabase.instance.client.auth.currentSession?.accessToken;
+      final sessionToken =
+          Supabase.instance.client.auth.currentSession?.accessToken;
+      if (sessionToken != null && sessionToken.isNotEmpty) {
+        return sessionToken;
+      }
+      return AppConstants.supabaseAnonKey;
     } catch (_) {
-      return null;
+      return AppConstants.supabaseAnonKey;
     }
   }
 

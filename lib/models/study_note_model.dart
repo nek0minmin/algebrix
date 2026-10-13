@@ -88,9 +88,10 @@ class StudyNote {
       'title': feedback.title,
       'message': feedback.message,
       'steps': feedback.steps,
-      if (feedback.whyItWorks != null) 'whyItWorks': feedback.whyItWorks,
       'isCorrect': feedback.isCorrect,
       'provider': feedback.providerUsed,
+      if (feedback.corrections.isNotEmpty)
+        'corrections': feedback.corrections.map((c) => c.toJson()).toList(),
     };
 
     return '$cleanContent\n\n$_aiMarker${jsonEncode(feedbackMap)}-->';

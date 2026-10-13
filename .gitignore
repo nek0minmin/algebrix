@@ -2,6 +2,7 @@
 .env
 .env.local
 *.env
+supabase/.temp/
 
 # Miscellaneous
 *.class

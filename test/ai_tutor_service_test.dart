@@ -175,5 +175,46 @@ void main() {
       expect(service.isOffTopicText('My delicious lumpia recipe with ground pork and wrappers'), isTrue);
       expect(service.isOffTopicText('How to bake chocolate chip cookies in the oven with sugar and flour'), isTrue);
     });
+
+    test('checkWorkedExample extracts JSON even with markdown fences and conversational commentary', () async {
+      final mockClient = MockClient((request) async {
+        return _proxyResponse(
+          'Here is the analysis:\n```json\n{\n  "isCorrect": true,\n  "title": "Nice work!",\n  "message": "Step by step correct.",\n  "whyItWorks": "Properties of equality.",\n  "keyConcept": "Linear equations"\n}\n```\nHope that helps!',
+          provider: 'Gemini (proxy)',
+        );
+      });
+
+      final service = AiTutorService(gateway: _gateway(mockClient));
+      final result = await service.checkWorkedExample(
+        problem: '2x + 4 = 10',
+        solution: '2x = 6 -> x = 3',
+      );
+
+      expect(result.isCorrect, isTrue);
+      expect(result.title, 'Nice work!');
+      expect(result.providerUsed, 'Gemini (proxy)');
+    });
+
+    test('evaluateExplanation extracts JSON with markdown fences and prose preamble', () async {
+      final mockClient = MockClient((request) async {
+        return _proxyResponse(
+          'Certainly! Here is the insight:\n```json\n{\n  "isCorrect": true,\n  "title": "Spot on!",\n  "message": "Clear explanation of inverse operations.",\n  "keyConcept": "Undo addition before multiplication"\n}\n```\nKeep it up!',
+          provider: 'Groq (test)',
+        );
+      });
+
+      final service = AiTutorService(gateway: _gateway(mockClient));
+      final result = await service.evaluateExplanation(
+        topic: 'Two-step equations',
+        studentExplanation: 'To solve 2x + 4 = 10, subtract 4 then divide by 2.',
+      );
+
+      expect(result.isCorrect, isTrue);
+      expect(result.title, 'Spot on!');
+      expect(result.message, contains('inverse operations'));
+      expect(result.keyConcept, contains('Undo addition'));
+      expect(result.providerUsed, 'Groq (test)');
+    });
   });
 }
+

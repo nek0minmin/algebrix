@@ -235,7 +235,9 @@ class _FakeProgressRepository implements ProgressRepository {
     int contentVersion = 1,
   }) async {
     final eventKey = '$lessonId:$stepId';
-    final xpAwarded = answerCorrect && _awardedSteps.add(eventKey) ? 10 : 0;
+    if (answerCorrect) {
+      _awardedSteps.add(eventKey);
+    }
     return RecordLessonStepResult(
       progress: LessonProgress(
         userId: 'user_1',

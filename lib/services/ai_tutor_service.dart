@@ -3,6 +3,33 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:algebrix/services/ai_gateway.dart';
 
+/// Structured mistake correction item returned by Xy AI tutor.
+class AiCorrectionItem {
+  final String original;
+  final String replacement;
+  final String? why;
+
+  const AiCorrectionItem({
+    required this.original,
+    required this.replacement,
+    this.why,
+  });
+
+  factory AiCorrectionItem.fromJson(Map<String, dynamic> json) {
+    return AiCorrectionItem(
+      original: (json['original'] as String? ?? '').trim(),
+      replacement: (json['replacement'] as String? ?? '').trim(),
+      why: json['why'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'original': original,
+    'replacement': replacement,
+    if (why != null) 'why': why,
+  };
+}
+
 /// Data model representing structured educational feedback from Xy AI tutor.
 class AiFeedbackResult {
   final String title;
@@ -12,6 +39,7 @@ class AiFeedbackResult {
   final String? keyConcept;
   final String? promptForStudent;
   final List<String> suggestions;
+  final List<AiCorrectionItem> corrections;
   final String providerUsed;
   final bool isCorrect;
 
@@ -23,6 +51,7 @@ class AiFeedbackResult {
     this.keyConcept,
     this.promptForStudent,
     this.suggestions = const [],
+    this.corrections = const [],
     required this.providerUsed,
     this.isCorrect = true,
   });
@@ -43,6 +72,11 @@ class AiFeedbackResult {
       promptForStudent: json['promptForStudent'] as String?,
       suggestions: (json['suggestions'] as List<dynamic>?)
               ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      corrections: (json['corrections'] as List<dynamic>?)
+              ?.whereType<Map<String, dynamic>>()
+              .map(AiCorrectionItem.fromJson)
               .toList() ??
           const [],
       providerUsed: provider ?? json['provider'] as String? ?? 'Algebrix AI',
@@ -83,6 +117,7 @@ CRITICAL TOPIC RELEVANCE RULES:
 }
 3. For algebra worked examples, verify the mathematical steps. Wrap ALL numbers, variables, and math operations in **bold** (e.g. **+4**, **3x**, **16**, **x = 4**).
 4. Do NOT include emoji in "title". Provide 2-3 clear step-by-step bullet points in "steps" (do NOT prefix with "Step 1", just the action).
+5. If the student made an error in their equation, arithmetic, steps, or final answer, provide an array of exact mistaken text snippets and their correct replacements in "corrections". If fully correct, return "corrections": [].
 
 Return JSON ONLY with exact keys:
 {
@@ -91,7 +126,14 @@ Return JSON ONLY with exact keys:
   "message": "Friendly summary feedback",
   "steps": ["Step 1 description", "Step 2 description"],
   "whyItWorks": "Mathematical intuition or rule (e.g. Inverse operations isolate the variable)",
-  "keyConcept": "Concept name (e.g. Subtraction Property of Equality)"
+  "keyConcept": "Concept name (e.g. Subtraction Property of Equality)",
+  "corrections": [
+    {
+      "original": "exact mistaken snippet from student solution (e.g. 'x = 2' or 'dividing it by 4')",
+      "replacement": "correct replacement (e.g. 'x = 4' or 'dividing it by 2')",
+      "why": "Short reason why"
+    }
+  ]
 }
 ''';
 
@@ -116,7 +158,14 @@ Return JSON ONLY with exact keys:
   "message": "You tried to divide by **3** first, but **+4** is still attached to **3x**.",
   "steps": ["Undo **+4** first: **3x + 4 - 4 = 16 - 4** → **3x = 12**", "Divide both sides by **3**: **x = 4**"],
   "whyItWorks": "Undo operations from the outside in (PEMDAS in reverse)",
-  "promptForStudent": "💡 What did you learn from this step?"
+  "promptForStudent": "💡 What did you learn from this step?",
+  "corrections": [
+    {
+      "original": "exact mistaken snippet",
+      "replacement": "correct replacement text",
+      "why": "Short reason"
+    }
+  ]
 }
 ''';
 
@@ -170,13 +219,21 @@ CRITICAL TOPIC RELEVANCE RULES:
 3. If the student is explaining an ALGEBRA concept (e.g. like terms, variables, equations, constants, PEMDAS, properties of operations, distributive property), evaluate whether they grasped the mathematical intuition and return constructive feedback.
 4. Wrap all numbers, variables, and mathematical terms in **bold**.
 5. Do NOT include emoji in "title".
+6. If the student made an error in a term, property, equation, or calculation, provide an array of exact mistaken text snippets and their correct replacements in "corrections". If fully correct, return "corrections": [].
 
 Return JSON ONLY with exact keys:
 {
   "isCorrect": boolean,
   "title": "You're on the right track!" or "Almost there!" or "Let's focus on Algebra!",
   "message": "Friendly constructive feedback on their algebra explanation",
-  "keyConcept": "Core algebraic rule or intuition"
+  "keyConcept": "Core algebraic rule or intuition",
+  "corrections": [
+    {
+      "original": "exact wrong snippet from student note (e.g. 'commutative' or 'x = 2')",
+      "replacement": "correct replacement (e.g. 'distributive' or 'x = 4')",
+      "why": "Short reason why"
+    }
+  ]
 }
 ''';
 
@@ -362,6 +419,16 @@ CRITICAL RULES:
       cleaned = cleaned.substring(0, cleaned.length - 3);
     }
     cleaned = cleaned.trim();
+
+    if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+      return jsonDecode(cleaned) as Map<String, dynamic>;
+    }
+
+    final start = cleaned.indexOf('{');
+    final end = cleaned.lastIndexOf('}');
+    if (start != -1 && end != -1 && end > start) {
+      cleaned = cleaned.substring(start, end + 1);
+    }
     return jsonDecode(cleaned) as Map<String, dynamic>;
   }
 
